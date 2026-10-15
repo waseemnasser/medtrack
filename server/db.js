@@ -1,5 +1,8 @@
-const { Pool } = require("pg");
+const { Pool, types } = require("pg");
 require("dotenv").config();
+
+// خلي حقول DATE ترجع نص كما هي بدون تحويل توقيت
+types.setTypeParser(1082, (value) => value);
 
 const pool = new Pool({
     user: "postgres",

@@ -9,6 +9,12 @@ app.use(express.json());
 
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/members", require("./routes/members"));
+app.use("/api/medications", require("./routes/medications"));
+app.use("/api/catalog", require("./routes/catalog"));
+
+app.use("/api/doses", require("./routes/doses"));
+
+app.use("/api/appointments", require("./routes/appointments"));
 
 app.get("/api/health", async (req, res) => {
     const result = await pool.query("SELECT NOW()");
