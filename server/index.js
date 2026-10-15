@@ -4,7 +4,7 @@ const pool = require("./db");
 require("dotenv").config();
 
 const app = express();
-const shareRoutes = require("./routes/share");
+
 app.use(cors());
 app.use(express.json());
 
@@ -12,12 +12,9 @@ app.use("/api/auth", require("./routes/auth"));
 app.use("/api/members", require("./routes/members"));
 app.use("/api/medications", require("./routes/medications"));
 app.use("/api/catalog", require("./routes/catalog"));
-
 app.use("/api/doses", require("./routes/doses"));
-
 app.use("/api/appointments", require("./routes/appointments"));
-
-app.use("/api/share", shareRoutes);
+app.use("/api/share", require("./routes/share"));
 
 app.get("/api/health", async (req, res) => {
     const result = await pool.query("SELECT NOW()");
