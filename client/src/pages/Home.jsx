@@ -12,6 +12,7 @@ export default function Home() {
         <div style={{ padding: 24 }}>
             <h1>تم تسجيل الدخول بنجاح ✅</h1>
             <p>هنا رح تصير صفحة "جرعات اليوم".</p>
+            <button onClick={() => navigate("/members")}>أفراد العائلة</button>
             <button onClick={logout}>تسجيل الخروج</button>
         </div>
     );
