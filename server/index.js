@@ -15,10 +15,12 @@ app.use("/api/catalog", require("./routes/catalog"));
 app.use("/api/doses", require("./routes/doses"));
 app.use("/api/appointments", require("./routes/appointments"));
 app.use("/api/share", require("./routes/share"));
+app.use("/api/push", require("./routes/push"));
 
 app.get("/api/health", async (req, res) => {
     const result = await pool.query("SELECT NOW()");
     res.json({ ok: true, time: result.rows[0].now });
 });
 
+require("./push").startScheduler();
 app.listen(5000, () => console.log("Server running on port 5000"));

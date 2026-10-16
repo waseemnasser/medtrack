@@ -1,4 +1,5 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import InstallPrompt from "./InstallPrompt";
 
 export default function Layout() {
     const navigate = useNavigate();
@@ -14,7 +15,7 @@ export default function Layout() {
                 <span className="brand">دوائي</span>
                 <button className="logout" onClick={logout}>خروج</button>
             </header>
-
+            <InstallPrompt />
             <main className="app-main">
                 <Outlet />
             </main>
