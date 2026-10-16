@@ -30,8 +30,8 @@ router.post("/:memberId", auth, async (req, res) => {
             [memberId, req.userId, token, String(hours)]
         );
 
-        const base = process.env.PUBLIC_URL || "http://localhost:5000";
-        const url = `${base}/api/share/${token}`;
+        const base = process.env.PUBLIC_URL || "http://localhost:5173";
+        const url = `${base}/share/${token}`;
         const qr_data_url = await QRCode.toDataURL(url);
 
         res.status(201).json({

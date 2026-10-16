@@ -8,6 +8,9 @@ import MemberForm from "./pages/MemberForm";
 import Appointments from "./pages/Appointments";
 import MemberProfile from "./pages/MemberProfile";
 import MedicationForm from "./pages/MedicationForm";
+import AppointmentForm from "./pages/AppointmentForm";
+import SharePage from "./pages/SharePage";
+import DoctorView from "./pages/DoctorView";
 import "./App.css";
 
 function Protected({ children }) {
@@ -22,6 +25,7 @@ export default function App() {
         {/* صفحات بلا هيكل */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/share/:token" element={<DoctorView />} />
 
         {/* صفحات داخل الهيكل */}
         <Route element={<Protected><Layout /></Protected>}>
@@ -32,6 +36,9 @@ export default function App() {
           <Route path="/members/:id/edit" element={<MemberForm />} />
           <Route path="/members/:id/medications/new" element={<MedicationForm />} />
           <Route path="/appointments" element={<Appointments />} />
+          <Route path="/appointments/new" element={<AppointmentForm />} />
+          <Route path="/appointments/:id/edit" element={<AppointmentForm />} />
+          <Route path="/members/:id/share" element={<SharePage />} />
         </Route>
       </Routes>
     </BrowserRouter>
