@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
+import "./Share.css";
 
 export default function SharePage() {
     const { id } = useParams();

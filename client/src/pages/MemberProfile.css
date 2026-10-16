@@ -1,0 +1,92 @@
+/* ============================================================
+   صفحة ملف الفرد
+   ------------------------------------------------------------
+   تعرض بيانات فرد واحد مع تبويبَي الأدوية والمواعيد.
+   ============================================================ */
+
+/* ---------- رأس الملف ---------- */
+
+.profile-head {
+  margin-bottom: 16px;
+}
+
+.profile-head h1 {
+  margin: 0 0 6px;
+}
+
+.profile-head .muted {
+  margin: 2px 0;
+  color: var(--text-muted);
+  font-size: var(--fs-base);
+}
+
+/* الحساسية من أدوية — تظهر بالأحمر لأنها معلومة حرجة طبياً */
+.profile-head .warn {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* ---------- أزرار الملف ---------- */
+
+.profile-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+/* الزر الثانوي «مشاركة مع الطبيب» — بإطار لا بخلفية ملوّنة،
+   حتى يبقى زر «إضافة دواء» هو الأبرز */
+.profile-actions button:not(.btn-primary) {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 18px;
+  font-size: var(--fs-md);
+  font-family: inherit;
+  cursor: pointer;
+  min-height: var(--tap);
+}
+
+/* ---------- التبويبات ---------- */
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+  background: var(--tabs-bg);
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.tabs button {
+  flex: 1;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  font-size: var(--fs-md);
+  font-family: inherit;
+  cursor: pointer;
+  color: #5a646c;
+  min-height: 44px;
+}
+
+.tabs button.active {
+  background: var(--surface);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* ---------- شارة الخصوصية ---------- */
+
+/* تظهر على الأدوية التي اختار المستخدم إخفاءها عند المشاركة.
+   لونها بنفسجي ليتميّز عن الأخضر (عادي) والأحمر (تحذير) */
+.badge-private {
+  background: var(--private-soft);
+  color: var(--private);
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}

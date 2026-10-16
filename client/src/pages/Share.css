@@ -1,0 +1,66 @@
+/* ============================================================
+   صفحة المشاركة مع الطبيب
+   ------------------------------------------------------------
+   يولّد المستخدم من هنا رابطاً مؤقتاً مع رمز QR.
+   ============================================================ */
+
+.share-intro {
+  font-size: var(--fs-md);
+  line-height: 1.7;
+  margin: 0 0 10px;
+}
+
+/* تنويه الخصوصية: الأدوية الخاصة لن تظهر في الرابط.
+   لونه بنفسجي ليربط بصرياً مع شارة «دواء خاص» */
+.share-note {
+  background: var(--private-soft);
+  color: var(--private);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-base);
+  margin: 0 0 18px;
+}
+
+.share-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* رمز QR — يمسحه الطبيب بكاميرا هاتفه */
+.qr {
+  width: 200px;
+  height: 200px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: var(--gap-sm);
+  background: var(--surface);
+}
+
+.qr-caption {
+  font-size: var(--fs-base);
+  color: var(--text-soft);
+  margin: 10px 0 16px;
+}
+
+/* صندوق الرابط — اتجاهه من اليسار لليمين لأنه نص لاتيني */
+.link-box {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-size: var(--fs-sm);
+  word-break: break-all;
+  direction: ltr;
+  text-align: left;
+  width: 100%;
+  margin-bottom: var(--gap);
+}
+
+.share-result .btn-primary {
+  width: 100%;
+}
+
+/* سطر «ينتهي الرابط في...» */
+.expiry {
+  margin-top: 12px;
+}

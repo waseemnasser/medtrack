@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import "./InstallPrompt.css";
 
 function isIOS() {
     return /iphone|ipad|ipod/i.test(navigator.userAgent);

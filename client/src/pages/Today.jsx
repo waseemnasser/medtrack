@@ -4,6 +4,7 @@ import api from "../api";
 import useDoseAlarm from "../useDoseAlarm";
 import { playBeep } from "../beep";
 import PushToggle from "../components/PushToggle";
+import "./Today.css";
 
 // تقسيم الجرعات حسب الفترة
 function periodOf(timeOfDay) {

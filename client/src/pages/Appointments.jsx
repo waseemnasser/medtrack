@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
+import "./Appointments.css";
 
 const DAY_MS = 86400000;
 

@@ -11,7 +11,9 @@ import MedicationForm from "./pages/MedicationForm";
 import AppointmentForm from "./pages/AppointmentForm";
 import SharePage from "./pages/SharePage";
 import DoctorView from "./pages/DoctorView";
-import "./App.css";
+import "./styles/variables.css";
+import "./styles/base.css";
+import "./styles/components.css";
 
 function Protected({ children }) {
   const token = localStorage.getItem("token");

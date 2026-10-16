@@ -1,0 +1,46 @@
+/* ============================================================
+   صندوق تفعيل الإشعارات
+   ------------------------------------------------------------
+   يظهر أعلى صفحة جرعات اليوم. بعد التفعيل يتحوّل نصه
+   إلى «الإشعارات مفعّلة» مع زر إرسال إشعار تجريبي.
+   ============================================================ */
+
+.push-box {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: var(--gap) 16px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: var(--fs-base);
+}
+
+.push-box button {
+  background: var(--neutral);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 9px 16px;
+  font-size: var(--fs-base);
+  font-family: inherit;
+  cursor: pointer;
+  min-height: var(--tap-sm);
+}
+
+/* زر التفعيل — بارز لأنه إجراء نريد من المستخدم أن يتخذه */
+.push-box .push-on {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+}
+
+/* رسالة النتيجة أسفل الصندوق */
+.push-msg {
+  width: 100%;
+  margin: 6px 0 0;
+  color: var(--primary);
+  font-size: var(--fs-sm);
+}

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
+import "./MedicationForm.css";
 
 const DAY_LABELS = [
     { n: "1", label: "ح" }, { n: "2", label: "ن" }, { n: "3", label: "ث" },

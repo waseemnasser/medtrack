@@ -1,0 +1,153 @@
+/* ============================================================
+   صفحة جرعات اليوم — الصفحة الرئيسية
+   ------------------------------------------------------------
+   أهم صفحة في التطبيق. المستخدم يفتحها عدة مرات يومياً،
+   وزر «تم الأخذ» هو أكثر زر يُضغط.
+
+   ملاحظة تصميمية: بطاقة الجرعة لها حافّة ملوّنة على اليمين —
+   خضراء إذا أُكّدت، حمراء إذا تأخّرت، شفافة إن لم يحن وقتها.
+   ============================================================ */
+
+/* قسم الفترة: الصباح / الظهر / المساء */
+.period {
+  margin-bottom: 28px;
+}
+
+.period-title {
+  font-size: var(--fs-lg);
+  margin: 0 0 12px;
+  color: #444;
+  font-weight: 700;
+}
+
+/* ---------- بطاقة الجرعة ---------- */
+
+.dose-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  border-right: 4px solid transparent;
+}
+
+/* جرعة مؤكّدة: تبهت ويظهر خط أخضر */
+.dose-card.taken {
+  opacity: .62;
+  border-right-color: var(--primary);
+}
+
+/* جرعة فات وقتها ولم تُؤكّد */
+.dose-card.late {
+  border-right-color: var(--danger);
+}
+
+.dose-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.dose-top {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  margin-bottom: 4px;
+}
+
+.dose-time {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.dose-card h3 {
+  margin: 0 0 3px;
+  font-size: var(--fs-lg);
+}
+
+.dose-info .muted {
+  margin: 1px 0;
+  color: var(--text-muted);
+  font-size: var(--fs-base);
+}
+
+.dose-info .small {
+  font-size: var(--fs-sm);
+}
+
+/* شارة «متأخرة» */
+.badge-late {
+  background: var(--danger-soft);
+  color: var(--danger);
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+
+/* نص «تم ✓» مكان الزر بعد التأكيد */
+.done {
+  color: var(--primary);
+  font-weight: 700;
+  font-size: var(--fs-md);
+  white-space: nowrap;
+}
+
+/* ---------- شريط التنبيه الصوتي ---------- */
+/* يظهر عند حلول موعد جرعة والصفحة مفتوحة */
+
+.alarm-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--primary);
+  color: #fff;
+  padding: var(--gap) 18px;
+  border-radius: var(--radius-md);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  flex-wrap: wrap;
+  box-shadow: 0 4px 16px rgba(31, 122, 111, .3);
+  animation: alarmIn .3s ease-out;
+}
+
+@keyframes alarmIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.alarm-text {
+  font-size: var(--fs-md);
+}
+
+.alarm-actions {
+  display: flex;
+  gap: var(--gap-sm);
+}
+
+.alarm-bar button {
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 9px 16px;
+  font-size: var(--fs-base);
+  font-family: inherit;
+  cursor: pointer;
+  min-height: var(--tap-sm);
+}
+
+.alarm-confirm {
+  background: #fff;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.alarm-close {
+  background: rgba(255, 255, 255, .2);
+  color: #fff;
+}

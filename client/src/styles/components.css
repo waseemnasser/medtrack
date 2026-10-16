@@ -1,0 +1,216 @@
+/* ============================================================
+   المكوّنات المشتركة — تُستخدم في أكثر من صفحة
+   ------------------------------------------------------------
+   أي تعديل هنا يظهر في عدة صفحات دفعة واحدة. هذه ميزة لا عيب:
+   تغيير شكل .card مرة واحدة يغيّر كل بطاقات التطبيق.
+
+   القاعدة: إذا كان التنسيق يخص صفحة واحدة فقط،
+   مكانه ملف تلك الصفحة لا هذا الملف.
+   ============================================================ */
+
+/* ---------- الأزرار ---------- */
+
+/* الزر الأساسي: إجراء واحد رئيسي في كل صفحة */
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-md);
+  font-family: inherit;
+  cursor: pointer;
+  min-height: var(--tap);
+  white-space: nowrap;
+}
+
+.btn-primary:disabled {
+  background: var(--primary-muted);
+  cursor: default;
+}
+
+/* ---------- البطاقات ---------- */
+
+/* حاوية تُرتّب البطاقات عمودياً بمسافات متساوية */
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* بطاقة باهتة: دواء متوقف أو موعد سابق */
+.card.dim {
+  opacity: .55;
+}
+
+/* جسم البطاقة — قابل للنقر افتراضياً */
+.card-body {
+  padding: 18px 20px;
+  cursor: pointer;
+}
+
+/* بطاقة للعرض فقط لا تُفتح بالنقر */
+.card-body.no-click {
+  cursor: default;
+}
+
+.card-body h2 {
+  margin: 0 0 6px;
+  font-size: var(--fs-xl);
+}
+
+.card-body .muted {
+  margin: 2px 0;
+  color: var(--text-muted);
+  font-size: var(--fs-base);
+}
+
+/* شريط الأزرار أسفل البطاقة */
+.card-actions {
+  display: flex;
+  gap: var(--gap-sm);
+  padding: 10px 20px 16px;
+  border-top: 1px solid var(--border-faint);
+}
+
+.card-actions button {
+  background: var(--neutral);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 9px 16px;
+  font-size: var(--fs-base);
+  font-family: inherit;
+  cursor: pointer;
+  min-height: var(--tap-sm);
+}
+
+.card-actions .danger {
+  color: var(--danger);
+}
+
+/* عنوان بطاقة مع شارة بجانبه */
+.med-title {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  flex-wrap: wrap;
+}
+
+/* ---------- الحالة الفارغة ---------- */
+
+/* تظهر حين لا توجد بيانات. نصها مهم: يوجّه المستخدم الجديد */
+.empty {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 36px 20px;
+  text-align: center;
+  color: var(--text-soft);
+  font-size: var(--fs-md);
+}
+
+/* ---------- النماذج ---------- */
+
+.form-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: var(--gap-lg);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow);
+}
+
+.form-card label {
+  font-size: var(--fs-base);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.form-card input,
+.form-card select {
+  padding: 11px 12px;
+  margin-bottom: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-md);
+  font-family: inherit;
+  min-height: 46px;
+}
+
+.form-card select {
+  background: var(--surface);
+}
+
+.form-card input:focus,
+.form-card select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* مسافة بين حقل والحقل الذي يليه */
+.form-card input + label {
+  margin-top: 12px;
+}
+
+/* نص مساعدة أسفل الحقل */
+.form-card .hint {
+  font-size: var(--fs-sm);
+  color: var(--text-faint);
+  margin: 0 0 var(--gap);
+}
+
+/* صف أزرار الحفظ والإلغاء */
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.form-actions button:not(.btn-primary) {
+  background: var(--neutral);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 12px 20px;
+  font-size: var(--fs-md);
+  font-family: inherit;
+  cursor: pointer;
+  min-height: var(--tap);
+}
+
+/* ---------- الرسائل ---------- */
+
+/* رسالة خطأ. قاعدتنا: تقول للمستخدم ماذا يفعل لا أن هناك خطأ فقط */
+.error {
+  background: var(--danger-soft);
+  color: var(--danger);
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-base);
+  margin-bottom: var(--gap);
+}
+
+/* ---------- الشارات ---------- */
+
+/* شارة خضراء: موعد جرعة، «بعد ٣ أيام» */
+.chip {
+  background: var(--primary-soft);
+  color: var(--primary);
+  padding: 5px 11px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+/* صف شارات مواعيد الجرعات */
+.schedules {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}

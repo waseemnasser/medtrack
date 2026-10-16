@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { pushSupported, enablePush, sendTestPush } from "../push";
+import "./PushToggle.css";
 
 export default function PushToggle() {
     const [state, setState] = useState("idle"); // idle | on | error

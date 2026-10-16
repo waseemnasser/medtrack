@@ -1,0 +1,87 @@
+/* ============================================================
+   صفحتا تسجيل الدخول وإنشاء الحساب
+   ------------------------------------------------------------
+   هاتان الصفحتان خارج هيكل التطبيق: لا شريط علوي ولا سفلي.
+   البطاقة في منتصف الشاشة تماماً.
+   ============================================================ */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.auth-card {
+  background: var(--surface);
+  width: 100%;
+  max-width: 380px;
+  padding: 32px 28px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* اسم التطبيق في أعلى البطاقة */
+.auth-card h1 {
+  margin: 0;
+  font-size: 28px;
+  text-align: center;
+  color: var(--primary);
+}
+
+/* «تسجيل الدخول» أو «إنشاء حساب جديد» */
+.auth-card .sub {
+  margin: 4px 0 var(--gap-lg);
+  text-align: center;
+  color: var(--text-soft);
+}
+
+.auth-card label {
+  font-size: var(--fs-base);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.auth-card input {
+  padding: 11px 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-md);
+  font-family: inherit;
+}
+
+.auth-card input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.auth-card button {
+  padding: 12px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.auth-card button:disabled {
+  background: var(--primary-muted);
+  cursor: default;
+}
+
+/* الرابط بين الصفحتين: «ما عندك حساب؟ أنشئ حساباً» */
+.switch {
+  text-align: center;
+  font-size: var(--fs-base);
+  margin: 18px 0 0;
+}
+
+.switch a {
+  color: var(--primary);
+}

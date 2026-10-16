@@ -1,0 +1,59 @@
+/* ============================================================
+   الأساس — إعادة الضبط وخصائص الصفحة العامة
+   ------------------------------------------------------------
+   قواعد تنطبق على التطبيق كله. نادراً ما تحتاجين تعديلها.
+   إذا أردت تغيير الخط أو لون الخلفية، غيّريهما من variables.css
+   ============================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* إطار التطبيق: يترك مساحة أسفل الصفحة حتى لا يغطي
+   الشريط السفلي آخر عنصر */
+.app-shell {
+  min-height: 100vh;
+  padding-bottom: 76px;
+}
+
+/* حاوية المحتوى في كل صفحة داخلية */
+.page {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+/* رأس الصفحة: العنوان على اليمين والزر الأساسي على اليسار */
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: var(--gap-lg);
+}
+
+.page h1 {
+  margin: 0 0 4px;
+  font-size: var(--fs-2xl);
+}
+
+/* السطر التوضيحي تحت العنوان */
+.page .sub {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: var(--fs-base);
+}
+
+/* عنوان قسم داخل الصفحة: «المواعيد القادمة»، «أدوية متوقفة» */
+.section-title {
+  font-size: 16px;
+  color: var(--text-soft);
+  margin: 26px 0 12px;
+}

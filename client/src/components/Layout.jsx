@@ -1,5 +1,6 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import InstallPrompt from "./InstallPrompt";
+import "./Layout.css";
 
 export default function Layout() {
     const navigate = useNavigate();
