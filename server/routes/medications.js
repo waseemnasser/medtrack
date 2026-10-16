@@ -20,7 +20,7 @@ router.get("/member/:memberId", async (req, res) => {
         return res.status(403).json({ error: "غير مصرح" });
 
     const meds = await pool.query(
-        "SELECT * FROM medications WHERE member_id = $1 AND is_active = TRUE ORDER BY id",
+        "SELECT * FROM medications WHERE member_id = $1 ORDER BY id",
         [req.params.memberId]
     );
 
