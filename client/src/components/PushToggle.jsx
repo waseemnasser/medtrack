@@ -6,7 +6,12 @@ export default function PushToggle() {
     const [msg, setMsg] = useState("");
 
     useEffect(() => {
-        if (pushSupported() && Notification.permission === "granted") setState("on");
+        if (!pushSupported()) return;
+        // نفحص الاشتراك الفعلي، لا الإذن فقط
+        navigator.serviceWorker.ready
+            .then((reg) => reg.pushManager.getSubscription())
+            .then((sub) => setState(sub ? "on" : "idle"))
+            .catch(() => setState("idle"));
     }, []);
 
     if (!pushSupported()) return null;

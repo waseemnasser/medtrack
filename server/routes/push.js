@@ -36,12 +36,19 @@ router.post("/subscribe", async (req, res) => {
 
 // إشعار تجريبي — مفيد جداً أثناء التطوير والعرض
 router.post("/test", async (req, res) => {
+    const subs = await pool.query(
+        "SELECT COUNT(*)::int AS n FROM push_subscriptions WHERE user_id = $1",
+        [req.userId]
+    );
+    if (subs.rows[0].n === 0)
+        return res.status(400).json({ error: "لا يوجد جهاز مشترك — فعّل الإشعارات أولاً" });
+
     await sendToUser(req.userId, {
         title: "تجربة الإشعارات",
         body: "الإشعارات تعمل بنجاح ✓",
         url: "/",
     });
-    res.json({ ok: true });
+    res.json({ ok: true, devices: subs.rows[0].n });
 });
 
 module.exports = router;
