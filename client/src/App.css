@@ -336,3 +336,132 @@ body {
   font-size: 15px;
   white-space: nowrap;
 }
+
+.alarm-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #1f7a6f;
+  color: #fff;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  box-shadow: 0 4px 16px rgba(31, 122, 111, .3);
+  animation: alarmIn .3s ease-out;
+}
+
+@keyframes alarmIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alarm-text {
+  font-size: 15px;
+}
+
+.alarm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.alarm-bar button {
+  border: none;
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.alarm-confirm {
+  background: #fff;
+  color: #1f7a6f;
+  font-weight: 700;
+}
+
+.alarm-close {
+  background: rgba(255, 255, 255, .2);
+  color: #fff;
+}
+
+.app-shell {
+  min-height: 100vh;
+  padding-bottom: 76px;
+}
+
+.top-bar {
+  background: #fff;
+  border-bottom: 1px solid #e7ebee;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.brand {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1f7a6f;
+}
+
+.logout {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  background: #fff;
+  border-top: 1px solid #e7ebee;
+  display: flex;
+  justify-content: space-around;
+  padding: 6px 0 8px;
+}
+
+.bottom-nav a {
+  flex: 1;
+  text-decoration: none;
+  color: #8a949c;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  padding: 6px 4px;
+  min-height: 52px;
+}
+
+.bottom-nav a.active {
+  color: #1f7a6f;
+  font-weight: 700;
+}
+
+.nav-icon {
+  font-size: 21px;
+  line-height: 1;
+}

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
+import useDoseAlarm from "../useDoseAlarm";
+import { playBeep } from "../beep";
 
 // تقسيم الجرعات حسب الفترة
 function periodOf(timeOfDay) {
@@ -25,6 +27,7 @@ export default function Today() {
     const [error, setError] = useState("");
     const [saving, setSaving] = useState(null); // schedule_id الجاري تأكيده
     const navigate = useNavigate();
+    const [alarm, setAlarm] = useState(null);
 
     useEffect(() => {
         load();
@@ -63,7 +66,14 @@ export default function Today() {
             setSaving(null);
         }
     };
+    // يُستدعى عند حلول موعد جرعة غير مؤكّدة
+    const handleAlarm = (dose) => {
+        playBeep();
+        setAlarm(dose);
+        if (document.hidden) document.title = "⏰ حان وقت الجرعة — دوائي";
+    };
 
+    useDoseAlarm(date, doses, handleAlarm);
     // هل فات وقت الجرعة ولم تُؤكَّد؟
     const isLate = (dose) => {
         if (dose.status === "taken") return false;
@@ -79,6 +89,28 @@ export default function Today() {
 
     return (
         <div className="page">
+            {alarm && (
+                <div className="alarm-bar">
+                    <div className="alarm-text">
+                        حان وقت جرعة <strong>{alarm.medication_name}</strong> لـ{" "}
+                        <strong>{alarm.member_name}</strong>
+                    </div>
+                    <div className="alarm-actions">
+                        <button
+                            className="alarm-confirm"
+                            onClick={() => { confirm(alarm); setAlarm(null); document.title = "دوائي"; }}
+                        >
+                            تم الأخذ
+                        </button>
+                        <button
+                            className="alarm-close"
+                            onClick={() => { setAlarm(null); document.title = "دوائي"; }}
+                        >
+                            إغلاق
+                        </button>
+                    </div>
+                </div>
+            )}
             <div className="page-head">
                 <div>
                     <h1>جرعات اليوم</h1>
@@ -88,7 +120,6 @@ export default function Today() {
                         </p>
                     )}
                 </div>
-                <button onClick={() => navigate("/members")}>أفراد العائلة</button>
             </div>
 
             {error && <div className="error">{error}</div>}
