@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { pushSupported, enablePush, sendTestPush } from "../push";
 import "./PushToggle.css";
 
-export default function PushToggle() {
+export default function PushToggle({ hideWhenOn = false }) {
     const [state, setState] = useState("idle"); // idle | on | error
     const [msg, setMsg] = useState("");
 
@@ -16,6 +16,8 @@ export default function PushToggle() {
     }, []);
 
     if (!pushSupported()) return null;
+    // في صفحة اليوم نعرض الصندوق فقط لمن لم يفعّل الإشعارات بعد
+    if (hideWhenOn && state === "on" && !msg) return null;
 
     const turnOn = async () => {
         setMsg("");

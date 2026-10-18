@@ -5,8 +5,8 @@ self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
 
 self.addEventListener("push", (event) => {
-    let data = { title: "دوائي", body: "لديك تذكير" };
-    try { data = event.data.json(); } catch (e) { }
+    let data = { title: "طمّني", body: "لديك تذكير" };
+    try { data = event.data.json(); } catch { /* رسالة بلا JSON — نعرض النص الافتراضي */ }
 
     event.waitUntil(
         self.registration.showNotification(data.title, {

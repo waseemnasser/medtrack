@@ -1,25 +1,18 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import api from "../api";
 import useDoseAlarm from "../useDoseAlarm";
 import { playBeep } from "../beep";
 import PushToggle from "../components/PushToggle";
+import { PERIODS, periodOf, timeParts, formatTime, formatDate } from "../utils/format";
 import "./Today.css";
 
-// تقسيم الجرعات حسب الفترة
-function periodOf(timeOfDay) {
-    const hour = parseInt(timeOfDay.slice(0, 2), 10);
-    if (hour < 12) return "الصباح";
-    if (hour < 17) return "الظهر";
-    return "المساء";
-}
-
-function formatTime(timeOfDay) {
-    const [h, m] = timeOfDay.split(":");
-    const hour = parseInt(h, 10);
-    const suffix = hour < 12 ? "ص" : "م";
-    const h12 = hour % 12 === 0 ? 12 : hour % 12;
-    return `${h12}:${m} ${suffix}`;
+function CheckIcon() {
+    return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M5 12.5l4.5 4.5L19 7.5" />
+        </svg>
+    );
 }
 
 export default function Today() {
@@ -28,24 +21,24 @@ export default function Today() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [saving, setSaving] = useState(null); // schedule_id الجاري تأكيده
-    const navigate = useNavigate();
     const [alarm, setAlarm] = useState(null);
 
     useEffect(() => {
+        const load = async () => {
+            try {
+                const res = await api.get("/doses/today");
+                setDate(res.data.date);
+                setDoses(res.data.doses);
+            } catch {
+                setError("تعذّر تحميل جرعات اليوم. تأكّد من الاتصال وحاول مجدداً.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
         load();
     }, []);
 
-    const load = async () => {
-        try {
-            const res = await api.get("/doses/today");
-            setDate(res.data.date);
-            setDoses(res.data.doses);
-        } catch (err) {
-            setError("تعذّر تحميل جرعات اليوم. تأكّد من الاتصال وحاول مجدداً.");
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const confirm = async (dose) => {
         setSaving(dose.schedule_id);
@@ -58,11 +51,11 @@ export default function Today() {
             setDoses((prev) =>
                 prev.map((d) =>
                     d.schedule_id === dose.schedule_id
-                        ? { ...d, status: "taken", confirmed_at: new Date().toISOString() }
+                        ? { ...d, status: "taken", confirmed_at: new Date().toISOString(), justTaken: true }
                         : d
                 )
             );
-        } catch (err) {
+        } catch {
             alert("تعذّر تسجيل الجرعة، حاول مجدداً");
         } finally {
             setSaving(null);
@@ -86,8 +79,12 @@ export default function Today() {
 
     if (loading) return <div className="page"><p>جارٍ التحميل...</p></div>;
 
+    const sorted = [...doses].sort((a, b) => a.time_of_day.localeCompare(b.time_of_day));
     const takenCount = doses.filter((d) => d.status === "taken").length;
-    const periods = ["الصباح", "الظهر", "المساء"];
+
+    // الجرعة التالية: أول جرعة لم تُؤكَّد بعد — تُعرض وحدها في الأعلى
+    const next = sorted.find((d) => d.status !== "taken");
+    const rest = sorted.filter((d) => d !== next);
 
     return (
         <div className="page">
@@ -115,71 +112,153 @@ export default function Today() {
             )}
             <div className="page-head">
                 <div>
+                    <p className="today-date">{formatDate(date)}</p>
                     <h1>جرعات اليوم</h1>
-                    {doses.length > 0 && (
-                        <p className="sub">
-                            تم تأكيد {takenCount} من أصل {doses.length} جرعات
-                        </p>
-                    )}
                 </div>
             </div>
-            <PushToggle />
-
 
             {error && <div className="error">{error}</div>}
 
             {doses.length === 0 && !error ? (
-                <div className="empty">لا توجد جرعات اليوم.</div>
-            ) : (
-                periods.map((period) => {
-                    const list = doses.filter((d) => periodOf(d.time_of_day) === period);
-                    if (list.length === 0) return null;
-                    return (
-                        <section key={period} className="period">
-                            <h2 className="period-title">{period}</h2>
-                            <div className="cards">
-                                {list.map((d) => {
-                                    const taken = d.status === "taken";
-                                    const late = isLate(d);
-                                    return (
-                                        <div
-                                            className={`dose-card${taken ? " taken" : ""}${late ? " late" : ""}`}
-                                            key={d.schedule_id}
-                                        >
-                                            <div className="dose-info">
-                                                <div className="dose-top">
-                                                    <span className="dose-time">{formatTime(d.time_of_day)}</span>
-                                                    {late && <span className="badge-late">متأخرة</span>}
-                                                </div>
-                                                <h3>
-                                                    {d.medication_name}
-                                                    {d.strength && <span className="muted"> — {d.strength}</span>}
-                                                </h3>
-                                                <p className="muted">{d.member_name}</p>
-                                                {d.instructions && (
-                                                    <p className="muted small">{d.instructions}</p>
-                                                )}
-                                            </div>
-
-                                            {taken ? (
-                                                <span className="done">تم ✓</span>
-                                            ) : (
-                                                <button
-                                                    className="btn-primary"
-                                                    onClick={() => confirm(d)}
-                                                    disabled={saving === d.schedule_id}
-                                                >
-                                                    {saving === d.schedule_id ? "..." : "تم الأخذ"}
-                                                </button>
-                                            )}
-                                        </div>
-                                    );
-                                })}
+                <div className="empty">
+                    لا توجد جرعات اليوم.
+                    <br />
+                    <Link to="/members">أضف دواءً من ملف أحد أفراد العائلة</Link>
+                </div>
+            ) : doses.length > 0 && (
+                <>
+                    {next ? (
+                        <NextDose
+                            key={next.schedule_id}
+                            dose={next}
+                            late={isLate(next)}
+                            saving={saving === next.schedule_id}
+                            onConfirm={() => confirm(next)}
+                        />
+                    ) : (
+                        <section className="next-dose all-done">
+                            <span className="all-done-icon"><CheckIcon /></span>
+                            <div>
+                                <h3>أُخذت كل جرعات اليوم</h3>
+                                <p>اطمئن، لا شيء متبقٍّ لليوم.</p>
                             </div>
                         </section>
-                    );
-                })
+                    )}
+
+                    <div className="day-progress">
+                        <div
+                            className="day-progress-bar"
+                            role="img"
+                            aria-label={`تم تأكيد ${takenCount} من أصل ${doses.length} جرعات`}
+                        >
+                            {sorted.map((d) => (
+                                <span
+                                    key={d.schedule_id}
+                                    className={
+                                        d.status === "taken"
+                                            ? `seg ${periodOf(d.time_of_day).key}${d.justTaken ? " just" : ""}`
+                                            : "seg"
+                                    }
+                                />
+                            ))}
+                        </div>
+                        <span className="day-progress-label">{takenCount} من {doses.length}</span>
+                    </div>
+                </>
             )}
+
+            <PushToggle hideWhenOn />
+
+            {PERIODS.map((period) => {
+                const list = rest.filter((d) => periodOf(d.time_of_day).key === period.key);
+                if (list.length === 0) return null;
+                return (
+                    <section key={period.key} className="period">
+                        <h2 className="period-title">
+                            <span className={`period-swatch ${period.key}`} aria-hidden="true" />
+                            {period.label}
+                        </h2>
+                        <div className="dose-list">
+                            {list.map((d, i) => {
+                                const taken = d.status === "taken";
+                                const late = isLate(d);
+                                return (
+                                    <div
+                                        className={`dose-row${taken ? " taken" : ""}${late ? " late" : ""}`}
+                                        key={d.schedule_id}
+                                        style={{ "--i": i }}
+                                    >
+                                        <span className={`dose-marker ${period.key}`} aria-hidden="true" />
+                                        <div className="dose-info">
+                                            <h3>
+                                                {d.medication_name}
+                                                {d.strength && <span className="dose-strength"> {d.strength}</span>}
+                                                {late && <span className="badge-late">متأخرة</span>}
+                                            </h3>
+                                            <p className="muted">
+                                                <span className="dose-time">{formatTime(d.time_of_day)}</span>
+                                                {" · "}
+                                                <Link to={`/members/${d.member_id}`} className="member-link">{d.member_name}</Link>
+                                                {d.instructions && ` · ${d.instructions}`}
+                                            </p>
+                                        </div>
+
+                                        {taken ? (
+                                            <span className={`done ${period.key}${d.justTaken ? " just" : ""}`} role="img" aria-label="تم الأخذ">
+                                                <CheckIcon />
+                                            </span>
+                                        ) : (
+                                            <button
+                                                className={late ? "btn-primary" : "btn-outline"}
+                                                onClick={() => confirm(d)}
+                                                disabled={saving === d.schedule_id}
+                                            >
+                                                {saving === d.schedule_id ? "..." : "تم الأخذ"}
+                                            </button>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </section>
+                );
+            })}
         </div>
+    );
+}
+
+// بطاقة الجرعة التالية — أول ما تراه العين عند فتح التطبيق
+function NextDose({ dose, late, saving, onConfirm }) {
+    const period = periodOf(dose.time_of_day);
+    const { clock, suffix } = timeParts(dose.time_of_day);
+    return (
+        <section className={`next-dose${late ? " late" : ""}`} aria-label="الجرعة التالية">
+            <div className="next-top">
+                <span className="next-label">الجرعة التالية</span>
+                {late ? (
+                    <span className="next-chip late">متأخرة</span>
+                ) : (
+                    <span className={`next-chip ${period.key}`}>{period.label}</span>
+                )}
+            </div>
+            <div className="next-body">
+                <div className="next-info">
+                    <div className="next-time">
+                        {clock} <small>{suffix}</small>
+                    </div>
+                    <h3>
+                        {dose.medication_name}
+                        {dose.strength && <span className="dose-strength"> {dose.strength}</span>}
+                    </h3>
+                    <p>
+                        <Link to={`/members/${dose.member_id}`} className="member-link">{dose.member_name}</Link>
+                        {dose.instructions && ` · ${dose.instructions}`}
+                    </p>
+                </div>
+                <button className="next-confirm" onClick={onConfirm} disabled={saving}>
+                    {saving ? "..." : "تم الأخذ"}
+                </button>
+            </div>
+        </section>
     );
 }

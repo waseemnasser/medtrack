@@ -2,82 +2,255 @@
    صفحة الطبيب — عرض عام بلا تسجيل دخول
    ------------------------------------------------------------
    الصفحة الوحيدة التي يراها شخص من خارج التطبيق.
-   لها تنسيق مستقل تماماً: لا شريط علوي ولا سفلي ولا أزرار.
+   لها تنسيق مستقل تماماً: لا شريط علوي ولا سفلي.
 
-   القاعدة هنا: وضوح وهدوء. الطبيب يقرأ بسرعة أثناء الكشف.
+   القاعدة هنا: وضوح وهدوء. الطبيب يقرأ بسرعة أثناء الكشف،
+   فالترتيب حسب الأهمية: الحساسية ← الأدوية ← المواعيد ← السجل.
+   وتُطبع على ورقة A4 بلا أزرار ولا ألوان خلفية ثقيلة.
    ============================================================ */
 
 .doc-page {
-  max-width: 720px;
+  max-width: 760px;
   margin: 0 auto;
   padding: 0 16px 48px;
 }
 
-/* رأس الصفحة: اسم التطبيق + «ملف المريض» */
-.doc-head {
+/* ---------- الشريط العلوي ---------- */
+
+.doc-top {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 18px 0 16px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px 0;
   border-bottom: 1px solid var(--border-light);
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
-.doc-label {
-  color: var(--text-soft);
-  font-size: var(--fs-md);
-}
-
-.doc-card {
-  background: var(--surface);
-  border-radius: var(--radius-md);
-  padding: 16px 18px;
-  margin-bottom: 12px;
-  box-shadow: var(--shadow-sm);
-}
-
-.doc-card h1 {
-  margin: 0 0 4px;
-  font-size: 24px;
-}
-
-.doc-card h3 {
-  margin: 0 0 4px;
-  font-size: var(--fs-lg);
-}
-
-/* سطر «المفتاح: القيمة» — الأمراض المزمنة، الحساسية */
-.doc-field {
-  display: flex;
-  gap: var(--gap-sm);
-  margin-top: var(--gap-sm);
-  font-size: var(--fs-md);
-}
-
-.doc-key {
-  color: var(--text-soft);
-  min-width: 110px;
-}
-
-/* الحساسية بالأحمر — أهم معلومة للطبيب قبل أن يصف دواء */
-.doc-field.warn {
-  color: var(--danger);
-  font-weight: 600;
-}
-
-.doc-field.warn .doc-key {
-  color: var(--danger);
-}
-
-/* عنوان قسم: الأدوية الحالية، المواعيد القادمة */
-.doc-section {
-  font-size: var(--fs-lg);
+.doc-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-xl);
+  font-weight: 700;
   color: var(--primary);
-  margin: 26px 0 12px;
+  padding: 16px 0;
+}
+
+.doc-top .doc-brand {
+  padding: 0;
+}
+
+.doc-top-end {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  flex-wrap: wrap;
+}
+
+.doc-print {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.doc-print:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.doc-loading {
+  color: var(--text-soft);
+  padding: 40px 0;
+  text-align: center;
+}
+
+/* ---------- المريض ---------- */
+
+.doc-patient {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  margin-bottom: 18px;
+}
+
+.doc-eyebrow {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
+}
+
+.doc-patient h1 {
+  margin: 0;
+  font-size: 28px;
   font-weight: 700;
 }
 
-/* ---------- جدول سجل التأكيد الذاتي ---------- */
+.doc-meta {
+  margin: 2px 0 0;
+  font-size: var(--fs-base);
+  color: var(--text-soft);
+}
+
+/* ---------- الحساسية والأمراض المزمنة ---------- */
+
+.doc-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 560px) {
+  .doc-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.doc-fact {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.doc-fact-key {
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
+}
+
+.doc-fact-value {
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+/* الحساسية بالأحمر — أهم معلومة للطبيب قبل أن يصف دواء */
+.doc-fact.warn {
+  background: var(--danger-soft);
+  border: 1.5px solid var(--danger);
+}
+
+.doc-fact.warn .doc-fact-key,
+.doc-fact.warn .doc-fact-value {
+  color: var(--danger);
+}
+
+.doc-fact.warn .doc-fact-value {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+}
+
+/* ---------- الأقسام ---------- */
+
+.doc-section {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  margin: 30px 0 12px;
+}
+
+.doc-count {
+  min-width: 26px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+  font-size: var(--fs-sm);
+  line-height: 24px;
+  text-align: center;
+}
+
+.doc-hint {
+  margin: -6px 0 12px;
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
+}
+
+.doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.doc-empty {
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  color: var(--text-soft);
+  font-size: var(--fs-base);
+}
+
+/* ---------- بطاقة الدواء ---------- */
+
+.doc-med,
+.doc-appt {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  break-inside: avoid;
+}
+
+.doc-med-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--gap-sm);
+}
+
+.doc-med h3,
+.doc-appt h3 {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+
+.doc-strength {
+  font-weight: 400;
+  color: var(--text-soft);
+}
+
+/* «المفتاح  القيمة» داخل البطاقة */
+.doc-line {
+  margin: 6px 0 0;
+  font-size: var(--fs-base);
+}
+
+.doc-line span {
+  display: inline-block;
+  min-width: 96px;
+  color: var(--text-soft);
+}
+
+.doc-appt-time {
+  margin: 4px 0 0;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--primary-deep);
+}
+
+/* ---------- جدول سجل التأكيد ---------- */
+
+.doc-table-wrap {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 4px 14px;
+}
 
 .doc-table {
   width: 100%;
@@ -89,13 +262,19 @@
   text-align: right;
   color: var(--text-soft);
   font-weight: 600;
-  padding: var(--gap-sm) 6px;
+  font-size: var(--fs-sm);
+  padding: 10px 6px;
   border-bottom: 1px solid var(--border-light);
 }
 
 .doc-table td {
-  padding: 9px 6px;
+  padding: 10px 6px;
   border-bottom: 1px solid var(--border-faint);
+  white-space: nowrap;
+}
+
+.doc-table tr:last-child td {
+  border-bottom: none;
 }
 
 /* ---------- التنويه ---------- */
@@ -108,8 +287,87 @@
   border: 1px solid var(--notice-border);
   color: var(--notice-text);
   padding: var(--gap) 16px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   font-size: var(--fs-base);
   line-height: 1.7;
-  margin-top: 26px;
+  margin-top: 28px;
+}
+
+.doc-footer {
+  margin-top: 18px;
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: var(--text-faint);
+  line-height: 1.7;
+}
+
+/* ---------- رابط منتهٍ أو خاطئ ---------- */
+
+.doc-state {
+  margin-top: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 36px 24px;
+  text-align: center;
+}
+
+.doc-state-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.doc-state-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.doc-state h1 {
+  margin: 0;
+  font-size: var(--fs-xl);
+}
+
+.doc-state p {
+  margin: 8px auto 0;
+  max-width: 420px;
+  color: var(--text-soft);
+  line-height: 1.8;
+}
+
+/* ---------- الطباعة ---------- */
+
+/* الطبيب قد يطبع الملف ليضعه في سجل المريض الورقي */
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .doc-page {
+    max-width: none;
+    padding: 0;
+  }
+
+  .doc-print,
+  .doc-top .chip {
+    display: none;
+  }
+
+  .doc-med,
+  .doc-appt,
+  .doc-fact,
+  .doc-table-wrap,
+  .doc-empty {
+    border-color: #ccc;
+  }
+
+  .doc-section {
+    break-after: avoid;
+  }
 }

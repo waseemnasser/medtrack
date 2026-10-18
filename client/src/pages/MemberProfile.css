@@ -1,92 +1,184 @@
 /* ============================================================
-   صفحة ملف الفرد
+   ملف الفرد — المحور الذي تتفرّع منه كل صفحاته
    ------------------------------------------------------------
-   تعرض بيانات فرد واحد مع تبويبَي الأدوية والمواعيد.
+   ترويسة فيروزية تحمل اسم الفرد، ثم ثلاثة إجراءات سريعة
+   (دواء، موعد، مشاركة مع الطبيب)، ثم تبويبان: الأدوية والمواعيد.
+
+   الترويسة الملوّنة ليست زينة: هي ما يذكّر المستخدم
+   أنه داخل ملف شخص بعينه، لا في قائمة عامة.
    ============================================================ */
 
-/* ---------- رأس الملف ---------- */
+/* ---------- ترويسة الفرد ---------- */
 
 .profile-head {
-  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  background: var(--primary);
+  color: var(--on-primary);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: var(--gap);
+}
+
+.profile-head .avatar {
+  background: var(--on-primary);
+  color: var(--primary-deep);
+}
+
+.profile-info {
+  min-width: 0;
 }
 
 .profile-head h1 {
-  margin: 0 0 6px;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--on-primary);
 }
 
 .profile-head .muted {
-  margin: 2px 0;
-  color: var(--text-muted);
+  color: var(--on-primary-soft);
   font-size: var(--fs-base);
+  margin: 3px 0 0;
 }
 
-/* الحساسية من أدوية — تظهر بالأحمر لأنها معلومة حرجة طبياً */
-.profile-head .warn {
+/* الحساسية: أهم معلومة طبية في الملف، فتأخذ شارة واضحة.
+   خلفية فاتحة ونص أحمر — الأحمر مباشرة على الفيروزي لا يُقرأ */
+.profile-head .allergy {
+  display: inline-block;
+  margin-top: 8px;
+  background: var(--danger-soft);
   color: var(--danger);
+  font-size: var(--fs-sm);
   font-weight: 600;
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
 }
 
-/* ---------- أزرار الملف ---------- */
+/* ---------- الإجراءات السريعة ---------- */
 
-.profile-actions {
-  display: flex;
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  margin-bottom: var(--gap-lg);
 }
 
-/* الزر الثانوي «مشاركة مع الطبيب» — بإطار لا بخلفية ملوّنة،
-   حتى يبقى زر «إضافة دواء» هو الأبرز */
-.profile-actions button:not(.btn-primary) {
+.quick-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 84px;
+  padding: 12px 6px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 12px 18px;
-  font-size: var(--fs-md);
-  font-family: inherit;
-  cursor: pointer;
-  min-height: var(--tap);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  text-decoration: none;
+  text-align: center;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: 1.4;
+  transition: background .15s, transform .1s;
 }
 
-/* ---------- التبويبات ---------- */
+.quick-action:hover {
+  background: var(--primary-soft);
+}
+
+.quick-action:active {
+  transform: scale(.97);
+}
+
+.quick-action svg {
+  width: 26px;
+  height: 26px;
+  color: var(--primary);
+}
+
+/* الإجراء الأكثر استخداماً — إضافة دواء — مملوء */
+.quick-action.primary {
+  background: var(--primary-soft);
+  border-color: var(--primary-soft);
+}
+
+/* ---------- التبويبان ---------- */
 
 .tabs {
   display: flex;
   gap: 6px;
-  margin-bottom: 18px;
+  padding: 5px;
   background: var(--tabs-bg);
-  padding: 4px;
-  border-radius: 10px;
+  border-radius: var(--radius-pill);
+  margin-bottom: var(--gap-lg);
 }
 
 .tabs button {
   flex: 1;
-  background: none;
+  min-height: var(--tap-sm);
   border: none;
-  border-radius: var(--radius-sm);
-  padding: 10px;
-  font-size: var(--fs-md);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-soft);
   font-family: inherit;
+  font-size: var(--fs-base);
+  font-weight: 500;
   cursor: pointer;
-  color: #5a646c;
-  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .tabs button.active {
   background: var(--surface);
-  color: var(--primary);
-  font-weight: 700;
+  color: var(--text);
+  font-weight: 600;
 }
 
-/* ---------- شارة الخصوصية ---------- */
+/* العدد بجانب اسم التبويب */
+.tab-count {
+  min-width: 22px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--border-light);
+  font-size: var(--fs-xs);
+  line-height: 20px;
+}
 
-/* تظهر على الأدوية التي اختار المستخدم إخفاءها عند المشاركة.
-   لونها بنفسجي ليتميّز عن الأخضر (عادي) والأحمر (تحذير) */
+.tabs button.active .tab-count {
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+}
+
+/* ---------- بطاقة الدواء ---------- */
+
+.med-title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--gap-sm);
+}
+
+/* سطر تقدير نفاد الدواء */
+.supply-line {
+  margin-top: 10px;
+}
+
+/* ---------- شارة الدواء الخاص ---------- */
+
+/* رمادي هادئ: الخصوصية تُقال بهدوء.
+   الشارة الصارخة تلفت نظر من يقف خلف المستخدم،
+   وهو عكس المقصود تماماً. */
 .badge-private {
+  display: inline-block;
   background: var(--private-soft);
   color: var(--private);
-  padding: 2px 9px;
-  border-radius: var(--radius-pill);
   font-size: var(--fs-xs);
   font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
 }

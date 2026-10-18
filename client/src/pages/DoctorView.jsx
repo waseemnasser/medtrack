@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import api from "../api";
+import Mark from "../components/Mark";
+import { periodOf, formatTime, formatDate, calcAge, initial } from "../utils/format";
 import "./DoctorView.css";
 
 const DAYS = { 1: "الأحد", 2: "الإثنين", 3: "الثلاثاء", 4: "الأربعاء", 5: "الخميس", 6: "الجمعة", 7: "السبت" };
@@ -10,145 +12,199 @@ function daysLabel(d) {
     return d.length === 7 ? "كل يوم" : d.split("").map((x) => DAYS[x]).join("، ");
 }
 
-function fmtTime(t) {
-    if (!t) return "";
-    const [h, m] = String(t).split(":");
-    const hour = parseInt(h, 10);
-    const suffix = hour < 12 ? "ص" : "م";
-    const h12 = hour % 12 === 0 ? 12 : hour % 12;
-    return `${h12}:${m} ${suffix}`;
-}
-
-function fmtDateTime(v) {
+// «2026-10-28 11:00:00» ← «الثلاثاء ٢٨ تشرين الأول · 11:00 ص»
+function fmtDateTime(v, withWeekday = true) {
     if (!v) return "";
-    const s = String(v).replace("T", " ");
-    const [d, t] = s.split(" ");
-    return `${d} · ${fmtTime(t?.slice(0, 5))}`;
+    const [d, t] = String(v).replace("T", " ").split(" ");
+    return t ? `${formatDate(d, withWeekday)} · ${formatTime(t.slice(0, 5))}` : formatDate(d, withWeekday);
 }
 
-function age(birthDate) {
-    if (!birthDate) return null;
-    const b = new Date(birthDate);
-    const t = new Date();
-    let a = t.getFullYear() - b.getFullYear();
-    const m = t.getMonth() - b.getMonth();
-    if (m < 0 || (m === 0 && t.getDate() < b.getDate())) a--;
-    return a;
-}
-
+// الصفحة الوحيدة التي يراها شخص من خارج التطبيق — بلا تسجيل دخول
 export default function DoctorView() {
     const { token } = useParams();
     const [data, setData] = useState(null);
-    const [error, setError] = useState("");
+    const [error, setError] = useState(null); // { expired, message }
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         api.get(`/share/${token}`)
             .then((res) => setData(res.data))
             .catch((err) =>
-                setError(err.response?.data?.error || "تعذّر فتح الرابط")
+                setError({
+                    expired: err.response?.status === 410,
+                    message: err.response?.data?.error || "تعذّر فتح الرابط",
+                })
             )
             .finally(() => setLoading(false));
     }, [token]);
 
-    if (loading) return <div className="doc-page"><p>جارٍ التحميل...</p></div>;
-
-    if (error)
+    if (loading) {
         return (
             <div className="doc-page">
-                <div className="doc-card">
-                    <div className="error">{error}</div>
+                <DocBrand />
+                <p className="doc-loading">جارٍ فتح ملف المريض...</p>
+            </div>
+        );
+    }
+
+    // رابط منتهٍ أو خاطئ: نشرح للطبيب ما يفعله بدل رسالة خطأ جافة
+    if (error) {
+        return (
+            <div className="doc-page">
+                <DocBrand />
+                <div className="doc-state">
+                    <span className="doc-state-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="9" />
+                            <path d="M12 7v5l3 2" />
+                        </svg>
+                    </span>
+                    <h1>{error.expired ? "انتهت صلاحية هذا الرابط" : "لا يمكن فتح هذا الرابط"}</h1>
+                    <p>
+                        {error.expired
+                            ? "روابط المشاركة مؤقّتة لحماية خصوصية المريض. اطلب منه إنشاء رابط جديد من تطبيق طمّني."
+                            : `${error.message}. تأكّد من الرابط أو اطلب من المريض إرساله مجدداً.`}
+                    </p>
                 </div>
             </div>
         );
+    }
 
     const m = data.member;
-    const years = age(m.birth_date);
+    const years = calcAge(m.birth_date);
+    const logs = data.self_reported_confirmations.slice(0, 20);
 
     return (
         <div className="doc-page">
-            <header className="doc-head">
-                <span className="brand">دوائي</span>
-                <span className="doc-label">ملف المريض</span>
+            <header className="doc-top">
+                <DocBrand />
+                <div className="doc-top-end">
+                    {data.expires_at && (
+                        <span className="chip neutral">صالح حتى {fmtDateTime(data.expires_at, false)}</span>
+                    )}
+                    <button type="button" className="doc-print" onClick={() => window.print()}>
+                        طباعة
+                    </button>
+                </div>
             </header>
 
-            <div className="doc-card">
-                <h1>{m.name}</h1>
-                {years !== null && <p className="muted">{years} سنة</p>}
+            {/* ---------- المريض ---------- */}
+            <section className="doc-patient">
+                <span className="avatar lg" aria-hidden="true">{initial(m.name)}</span>
+                <div>
+                    <p className="doc-eyebrow">ملف المريض</p>
+                    <h1>{m.name}</h1>
+                    <p className="doc-meta">
+                        {years !== null ? `${years} سنة` : "العمر غير مسجّل"}
+                        {m.birth_date && ` · مواليد ${formatDate(m.birth_date, false)} ${String(m.birth_date).slice(0, 4)}`}
+                    </p>
+                </div>
+            </section>
 
-                {m.chronic_conditions && (
-                    <div className="doc-field">
-                        <span className="doc-key">الأمراض المزمنة</span>
-                        <span>{m.chronic_conditions}</span>
-                    </div>
-                )}
-                {m.allergies && (
-                    <div className="doc-field warn">
-                        <span className="doc-key">الحساسية</span>
-                        <span>{m.allergies}</span>
-                    </div>
-                )}
+            {/* الحساسية أولاً: أهم معلومة للطبيب قبل أن يصف أي دواء */}
+            <div className="doc-facts">
+                <div className={`doc-fact${m.allergies ? " warn" : ""}`}>
+                    <span className="doc-fact-key">الحساسية من أدوية</span>
+                    <span className="doc-fact-value">{m.allergies || "لا توجد حساسية مسجّلة"}</span>
+                </div>
+                <div className="doc-fact">
+                    <span className="doc-fact-key">الأمراض المزمنة</span>
+                    <span className="doc-fact-value">{m.chronic_conditions || "لا توجد أمراض مزمنة مسجّلة"}</span>
+                </div>
             </div>
 
-            <h2 className="doc-section">الأدوية الحالية</h2>
+            {/* ---------- الأدوية ---------- */}
+            <h2 className="doc-section">
+                الأدوية الحالية <span className="doc-count">{data.medications.length}</span>
+            </h2>
             {data.medications.length === 0 ? (
-                <div className="doc-card muted">لا توجد أدوية مسجّلة.</div>
+                <div className="doc-empty">لا توجد أدوية مسجّلة.</div>
             ) : (
-                data.medications.map((med) => (
-                    <div className="doc-card" key={med.id}>
-                        <h3>
-                            {med.name}
-                            {med.strength && <span className="muted"> — {med.strength}</span>}
-                        </h3>
-                        {med.active_ingredient && <p className="muted small">{med.active_ingredient}</p>}
-                        {med.form && <p className="muted small">{med.form}</p>}
-                        {med.instructions && <p className="muted small">{med.instructions}</p>}
-                        {med.schedules?.length > 0 && (
-                            <div className="schedules">
-                                {med.schedules.map((s, i) => (
-                                    <span className="chip" key={i}>
-                                        {fmtTime(s.time_of_day)} · {daysLabel(s.days_of_week)}
-                                    </span>
-                                ))}
+                <div className="doc-list">
+                    {data.medications.map((med) => (
+                        <article className="doc-med" key={med.id}>
+                            <div className="doc-med-head">
+                                <h3>
+                                    {med.name}
+                                    {med.strength && <span className="doc-strength"> {med.strength}</span>}
+                                </h3>
+                                {med.form && <span className="chip neutral">{med.form}</span>}
                             </div>
-                        )}
-                    </div>
-                ))
+                            {med.active_ingredient && (
+                                <p className="doc-line"><span>المادة الفعّالة</span>{med.active_ingredient}</p>
+                            )}
+                            {med.instructions && (
+                                <p className="doc-line"><span>التعليمات</span>{med.instructions}</p>
+                            )}
+                            {med.start_date && (
+                                <p className="doc-line">
+                                    <span>منذ</span>
+                                    {formatDate(med.start_date, false)} {String(med.start_date).slice(0, 4)}
+                                    {med.end_date && ` — حتى ${formatDate(med.end_date, false)}`}
+                                </p>
+                            )}
+                            {med.schedules?.length > 0 && (
+                                <div className="schedules">
+                                    {med.schedules
+                                        .slice()
+                                        .sort((a, b) => a.time_of_day.localeCompare(b.time_of_day))
+                                        .map((s, i) => (
+                                            <span className={`chip ${periodOf(s.time_of_day).key}`} key={i}>
+                                                {formatTime(s.time_of_day)} · {daysLabel(s.days_of_week)}
+                                            </span>
+                                        ))}
+                                </div>
+                            )}
+                        </article>
+                    ))}
+                </div>
             )}
 
-            <h2 className="doc-section">المواعيد القادمة</h2>
+            {/* ---------- المواعيد ---------- */}
+            <h2 className="doc-section">
+                المواعيد القادمة <span className="doc-count">{data.upcoming_appointments.length}</span>
+            </h2>
             {data.upcoming_appointments.length === 0 ? (
-                <div className="doc-card muted">لا توجد مواعيد قادمة.</div>
+                <div className="doc-empty">لا توجد مواعيد قادمة.</div>
             ) : (
-                data.upcoming_appointments.map((a) => (
-                    <div className="doc-card" key={a.id}>
-                        <h3>{a.title}</h3>
-                        <p className="muted">{fmtDateTime(a.scheduled_at)}</p>
-                        {a.doctor_name && <p className="muted small">{a.doctor_name}</p>}
-                        {a.location && <p className="muted small">{a.location}</p>}
-                    </div>
-                ))
+                <div className="doc-list">
+                    {data.upcoming_appointments.map((a) => (
+                        <article className="doc-appt" key={a.id}>
+                            <h3>{a.title}</h3>
+                            <p className="doc-appt-time">{fmtDateTime(a.scheduled_at)}</p>
+                            {(a.doctor_name || a.location) && (
+                                <p className="doc-meta">{[a.doctor_name, a.location].filter(Boolean).join(" · ")}</p>
+                            )}
+                        </article>
+                    ))}
+                </div>
             )}
 
-            <h2 className="doc-section">سجل تأكيد ذاتي من المستخدم</h2>
-            {data.self_reported_confirmations.length === 0 ? (
-                <div className="doc-card muted">لا توجد تأكيدات مسجّلة.</div>
+            {/* ---------- سجل التأكيد ---------- */}
+            <h2 className="doc-section">سجل تأكيد الجرعات</h2>
+            <p className="doc-hint">آخر {logs.length} جرعة أكّد المستخدم أخذها بنفسه من التطبيق.</p>
+            {logs.length === 0 ? (
+                <div className="doc-empty">لا توجد تأكيدات مسجّلة.</div>
             ) : (
-                <div className="doc-card">
+                <div className="doc-table-wrap">
                     <table className="doc-table">
                         <thead>
                             <tr>
                                 <th>الدواء</th>
-                                <th>الموعد</th>
+                                <th>الموعد المحدد</th>
                                 <th>الحالة</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {data.self_reported_confirmations.slice(0, 20).map((l) => (
+                            {logs.map((l) => (
                                 <tr key={l.id}>
                                     <td>{l.medication_name}</td>
                                     <td>{fmtDateTime(l.scheduled_at)}</td>
-                                    <td>{l.status === "taken" ? "مؤكّدة" : l.status}</td>
+                                    <td>
+                                        {l.status === "taken"
+                                            ? <span className="chip">مؤكّدة</span>
+                                            : <span className="chip neutral">{l.status}</span>}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -156,7 +212,21 @@ export default function DoctorView() {
                 </div>
             )}
 
+            {/* نقطة أخلاقية جاءت من مقابلة الصيدلاني — لا تُحذف ولا تُصغَّر */}
             <p className="doc-disclaimer">{data.note}</p>
+
+            <footer className="doc-footer">
+                عُرض عبر طمّني — أداة تنظيمية لمتابعة أدوية العائلة، لا تقدّم تشخيصاً ولا توصيات علاجية.
+            </footer>
         </div>
+    );
+}
+
+function DocBrand() {
+    return (
+        <span className="doc-brand">
+            <Mark size={28} />
+            طمّني
+        </span>
     );
 }

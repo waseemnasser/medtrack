@@ -10,10 +10,13 @@
 
 /* ---------- الشريط العلوي ---------- */
 
+/* خلفيته من لون الصفحة لا أبيض: الشريط ليس بطاقة،
+   وفصله بالأبيض يقطع الشاشة بلا سبب */
 .top-bar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border-light);
-  padding: 12px 18px;
+  background: rgba(245, 251, 250, .92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-faint);
+  padding: 12px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -22,10 +25,14 @@
   z-index: 40;
 }
 
-/* اسم التطبيق */
+/* اسم التطبيق بجانب العلامة */
 .brand {
-  font-size: 20px;
-  font-weight: 800;
+  display: flex;
+  text-decoration: none;
+  align-items: center;
+  gap: 9px;
+  font-size: var(--fs-xl);
+  font-weight: 700;
   color: var(--primary);
 }
 
@@ -38,6 +45,7 @@
   font-family: inherit;
   cursor: pointer;
   padding: var(--gap-sm);
+  min-height: var(--tap-sm);
 }
 
 /* ---------- الشريط السفلي ---------- */
@@ -52,7 +60,7 @@
   border-top: 1px solid var(--border-light);
   display: flex;
   justify-content: space-around;
-  padding: 6px 0 8px;
+  padding: 8px 0 calc(12px + env(safe-area-inset-bottom, 0px));
 }
 
 .bottom-nav a {
@@ -62,21 +70,110 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   font-size: var(--fs-xs);
-  padding: 6px 4px;
+  font-weight: 500;
+  padding: 4px;
   min-height: 52px;
 }
 
 /* القسم المفتوح حالياً — NavLink يضيف الكلاس تلقائياً */
 .bottom-nav a.active {
   color: var(--primary);
-  font-weight: 700;
+  font-weight: 600;
 }
 
-/* الأيقونات حالياً رموز تعبيرية.
-   إذا استبدلتها بأيقونات SVG، عدّلي هذه القاعدة */
+/* الأيقونة داخل كبسولة: حجم ثابت حتى لا يقفز الشريط عند التبديل */
 .nav-icon {
-  font-size: 21px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  transition: background .2s, color .2s;
+}
+
+/* القسم المفتوح: كبسولة حبر والأيقونة بيضاء */
+.bottom-nav a.active .nav-icon {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+/* أيقونات SVG تأخذ لون الرابط تلقائياً */
+.nav-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+}
+/* ---------- رأس الصفحات الداخلية ---------- */
+
+/* زر رجوع + عنوان. يظهر في كل صفحة ليست تبويباً رئيسياً */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -6px 0 var(--gap-lg);
+}
+
+.page-header h1 {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-header-action {
+  margin-inline-start: auto;
+}
+
+/* زر دائري بأيقونة فقط: رجوع، تعديل */
+.icon-btn {
+  width: var(--tap-sm);
+  height: var(--tap-sm);
+  flex-shrink: 0;
+  border: 1px solid var(--border-light);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+}
+
+.icon-btn:hover {
+  background: var(--primary-soft);
+}
+
+.icon-btn:active {
+  transform: scale(.94);
+}
+
+.icon-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* زر نصي صغير في رأس الصفحة: «تعديل» */
+.header-link {
+  min-height: var(--tap-sm);
+  padding: 0 16px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--primary);
+  font-family: inherit;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.header-link:hover {
+  background: var(--primary-soft);
 }

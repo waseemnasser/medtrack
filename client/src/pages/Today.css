@@ -1,48 +1,280 @@
 /* ============================================================
-   صفحة جرعات اليوم — الصفحة الرئيسية
+   صفحة جرعات اليوم
    ------------------------------------------------------------
-   أهم صفحة في التطبيق. المستخدم يفتحها عدة مرات يومياً،
-   وزر «تم الأخذ» هو أكثر زر يُضغط.
+   أهم صفحة في التطبيق. تُفتح عشر مرات في اليوم،
+   وغالباً بيد واحدة وبسرعة.
 
-   ملاحظة تصميمية: بطاقة الجرعة لها حافّة ملوّنة على اليمين —
-   خضراء إذا أُكّدت، حمراء إذا تأخّرت، شفافة إن لم يحن وقتها.
+   الترتيب: الجرعة التالية في بطاقة حبر كبيرة أعلى الصفحة،
+   ثم شريط تقدّم اليوم، ثم باقي الجرعات مقسّمة حسب الفترة.
+
+   قاعدة حاكمة هنا: لا لون إلا لون الفترة (متى؟)
+   والأحمر (تأخّرت). كل شيء آخر حبر على ورق.
    ============================================================ */
 
-/* قسم الفترة: الصباح / الظهر / المساء */
-.period {
-  margin-bottom: 28px;
+/* التاريخ فوق العنوان */
+.today-date {
+  margin: 0 0 2px;
+  color: var(--text-soft);
+  font-size: var(--fs-sm);
 }
 
-.period-title {
-  font-size: var(--fs-lg);
-  margin: 0 0 12px;
-  color: #444;
-  font-weight: 700;
-}
+/* ---------- بطاقة الجرعة التالية ---------- */
 
-/* ---------- بطاقة الجرعة ---------- */
-
-.dose-card {
-  background: var(--surface);
+.next-dose {
+  background: var(--primary);
+  color: var(--on-primary);
   border-radius: var(--radius);
-  padding: 16px 18px;
-  box-shadow: var(--shadow);
+  padding: 18px 20px 20px;
+}
+
+.next-top {
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  gap: var(--gap-sm);
+}
+
+.next-label {
+  font-size: var(--fs-sm);
+  color: var(--on-primary-soft);
+}
+
+/* شارة الفترة بلونها — أو حمراء إن تأخّرت الجرعة */
+.next-chip {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  color: var(--text);
+}
+
+.next-chip.late {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.next-body {
+  display: flex;
+  align-items: flex-end;
   justify-content: space-between;
   gap: var(--gap);
-  border-right: 4px solid transparent;
+  margin-top: 10px;
+  flex-wrap: wrap;
 }
 
-/* جرعة مؤكّدة: تبهت ويظهر خط أخضر */
-.dose-card.taken {
-  opacity: .62;
-  border-right-color: var(--primary);
+.next-info {
+  min-width: 0;
 }
 
-/* جرعة فات وقتها ولم تُؤكّد */
-.dose-card.late {
-  border-right-color: var(--danger);
+/* الوقت — يُقرأ من بعيد، فهو أول ما تبحث عنه العين */
+.next-time {
+  font-size: var(--fs-hero);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.next-time small {
+  font-size: var(--fs-lg);
+  font-weight: 500;
+}
+
+.next-dose h3 {
+  margin: 10px 0 0;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+
+.next-dose .dose-strength {
+  color: var(--on-primary-soft);
+}
+
+.next-info p {
+  margin: 2px 0 0;
+  font-size: var(--fs-base);
+  color: var(--on-primary-soft);
+}
+
+/* زر التأكيد الأبيض — أكبر هدف لمس في الصفحة */
+.next-confirm {
+  min-height: var(--tap);
+  padding: 0 24px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--on-primary);
+  color: var(--primary);
+  font-family: inherit;
+  font-size: var(--fs-md);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .1s, opacity .15s;
+}
+
+.next-confirm:active:not(:disabled) {
+  transform: scale(.97);
+}
+
+.next-confirm:disabled {
+  opacity: .6;
+  cursor: default;
+}
+
+.next-confirm:focus-visible {
+  outline-color: var(--on-primary);
+}
+
+/* الجرعة التالية متأخرة: نبضة واحدة كل ثلاث ثوانٍ.
+   الوميض المتواصل يصير إزعاجاً يتجاهله المستخدم بعد يومين. */
+.next-dose.late {
+  animation: dose-nudge 2.6s ease-in-out infinite;
+}
+
+@keyframes dose-nudge {
+
+  0%,
+  92%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(179, 38, 30, 0);
+  }
+
+  96% {
+    box-shadow: 0 0 0 6px rgba(179, 38, 30, .22);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .next-dose.late {
+    animation: none;
+  }
+}
+
+/* كل الجرعات أُخذت */
+.next-dose.all-done {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+
+.all-done-icon {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--morning);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.all-done-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.all-done h3 {
+  margin: 0;
+}
+
+.all-done p {
+  margin: 2px 0 0;
+  color: var(--on-primary-soft);
+  font-size: var(--fs-base);
+}
+
+/* ---------- شريط تقدّم اليوم ---------- */
+
+/* قطعة لكل جرعة، تتلوّن بلون فترتها عند تأكيدها */
+.day-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0 var(--gap-lg);
+}
+
+.day-progress-bar {
+  flex: 1;
+  display: flex;
+  gap: 4px;
+}
+
+.seg {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--border-light);
+  transition: background .3s;
+}
+
+.day-progress-label {
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+/* ---------- ألوان الفترات ---------- */
+
+.seg.morning,
+.period-swatch.morning,
+.dose-marker.morning,
+.next-chip.morning {
+  background: var(--morning);
+}
+
+.seg.noon,
+.period-swatch.noon,
+.dose-marker.noon,
+.next-chip.noon {
+  background: var(--noon);
+}
+
+.seg.evening,
+.period-swatch.evening,
+.dose-marker.evening,
+.next-chip.evening {
+  background: var(--evening);
+}
+
+/* ---------- فترات اليوم ---------- */
+
+.period {
+  margin-top: var(--gap-lg);
+}
+
+/* «الصباح» «الظهر» «المساء» مع كبسولة لونها */
+.period-title {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-sm);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+
+.period-swatch {
+  width: 18px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+
+/* ---------- صف الجرعة ---------- */
+
+.dose-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+/* الخط الملوّن على طرف الصف: الفترة بلمحة */
+.dose-marker {
+  width: 6px;
+  align-self: stretch;
+  min-height: 40px;
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
 }
 
 .dose-info {
@@ -50,104 +282,216 @@
   min-width: 0;
 }
 
-.dose-top {
-  display: flex;
-  align-items: center;
-  gap: var(--gap-sm);
-  margin-bottom: 4px;
+.dose-row h3 {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+
+.dose-strength {
+  font-weight: 400;
+  color: var(--text-soft);
+}
+
+/* الوقت واسم الفرد وتعليمات الجرعة */
+.dose-info .muted {
+  color: var(--text-soft);
+  font-size: var(--fs-sm);
+  margin: 2px 0 0;
 }
 
 .dose-time {
-  font-size: var(--fs-md);
-  font-weight: 700;
-  color: var(--primary);
+  font-weight: 600;
+  color: var(--text);
 }
 
-.dose-card h3 {
-  margin: 0 0 3px;
-  font-size: var(--fs-lg);
+/* ---------- الجرعة المتأخرة ---------- */
+
+.dose-row.late .dose-time {
+  color: var(--danger);
 }
 
-.dose-info .muted {
-  margin: 1px 0;
-  color: var(--text-muted);
-  font-size: var(--fs-base);
-}
-
-.dose-info .small {
-  font-size: var(--fs-sm);
-}
-
-/* شارة «متأخرة» */
 .badge-late {
+  display: inline-block;
+  vertical-align: middle;
   background: var(--danger-soft);
   color: var(--danger);
-  padding: 2px 9px;
-  border-radius: var(--radius-pill);
   font-size: var(--fs-xs);
-  font-weight: 700;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  margin-inline-start: var(--gap-sm);
 }
 
-/* نص «تم ✓» مكان الزر بعد التأكيد */
+/* ---------- الجرعة المؤكَّدة ---------- */
+
+/* تبقى ظاهرة ولا تختفي: رؤية ما تم يطمئن بقدر ما تذكّر ما بقي */
+.dose-row.taken h3,
+.dose-row.taken .dose-time,
+.dose-row.taken .muted {
+  color: var(--text-faint);
+}
+
+.dose-row.taken h3 {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+
+/* دائرة علامة الصح بلون الفترة الفاتح */
 .done {
-  color: var(--primary);
-  font-weight: 700;
-  font-size: var(--fs-md);
-  white-space: nowrap;
-}
-
-/* ---------- شريط التنبيه الصوتي ---------- */
-/* يظهر عند حلول موعد جرعة والصفحة مفتوحة */
-
-.alarm-bar {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: var(--primary);
-  color: #fff;
-  padding: var(--gap) 18px;
-  border-radius: var(--radius-md);
-  margin-bottom: 18px;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--gap);
-  flex-wrap: wrap;
-  box-shadow: 0 4px 16px rgba(31, 122, 111, .3);
-  animation: alarmIn .3s ease-out;
+  justify-content: center;
+  color: var(--text);
 }
 
-@keyframes alarmIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to   { opacity: 1; transform: translateY(0); }
+.done svg {
+  width: 20px;
+  height: 20px;
+}
+
+.done.morning {
+  background: var(--morning-soft);
+}
+
+.done.noon {
+  background: var(--noon-soft);
+}
+
+.done.evening {
+  background: var(--evening-soft);
+}
+
+.dose-row .btn-primary,
+.dose-row .btn-outline {
+  flex-shrink: 0;
+  min-height: var(--tap-sm);
+}
+
+/* ---------- شريط المنبّه ---------- */
+
+/* يظهر في أعلى الشاشة عند حلول وقت الجرعة والتطبيق مفتوح */
+.alarm-bar {
+  position: sticky;
+  top: 70px;
+  z-index: 30;
+  background: var(--primary);
+  color: var(--on-primary);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: var(--gap);
+  box-shadow: var(--shadow-lg);
 }
 
 .alarm-text {
   font-size: var(--fs-md);
+  font-weight: 500;
+  line-height: 1.6;
 }
 
 .alarm-actions {
   display: flex;
   gap: var(--gap-sm);
+  margin-top: 12px;
 }
 
 .alarm-bar button {
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: 9px 16px;
-  font-size: var(--fs-base);
-  font-family: inherit;
-  cursor: pointer;
   min-height: var(--tap-sm);
+  padding: 0 18px;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  cursor: pointer;
 }
 
 .alarm-confirm {
-  background: #fff;
+  flex: 1;
+  background: var(--on-primary);
   color: var(--primary);
-  font-weight: 700;
 }
 
 .alarm-close {
-  background: rgba(255, 255, 255, .2);
-  color: #fff;
+  background: rgba(255, 255, 255, .14);
+  color: var(--on-primary);
 }
+
+/* ---------- الحركة ---------- */
+
+/* الحركة هنا للتأكيد فقط: «وصلتني ضغطتك». قصيرة ولا تتكرر. */
+
+/* الجرعة التالية تنزلق مكان التي أُكّدت */
+.next-dose {
+  animation: next-in .32s cubic-bezier(.2, .7, .3, 1);
+}
+
+.next-dose.late {
+  animation: next-in .32s cubic-bezier(.2, .7, .3, 1), dose-nudge 2.6s ease-in-out .32s infinite;
+}
+
+@keyframes next-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(.98);
+  }
+}
+
+/* صفوف الجرعات تظهر واحداً بعد الآخر */
+.dose-row {
+  animation: row-in .3s ease-out backwards;
+  animation-delay: calc(var(--i, 0) * 45ms + 80ms);
+}
+
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* علامة الصح تقفز عند التأكيد */
+.done.just {
+  animation: done-pop .4s cubic-bezier(.3, 1.6, .5, 1);
+}
+
+@keyframes done-pop {
+  from {
+    transform: scale(.4);
+    opacity: 0;
+  }
+}
+
+/* قطعة شريط التقدّم تمتلئ بارتداد خفيف */
+.seg.just {
+  animation: seg-fill .45s cubic-bezier(.3, 1.6, .5, 1);
+}
+
+@keyframes seg-fill {
+  from {
+    transform: scaleY(.3);
+  }
+}
+
+/* اسم الدواء يبهت بهدوء بعد تأكيده */
+.dose-row h3,
+.dose-row .muted,
+.dose-row .dose-time {
+  transition: color .3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .next-dose,
+  .next-dose.late,
+  .dose-row,
+  .done.just,
+  .seg.just {
+    animation: none;
+  }
+}
+

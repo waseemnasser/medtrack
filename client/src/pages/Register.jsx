@@ -1,67 +1,81 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../api";
-import "./Auth.css";
+import AuthLayout from "../components/AuthLayout";
+import PasswordInput from "../components/PasswordInput";
 
 export default function Register() {
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError("");
-        setLoading(true);
-        try {
-            const res = await api.post("/auth/register", { name, email, password });
-            localStorage.setItem("token", res.data.token);
-            navigate("/");
-        } catch (err) {
-            setError(err.response?.data?.error || "حدث خطأ، حاول مرة أخرى");
-        } finally {
-            setLoading(false);
-        }
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      const res = await api.post("/auth/register", { name, email, password });
+      localStorage.setItem("token", res.data.token);
+      // حساب جديد بلا أفراد بعد: الخطوة الأولى إضافة فرد
+      navigate("/members/new", { replace: true });
+    } catch (err) {
+      setError(err.response?.data?.error || "تعذّر إنشاء الحساب. جرّب بريداً آخر.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div className="auth-page">
-            <form className="auth-card" onSubmit={handleSubmit}>
-                <h1>دوائي</h1>
-                <p className="sub">إنشاء حساب جديد</p>
+  return (
+    <AuthLayout tagline="حساب واحد يكفي العائلة كلها">
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <h2 className="auth-title">إنشاء حساب</h2>
+        <p className="auth-sub">دقيقة واحدة، ثم أضف أول فرد من العائلة</p>
 
-                <label>الاسم</label>
-                <input value={name} onChange={(e) => setName(e.target.value)} required />
+        <label htmlFor="name">الاسم</label>
+        <input
+          id="name"
+          autoComplete="name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
 
-                <label>البريد الإلكتروني</label>
-                <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                />
+        <label htmlFor="email">البريد الإلكتروني</label>
+        <input
+          id="email"
+          type="email"
+          dir="ltr"
+          autoComplete="email"
+          placeholder="name@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
 
-                <label>كلمة المرور</label>
-                <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    minLength={8}
-                    required
-                />
+        <label htmlFor="password">كلمة المرور</label>
+        <PasswordInput
+          id="password"
+          autoComplete="new-password"
+          placeholder="8 أحرف على الأقل"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          minLength={8}
+          required
+        />
 
-                {error && <div className="error">{error}</div>}
+        {error && <div className="error">{error}</div>}
 
-                <button type="submit" disabled={loading}>
-                    {loading ? "جارٍ الإنشاء..." : "إنشاء حساب"}
-                </button>
+        <button type="submit" className="auth-cta" disabled={loading}>
+          {loading ? "جارٍ الإنشاء..." : "إنشاء حساب"}
+        </button>
 
-                <p className="switch">
-                    عندك حساب؟ <Link to="/login">سجّل الدخول</Link>
-                </p>
-            </form>
-        </div>
-    );
+        <p className="auth-switch">
+          عندك حساب؟ <Link to="/login">سجّل دخولك</Link>
+        </p>
+      </form>
+    </AuthLayout>
+  );
 }

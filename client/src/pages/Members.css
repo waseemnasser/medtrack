@@ -1,15 +1,106 @@
 /* ============================================================
-   صفحة أفراد العائلة + نموذج إضافة وتعديل فرد
+   صفحة العائلة + نموذج إضافة وتعديل فرد
    ------------------------------------------------------------
-   هاتان الصفحتان تستخدمان المكوّنات المشتركة فقط حالياً:
-   .page و .cards و .card و .form-card
-
-   إذا أردت شكلاً خاصاً ببطاقة الفرد — صورة رمزية، لون لكل فرد،
-   ترتيب مختلف — اكتبيه هنا.
-
-   مثال جاهز للبدء:
-
-   .card-body h2 { ... }   ← سيؤثر على كل البطاقات في التطبيق
-   .members-page .card-body h2 { ... }  ← هذه الصفحة فقط
-   (أضيفي className="page members-page" في Members.jsx)
+   كل فرد صف واحد: صورة رمزية بالحرف الأول، الاسم، تفاصيل قصيرة.
+   الصف كله رابط إلى ملف الفرد — هدف لمس كبير وواضح.
    ============================================================ */
+
+.member-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  text-decoration: none;
+  transition: background .15s, border-color .15s;
+}
+
+.member-item:hover {
+  background: var(--surface-alt);
+  border-color: var(--border);
+}
+
+.member-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.member-name {
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+
+.member-meta {
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
+}
+
+.member-text .chip {
+  margin-top: 4px;
+  font-size: var(--fs-xs);
+}
+
+/* سهم لليسار: «افتح» في الواجهة العربية */
+.chevron {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--text-faint);
+}
+
+/* ---------- منطقة الحذف في نموذج التعديل ---------- */
+
+/* الحذف نهائي ويمسح كل أدوية الفرد ومواعيده،
+   لذلك مكانه أسفل نموذج التعديل لا بجانب كل بطاقة */
+.danger-zone {
+  margin-top: 32px;
+  padding: 16px 18px;
+  border: 1px dashed var(--danger);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.danger-zone h2 {
+  margin: 0;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.danger-zone p {
+  margin: 4px 0 12px;
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
+  line-height: 1.7;
+}
+
+.btn-danger {
+  min-height: var(--tap-sm);
+  padding: 0 18px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--danger);
+  color: var(--on-primary);
+  font-family: inherit;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-danger:disabled {
+  opacity: .6;
+  cursor: default;
+}

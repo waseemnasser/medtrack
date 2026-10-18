@@ -1,12 +1,17 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import api from "../api";
+import PageHeader from "../components/PageHeader";
 import "./Appointments.css";
 
 export default function AppointmentForm() {
     const { id } = useParams();
     const isEdit = Boolean(id);
     const navigate = useNavigate();
+    // فُتح النموذج من ملف فرد؟ نختاره مسبقاً ونرجع إلى ملفه بعد الحفظ
+    const [searchParams] = useSearchParams();
+    const fromMember = searchParams.get("member_id");
+    const parent = fromMember ? `/members/${fromMember}?tab=appts` : "/appointments";
 
     const [members, setMembers] = useState([]);
     const [form, setForm] = useState({
@@ -20,34 +25,39 @@ export default function AppointmentForm() {
     const [error, setError] = useState("");
     const [saving, setSaving] = useState(false);
 
-    useEffect(() => { init(); }, [id]);
+    useEffect(() => {
+        const init = async () => {
+            try {
+                const mRes = await api.get("/members");
+                setMembers(mRes.data);
 
-    const init = async () => {
-        try {
-            const mRes = await api.get("/members");
-            setMembers(mRes.data);
-
-            if (isEdit) {
-                const aRes = await api.get("/appointments");
-                const a = aRes.data.find((x) => String(x.id) === String(id));
-                if (a) {
-                    setForm({
-                        member_id: a.member_id || "",
-                        title: a.title || "",
-                        doctor_name: a.doctor_name || "",
-                        location: a.location || "",
-                        // تحويل "2026-10-28 11:00:00" إلى صيغة حقل datetime-local
-                        scheduled_at: String(a.scheduled_at).replace(" ", "T").slice(0, 16),
-                        notes: a.notes || "",
-                    });
+                if (isEdit) {
+                    const aRes = await api.get("/appointments");
+                    const a = aRes.data.find((x) => String(x.id) === String(id));
+                    if (a) {
+                        setForm({
+                            member_id: a.member_id || "",
+                            title: a.title || "",
+                            doctor_name: a.doctor_name || "",
+                            location: a.location || "",
+                            // تحويل "2026-10-28 11:00:00" إلى صيغة حقل datetime-local
+                            scheduled_at: String(a.scheduled_at).replace(" ", "T").slice(0, 16),
+                            notes: a.notes || "",
+                        });
+                    }
+                } else if (fromMember) {
+                    setForm((f) => ({ ...f, member_id: fromMember }));
+                } else if (mRes.data.length > 0) {
+                    setForm((f) => ({ ...f, member_id: mRes.data[0].id }));
                 }
-            } else if (mRes.data.length > 0) {
-                setForm((f) => ({ ...f, member_id: mRes.data[0].id }));
+            } catch {
+                setError("تعذّر تحميل البيانات");
             }
-        } catch {
-            setError("تعذّر تحميل البيانات");
-        }
-    };
+        };
+
+        init();
+    }, [id, isEdit, fromMember]);
+
 
     const change = (e) =>
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -73,7 +83,7 @@ export default function AppointmentForm() {
         try {
             if (isEdit) await api.put(`/appointments/${id}`, payload);
             else await api.post("/appointments", payload);
-            navigate("/appointments");
+            navigate(parent, { replace: true });
         } catch (err) {
             setError(err.response?.data?.error || "تعذّر الحفظ، حاول مجدداً");
         } finally {
@@ -83,7 +93,7 @@ export default function AppointmentForm() {
 
     return (
         <div className="page">
-            <h1>{isEdit ? "تعديل موعد" : "إضافة موعد"}</h1>
+            <PageHeader title={isEdit ? "تعديل موعد" : "إضافة موعد"} back={parent} />
 
             <form className="form-card" onSubmit={submit}>
                 <label>الفرد</label>
@@ -130,7 +140,7 @@ export default function AppointmentForm() {
                     <button type="submit" className="btn-primary" disabled={saving}>
                         {saving ? "جارٍ الحفظ..." : "حفظ"}
                     </button>
-                    <button type="button" onClick={() => navigate("/appointments")}>
+                    <button type="button" onClick={() => navigate(parent)}>
                         إلغاء
                     </button>
                 </div>

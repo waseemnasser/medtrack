@@ -11,8 +11,8 @@
 
 .form-section {
   font-size: var(--fs-md);
-  color: var(--primary);
-  font-weight: 700;
+  color: var(--text);
+  font-weight: 600;
   margin: 22px 0 12px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border-light);
@@ -74,7 +74,7 @@
 /* صندوق لكل موعد: الساعة فوق وأيام الأسبوع تحت */
 .time-row {
   background: var(--surface-alt);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   padding: var(--gap);
   margin-bottom: 10px;
 }
@@ -125,18 +125,18 @@
 .day.on {
   background: var(--primary);
   border-color: var(--primary);
-  color: #fff;
-  font-weight: 700;
+  color: var(--on-primary);
+  font-weight: 600;
 }
 
 /* ---------- زر إضافة موعد ---------- */
 
 /* إطار متقطّع ليبدو «مكاناً فارغاً يُملأ» لا زراً عادياً */
 .add-time {
-  background: var(--primary-soft);
-  border: 1px dashed var(--primary);
+  background: transparent;
+  border: 1.5px dashed var(--border);
   color: var(--primary);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   padding: 12px;
   font-size: var(--fs-md);
   font-family: inherit;

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
+import PageHeader from "../components/PageHeader";
 import "./MedicationForm.css";
 
 const DAY_LABELS = [
@@ -9,13 +10,16 @@ const DAY_LABELS = [
     { n: "7", label: "س" },
 ];
 
+// تاريخ اليوم بصيغة حقل التاريخ «2026-10-18»
+const todayISO = () => new Date().toISOString().slice(0, 10);
+
 const FORMS = ["أقراص", "أقراص ملبسة", "محافظ", "شراب", "معلق", "محلول للحقن", "تحاميل", "قطرة", "مرهم", "كريم", "بخاخ"];
 
 export default function MedicationForm() {
-    const { id: memberId } = useParams();
+    const { id: memberId, medId } = useParams();   // medId موجود عند التعديل فقط
+    const isEdit = Boolean(medId);
     const navigate = useNavigate();
-
-    const today = new Date().toISOString().slice(0, 10);
+    const parent = `/members/${memberId}`;
 
     const [form, setForm] = useState({
         catalog_id: null,
@@ -24,7 +28,7 @@ export default function MedicationForm() {
         strength: "",
         form: "أقراص",
         instructions: "",
-        start_date: today,
+        start_date: todayISO(),
         end_date: "",
         units_total: "",
         units_per_dose: "1",
@@ -36,15 +40,48 @@ export default function MedicationForm() {
     ]);
 
     const [results, setResults] = useState([]);
+    // القائمة تظهر فقط أثناء الكتابة، لا بعد اختيار دواء أو مسح الاسم
+    const showResults = !form.catalog_id && form.name.trim().length >= 2 && results.length > 0;
     const [searching, setSearching] = useState(false);
     const [error, setError] = useState("");
     const [saving, setSaving] = useState(false);
     const debounce = useRef(null);
 
+    // عند التعديل: يملأ النموذج ببيانات الدواء الحالية ومواعيده
+    useEffect(() => {
+        if (!isEdit) return;
+        api.get(`/medications/member/${memberId}`)
+            .then((res) => {
+                const m = res.data.find((x) => String(x.id) === String(medId));
+                if (!m) return setError("هذا الدواء غير موجود");
+                setForm({
+                    // catalog_id يُعامل كأنه مختار مسبقاً حتى لا يبدأ البحث تلقائياً
+                    catalog_id: m.catalog_id || "manual",
+                    name: m.name || "",
+                    active_ingredient: m.active_ingredient || "",
+                    strength: m.strength || "",
+                    form: m.form || "أقراص",
+                    instructions: m.instructions || "",
+                    start_date: m.start_date ? String(m.start_date).slice(0, 10) : todayISO(),
+                    end_date: m.end_date ? String(m.end_date).slice(0, 10) : "",
+                    units_total: m.units_total ?? "",
+                    units_per_dose: m.units_per_dose ?? "1",
+                    is_private: Boolean(m.is_private),
+                });
+                if (m.schedules?.length) {
+                    setTimes(m.schedules.map((s) => ({
+                        time_of_day: s.time_of_day,
+                        days_of_week: s.days_of_week || "1234567",
+                    })));
+                }
+            })
+            .catch(() => setError("تعذّر تحميل بيانات الدواء"));
+    }, [isEdit, memberId, medId]);
+
     // بحث في كتالوغ الأدوية مع تأخير بسيط حتى لا نرهق السيرفر
     useEffect(() => {
-        if (form.catalog_id) return;          // اختار دواءً من القائمة، لا داعي للبحث
-        if (form.name.trim().length < 2) { setResults([]); return; }
+        // اختار دواءً من القائمة أو الاسم قصير جداً: لا داعي للبحث
+        if (form.catalog_id || form.name.trim().length < 2) return;
 
         clearTimeout(debounce.current);
         debounce.current = setTimeout(async () => {
@@ -116,9 +153,9 @@ export default function MedicationForm() {
 
         setSaving(true);
         try {
-            await api.post("/medications", {
+            const payload = {
                 member_id: Number(memberId),
-                catalog_id: form.catalog_id,
+                catalog_id: form.catalog_id === "manual" ? null : form.catalog_id,
                 name: form.name.trim(),
                 active_ingredient: form.active_ingredient || null,
                 strength: form.strength || null,
@@ -133,8 +170,11 @@ export default function MedicationForm() {
                     time_of_day: t.time_of_day.length === 5 ? `${t.time_of_day}:00` : t.time_of_day,
                     days_of_week: t.days_of_week,
                 })),
-            });
-            navigate(`/members/${memberId}`);
+            };
+            if (isEdit) await api.put(`/medications/${medId}`, payload);
+            else await api.post("/medications", payload);
+            // replace: زر الرجوع بعد الحفظ لا يعيد فتح النموذج
+            navigate(parent, { replace: true });
         } catch (err) {
             setError(err.response?.data?.error || "تعذّر الحفظ، حاول مجدداً");
         } finally {
@@ -144,7 +184,7 @@ export default function MedicationForm() {
 
     return (
         <div className="page">
-            <h1>إضافة دواء</h1>
+            <PageHeader title={isEdit ? "تعديل الدواء" : "إضافة دواء"} back={parent} />
 
             <form className="form-card" onSubmit={submit}>
                 {/* ── بيانات الدواء ── */}
@@ -159,7 +199,7 @@ export default function MedicationForm() {
                         placeholder="ابدأ بالكتابة للبحث..."
                         autoComplete="off"
                     />
-                    {results.length > 0 && (
+                    {showResults && (
                         <ul className="search-results">
                             {results.map((r) => (
                                 <li key={r.id} onClick={() => pickFromCatalog(r)}>
@@ -252,7 +292,7 @@ export default function MedicationForm() {
                     <button type="submit" className="btn-primary" disabled={saving}>
                         {saving ? "جارٍ الحفظ..." : "حفظ"}
                     </button>
-                    <button type="button" onClick={() => navigate(`/members/${memberId}`)}>
+                    <button type="button" onClick={() => navigate(parent)}>
                         إلغاء
                     </button>
                 </div>

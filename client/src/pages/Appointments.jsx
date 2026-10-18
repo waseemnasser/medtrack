@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api from "../api";
 import "./Appointments.css";
 
@@ -36,22 +36,25 @@ export default function Appointments() {
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
-    useEffect(() => { load(); }, []);
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const [aRes, mRes] = await Promise.all([
+                    api.get("/appointments"),
+                    api.get("/members"),
+                ]);
+                setAppts(aRes.data);
+                setMembers(mRes.data);
+            } catch {
+                setError("تعذّر تحميل المواعيد. حاول مجدداً.");
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const load = async () => {
-        try {
-            const [aRes, mRes] = await Promise.all([
-                api.get("/appointments"),
-                api.get("/members"),
-            ]);
-            setAppts(aRes.data);
-            setMembers(mRes.data);
-        } catch {
-            setError("تعذّر تحميل المواعيد. حاول مجدداً.");
-        } finally {
-            setLoading(false);
-        }
-    };
+        load();
+    }, []);
+
 
     const memberName = (id) =>
         members.find((m) => m.id === id)?.name || "";
@@ -87,7 +90,9 @@ export default function Appointments() {
                 </div>
                 <p className="muted">{formatDT(a.scheduled_at)}</p>
                 {memberName(a.member_id) && (
-                    <p className="muted small">{memberName(a.member_id)}</p>
+                    <p className="muted small">
+                        <Link to={`/members/${a.member_id}?tab=appts`} className="member-link">{memberName(a.member_id)}</Link>
+                    </p>
                 )}
                 {a.doctor_name && <p className="muted small">{a.doctor_name}</p>}
                 {a.location && <p className="muted small">{a.location}</p>}
@@ -104,7 +109,8 @@ export default function Appointments() {
         <div className="page">
             <div className="page-head">
                 <div>
-                    <h1>المواعيد الطبية</h1>
+                    <h1>المواعيد</h1>
+                    <p className="sub">مواعيد الأطباء والتحاليل لكل العائلة</p>
                 </div>
                 <button className="btn-primary" onClick={() => navigate("/appointments/new")}>
                     إضافة موعد

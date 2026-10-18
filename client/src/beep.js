@@ -18,7 +18,7 @@ export function playBeep() {
         const t = ctx.currentTime;
         play(t, 880);        // نغمتان متتاليتان
         play(t + 0.45, 1100);
-    } catch (e) {
+    } catch {
         // بعض المتصفحات تمنع الصوت قبل أول تفاعل من المستخدم — نتجاهل بهدوء
     }
 }

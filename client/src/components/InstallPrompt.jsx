@@ -11,7 +11,8 @@ function isStandalone() {
 
 export default function InstallPrompt() {
     const [deferred, setDeferred] = useState(null);
-    const [showIOS, setShowIOS] = useState(false);
+    // آيفون لا يرسل حدث التثبيت، فنعرف من البداية أننا سنعرض الإرشاد النصي
+    const [showIOS] = useState(() => isIOS() && !isStandalone());
     const [hidden, setHidden] = useState(
         localStorage.getItem("installDismissed") === "1"
     );
@@ -25,7 +26,6 @@ export default function InstallPrompt() {
         };
         window.addEventListener("beforeinstallprompt", onPrompt);
 
-        if (isIOS()) setShowIOS(true);
 
         return () => window.removeEventListener("beforeinstallprompt", onPrompt);
     }, []);

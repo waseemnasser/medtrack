@@ -22,7 +22,7 @@
 .push-box button {
   background: var(--neutral);
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
   padding: 9px 16px;
   font-size: var(--fs-base);
   font-family: inherit;
@@ -33,8 +33,8 @@
 /* زر التفعيل — بارز لأنه إجراء نريد من المستخدم أن يتخذه */
 .push-box .push-on {
   background: var(--primary);
-  color: #fff;
-  font-weight: 700;
+  color: var(--on-primary);
+  font-weight: 600;
 }
 
 /* رسالة النتيجة أسفل الصندوق */

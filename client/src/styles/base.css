@@ -20,7 +20,7 @@ body {
    الشريط السفلي آخر عنصر */
 .app-shell {
   min-height: 100vh;
-  padding-bottom: 76px;
+  padding-bottom: 96px;
 }
 
 /* حاوية المحتوى في كل صفحة داخلية */
@@ -56,4 +56,25 @@ body {
   font-size: 16px;
   color: var(--text-soft);
   margin: 26px 0 12px;
+}
+
+/* ---------- دخول الصفحة ---------- */
+
+/* كل صفحة تظهر بارتفاع خفيف عند فتحها — إشارة هادئة أن الشاشة تغيّرت */
+.page {
+  animation: page-in .28s ease-out;
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* بعض المستخدمين يعطّلون الحركة في نظامهم لأسباب صحية — نحترم ذلك */
+@media (prefers-reduced-motion: reduce) {
+  .page {
+    animation: none;
+  }
 }

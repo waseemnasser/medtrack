@@ -1,27 +1,33 @@
 /* ============================================================
-   المكوّنات المشتركة — تُستخدم في أكثر من صفحة
+   المكوّنات المشتركة
    ------------------------------------------------------------
-   أي تعديل هنا يظهر في عدة صفحات دفعة واحدة. هذه ميزة لا عيب:
-   تغيير شكل .card مرة واحدة يغيّر كل بطاقات التطبيق.
-
-   القاعدة: إذا كان التنسيق يخص صفحة واحدة فقط،
-   مكانه ملف تلك الصفحة لا هذا الملف.
+   كل ما يظهر في أكثر من صفحة: الأزرار، البطاقات، الحقول،
+   الشارات، رسائل الخطأ، الشاشات الفارغة.
    ============================================================ */
 
 /* ---------- الأزرار ---------- */
 
-/* الزر الأساسي: إجراء واحد رئيسي في كل صفحة */
+/* الزر الأساسي: فعل واحد لا أكثر في كل شاشة */
 .btn-primary {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   border: none;
-  padding: 12px 20px;
-  border-radius: var(--radius-sm);
-  font-size: var(--fs-md);
-  font-family: inherit;
-  cursor: pointer;
+  border-radius: var(--radius-pill);
+  padding: 0 22px;
   min-height: var(--tap);
-  white-space: nowrap;
+  font-family: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-deep);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: scale(.97);
 }
 
 .btn-primary:disabled {
@@ -29,9 +35,44 @@
   cursor: default;
 }
 
+/* الزر الثانوي: إطار حبر بلا تعبئة */
+.btn-outline {
+  background: transparent;
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+  border-radius: var(--radius-pill);
+  padding: 0 18px;
+  min-height: var(--tap-sm);
+  font-family: inherit;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: var(--primary-soft);
+}
+
+.btn-outline:active:not(:disabled) {
+  transform: scale(.97);
+}
+
+.btn-outline:disabled {
+  color: var(--primary-muted);
+  border-color: var(--primary-muted);
+  cursor: default;
+}
+
+/* حلقة التركيز عند التنقل بلوحة المفاتيح */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 /* ---------- البطاقات ---------- */
 
-/* حاوية تُرتّب البطاقات عمودياً بمسافات متساوية */
 .cards {
   display: flex;
   flex-direction: column;
@@ -40,177 +81,355 @@
 
 .card {
   background: var(--surface);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 
-/* بطاقة باهتة: دواء متوقف أو موعد سابق */
+/* بطاقة باهتة: دواء متوقّف، موعد مضى */
 .card.dim {
-  opacity: .55;
+  background: var(--surface-alt);
+  border-style: dashed;
+  border-color: var(--border);
+  box-shadow: none;
+  color: var(--text-soft);
 }
 
-/* جسم البطاقة — قابل للنقر افتراضياً */
 .card-body {
-  padding: 18px 20px;
+  padding: 16px;
   cursor: pointer;
 }
 
-/* بطاقة للعرض فقط لا تُفتح بالنقر */
+/* بطاقة لا يُنقر عليها */
 .card-body.no-click {
   cursor: default;
 }
 
 .card-body h2 {
-  margin: 0 0 6px;
-  font-size: var(--fs-xl);
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 600;
+}
+
+.card-body:not(.no-click):hover {
+  background: var(--surface-alt);
 }
 
 .card-body .muted {
-  margin: 2px 0;
-  color: var(--text-muted);
+  color: var(--text-soft);
   font-size: var(--fs-base);
+  margin: 4px 0 0;
 }
 
 /* شريط الأزرار أسفل البطاقة */
 .card-actions {
   display: flex;
-  gap: var(--gap-sm);
-  padding: 10px 20px 16px;
   border-top: 1px solid var(--border-faint);
 }
 
 .card-actions button {
-  background: var(--neutral);
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: 9px 16px;
-  font-size: var(--fs-base);
-  font-family: inherit;
-  cursor: pointer;
+  flex: 1;
   min-height: var(--tap-sm);
+  background: none;
+  border: none;
+  border-inline-start: 1px solid var(--border-faint);
+  color: var(--primary);
+  font-family: inherit;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.card-actions button:hover {
+  background: var(--surface-alt);
+}
+
+.card-actions button:first-child {
+  border-inline-start: none;
 }
 
 .card-actions .danger {
   color: var(--danger);
 }
 
-/* عنوان بطاقة مع شارة بجانبه */
-.med-title {
-  display: flex;
-  align-items: center;
-  gap: var(--gap-sm);
-  flex-wrap: wrap;
+/* ---------- الشارات ---------- */
+
+/* «اليوم»، «غداً»، «باقي ١٨ قرص» */
+.chip {
+  display: inline-block;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
 }
 
-/* ---------- الحالة الفارغة ---------- */
+/* شارة بلون الفترة: «الصباح ٨:٠٠» */
+.chip.morning {
+  background: var(--morning-soft);
+  color: var(--text);
+}
 
-/* تظهر حين لا توجد بيانات. نصها مهم: يوجّه المستخدم الجديد */
-.empty {
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 36px 20px;
-  text-align: center;
+.chip.noon {
+  background: var(--noon-soft);
+  color: var(--text);
+}
+
+.chip.evening {
+  background: var(--evening-soft);
+  color: var(--text);
+}
+
+/* شارة تحذير: «ينفد خلال ٣ أيام»، «متأخرة» */
+.chip.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* شارة محايدة: «انتهى»، «متوقّف» */
+.chip.neutral {
+  background: var(--neutral);
+  color: var(--text-muted);
+}
+
+/* ---------- الصورة الرمزية للفرد ---------- */
+
+/* دائرة بالحرف الأول من الاسم — بلا صور، فالخصوصية أولاً */
+.avatar {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-xl);
+  font-weight: 600;
+}
+
+.avatar.lg {
+  width: 64px;
+  height: 64px;
+  font-size: 26px;
+}
+
+/* ---------- النصوص الثانوية ---------- */
+
+.muted {
   color: var(--text-soft);
-  font-size: var(--fs-md);
+}
+
+.muted.small,
+.small {
+  font-size: var(--fs-sm);
+  color: var(--text-faint);
+  margin: 2px 0 0;
 }
 
 /* ---------- النماذج ---------- */
 
 .form-card {
   background: var(--surface);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius);
-  padding: var(--gap-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 22px 20px;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--shadow);
 }
 
 .form-card label {
   font-size: var(--fs-base);
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: var(--gap-sm);
+}
+
+/* الحقل الذي يليه عنوان حقل آخر يحتاج فاصلاً أكبر */
+.form-card input+label,
+.form-card select+label,
+.form-card textarea+label,
+.form-card .hint+label {
+  margin-top: 18px;
+}
+
+/* مربع الاختيار وأداة التاريخ بلون التطبيق لا بأزرق المتصفح */
+.form-card,
+.auth-form {
+  accent-color: var(--primary);
+}
+
+/* القائمة المنسدلة: سهم مرسوم على اليسار (الواجهة من اليمين لليسار) */
+.form-card select {
+  appearance: none;
+  padding-inline-end: 42px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%234F6669' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 16px center;
+  cursor: pointer;
+}
+
+.form-card textarea {
+  min-height: 96px;
+  padding: 12px 14px;
+  resize: vertical;
+  line-height: 1.6;
 }
 
 .form-card input,
-.form-card select {
-  padding: 11px 12px;
-  margin-bottom: 4px;
+.form-card select,
+.form-card textarea {
+  min-height: var(--tap);
+  padding: 0 14px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: var(--fs-md);
+  background: var(--surface-alt);
+  color: var(--text);
   font-family: inherit;
-  min-height: 46px;
-}
-
-.form-card select {
-  background: var(--surface);
+  font-size: var(--fs-md);
+  transition: border-color .15s, box-shadow .15s;
 }
 
 .form-card input:focus,
-.form-card select:focus {
+.form-card select:focus,
+.form-card textarea:focus {
   outline: none;
   border-color: var(--primary);
+  box-shadow: var(--focus-ring);
+  background-color: var(--surface);
 }
 
-/* مسافة بين حقل والحقل الذي يليه */
-.form-card input + label {
-  margin-top: 12px;
+.form-card input::placeholder,
+.form-card textarea::placeholder {
+  color: var(--text-faint);
 }
 
-/* نص مساعدة أسفل الحقل */
+/* نص المساعدة تحت الحقل */
 .form-card .hint {
   font-size: var(--fs-sm);
   color: var(--text-faint);
-  margin: 0 0 var(--gap);
+  margin: 6px 0 0;
 }
 
-/* صف أزرار الحفظ والإلغاء */
+/* أزرار أسفل النموذج */
 .form-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 20px;
+  gap: var(--gap-sm);
+  margin-top: var(--gap-lg);
+}
+
+.form-actions .btn-primary {
+  flex: 1;
 }
 
 .form-actions button:not(.btn-primary) {
-  background: var(--neutral);
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: 12px 20px;
-  font-size: var(--fs-md);
-  font-family: inherit;
-  cursor: pointer;
   min-height: var(--tap);
+  padding: 0 22px;
+  background: transparent;
+  color: var(--text);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  cursor: pointer;
 }
 
-/* ---------- الرسائل ---------- */
+.form-actions button:not(.btn-primary):hover {
+  border-color: var(--primary);
+}
 
-/* رسالة خطأ. قاعدتنا: تقول للمستخدم ماذا يفعل لا أن هناك خطأ فقط */
+/* ---------- رسائل ---------- */
+
+/* خطأ من الخادم: يقول ما حدث، لا يعتذر */
 .error {
   background: var(--danger-soft);
   color: var(--danger);
-  padding: 10px;
   border-radius: var(--radius-sm);
+  padding: 12px 14px;
   font-size: var(--fs-base);
+  font-weight: 500;
   margin-bottom: var(--gap);
 }
 
-/* ---------- الشارات ---------- */
+/* شاشة فارغة: دعوة لفعل شيء، لا اعتذار عن الفراغ */
+.empty {
+  text-align: center;
+  color: var(--text-soft);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  padding: 48px 20px;
+}
 
-/* شارة خضراء: موعد جرعة، «بعد ٣ أيام» */
-.chip {
-  background: var(--primary-soft);
+/* ---------- عناصر الأدوية ---------- */
+
+.med-title {
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  margin: 0;
+}
+
+/* صف مواعيد الجرعة داخل بطاقة الدواء */
+.schedules {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-top: 11px;
+}
+/* ---------- ضغطة الأزرار ---------- */
+
+/* انضغاط خفيف عند اللمس: تأكيد فوري أن الزر استجاب */
+.form-actions button,
+.card-actions button,
+.tabs button,
+.push-box button,
+.alarm-bar button {
+  transition: background .15s, border-color .15s, transform .1s;
+}
+
+.form-actions button:active:not(:disabled),
+.tabs button:active,
+.push-box button:active,
+.alarm-bar button:active {
+  transform: scale(.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .btn-primary,
+  .btn-outline,
+  .form-actions button,
+  .tabs button,
+  .push-box button,
+  .alarm-bar button {
+    transition: none;
+    transform: none !important;
+  }
+}
+
+/* رابط داخل الشاشة الفارغة: الخطوة التالية */
+.empty a {
   color: var(--primary);
-  padding: 5px 11px;
-  border-radius: var(--radius-pill);
-  font-size: var(--fs-sm);
   font-weight: 600;
 }
 
-/* صف شارات مواعيد الجرعات */
-.schedules {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 10px;
+/* ---------- اسم الفرد رابط إلى ملفه (اليوم، المواعيد) ---------- */
+
+.member-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.member-link:hover {
+  color: var(--primary);
+}
+
+.next-dose .member-link:hover {
+  color: var(--on-primary);
 }
