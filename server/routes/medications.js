@@ -87,6 +87,65 @@ router.post("/", async (req, res) => {
     }
 });
 
+// تعديل دواء مع أوقاته — الأوقات القديمة تُستبدل كلها بالجديدة.
+// سجل الجرعات مربوط بالدواء لا بالموعد، فلا يضيع شيء من السجل.
+router.put("/:id", async (req, res) => {
+    const {
+        catalog_id, name, active_ingredient, strength, form,
+        instructions, start_date, end_date, units_total, units_per_dose,
+        is_private, times,
+    } = req.body;
+
+    if (!name || !start_date)
+        return res.status(400).json({ error: "اسم الدواء وتاريخ البدء مطلوبين" });
+
+    const client = await pool.connect();
+    try {
+        await client.query("BEGIN");
+
+        const med = await client.query(
+            `UPDATE medications SET
+         catalog_id = $1, name = $2, active_ingredient = $3, strength = $4, form = $5,
+         instructions = $6, start_date = $7, end_date = $8, units_total = $9,
+         units_per_dose = $10, is_private = $11
+       WHERE id = $12 AND member_id IN (SELECT id FROM members WHERE user_id = $13)
+       RETURNING *`,
+            [catalog_id || null, name, active_ingredient || null, strength || null,
+                form || null, instructions || null, start_date, end_date || null,
+                units_total || null, units_per_dose || 1, is_private || false,
+                req.params.id, req.userId]
+        );
+
+        if (!med.rows.length) {
+            await client.query("ROLLBACK");
+            return res.status(404).json({ error: "الدواء غير موجود" });
+        }
+
+        const medication = med.rows[0];
+        medication.schedules = [];
+
+        if (Array.isArray(times)) {
+            await client.query("DELETE FROM dose_schedules WHERE medication_id = $1", [medication.id]);
+            for (const t of times) {
+                const s = await client.query(
+                    `INSERT INTO dose_schedules (medication_id, time_of_day, days_of_week)
+           VALUES ($1,$2,$3) RETURNING id, time_of_day, days_of_week`,
+                    [medication.id, t.time_of_day, t.days_of_week || "1234567"]
+                );
+                medication.schedules.push(s.rows[0]);
+            }
+        }
+
+        await client.query("COMMIT");
+        res.json(medication);
+    } catch (err) {
+        await client.query("ROLLBACK");
+        res.status(500).json({ error: err.message });
+    } finally {
+        client.release();
+    }
+});
+
 // إيقاف دواء بدل حذفه
 router.patch("/:id/stop", async (req, res) => {
     const r = await pool.query(
