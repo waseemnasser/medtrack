@@ -1,0 +1,1625 @@
+/* ============================================================
+   الصفحة التعريفية
+   ------------------------------------------------------------
+   الفكرة: «قرص اليوم» — قرص ٢٤ ساعة بأقواس الفترات الثلاث،
+   وفوقه هاتف يعرض شاشة «اليوم» وهي تعمل. كل ما بعده يحكي
+   القصة: المزايا ← كيف يعمل ← الطبيب ← المبادئ ← الفريق.
+
+   كل الألوان من variables.css، فالصفحة تعمل في الوضع الداكن
+   تلقائياً. وكل حركة تتوقف لمن يطلب تقليل الحركة.
+   ============================================================ */
+
+.ld-title,
+.ld-head h2,
+.ld-final-band h2,
+.ld-statement p {
+  text-wrap: balance;
+}
+
+html:has(.landing) {
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
+}
+
+.landing {
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: clip;
+}
+
+.ld-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-inline: 20px;
+}
+
+.landing .ic {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* ---------- الأزرار ---------- */
+
+.ld-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: var(--fs-md);
+  text-decoration: none;
+  transition: transform .2s, box-shadow .2s, background .2s, border-color .2s;
+}
+
+.ld-btn:hover {
+  transform: translateY(-2px);
+}
+
+.ld-btn:active {
+  transform: translateY(0) scale(.98);
+}
+
+.ld-btn.sm {
+  min-height: 44px;
+  padding: 0 18px;
+  font-size: var(--fs-base);
+}
+
+.ld-btn.lg {
+  min-height: 58px;
+  padding: 0 30px;
+  font-size: 17px;
+}
+
+.ld-btn.primary {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.ld-btn.primary:hover {
+  box-shadow: 0 10px 26px rgba(10, 126, 132, .3);
+}
+
+.ld-btn.outline {
+  border: 1.5px solid var(--border);
+  color: var(--text);
+}
+
+.ld-btn.outline:hover {
+  border-color: var(--primary);
+}
+
+.ld-btn.ghost {
+  color: var(--text);
+}
+
+.ld-btn.ghost:hover {
+  background: var(--surface-alt);
+}
+
+/* زر فاتح فوق شريط فيروزي */
+.ld-btn.light {
+  background: var(--on-primary);
+  color: var(--primary);
+}
+
+/* ---------- الشريط العلوي ---------- */
+
+.ld-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--topbar-bg);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-faint);
+}
+
+.ld-nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 72px;
+}
+
+.ld-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.ld-links {
+  display: none;
+  gap: 4px;
+}
+
+.ld-links a {
+  padding: 10px 14px;
+  border-radius: var(--radius-pill);
+  color: var(--text-soft);
+  font-size: var(--fs-base);
+  text-decoration: none;
+  transition: color .15s, background .15s;
+}
+
+.ld-links a:hover {
+  color: var(--text);
+  background: var(--surface-alt);
+}
+
+.ld-nav-cta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+
+@media (min-width: 900px) {
+  .ld-links {
+    display: flex;
+  }
+}
+
+/* ============================================================
+   البطل
+   ============================================================ */
+
+.ld-hero {
+  padding-block: 48px 72px;
+}
+
+.ld-hero-grid {
+  display: grid;
+  gap: 48px;
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .ld-hero {
+    padding-block: 56px 96px;
+  }
+
+  .ld-hero-grid {
+    grid-template-columns: 1.05fr 1fr;
+    gap: 40px;
+  }
+}
+
+.ld-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 22px;
+  padding: 8px 16px 8px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.ld-eyebrow-dots {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.ld-eyebrow-dots i {
+  width: 14px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+}
+
+.morning {
+  --c: var(--morning);
+  --c-soft: var(--morning-soft);
+}
+
+.noon {
+  --c: var(--noon);
+  --c-soft: var(--noon-soft);
+}
+
+.evening {
+  --c: var(--evening);
+  --c-soft: var(--evening-soft);
+}
+
+.ld-eyebrow-dots i {
+  background: var(--c);
+}
+
+/* العنوان: كبير جداً، فهو هوية الصفحة */
+.ld-title {
+  position: relative;
+  z-index: 0;
+  margin: 0;
+  font-size: clamp(44px, 7.2vw, 92px);
+  font-weight: 700;
+  line-height: 1.12;
+}
+
+/* «مرتاح»: كبسولة تنرسم تحت الكلمة حين تظهر */
+.ld-mark {
+  position: relative;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.ld-mark::after {
+  content: "";
+  position: absolute;
+  inset-inline: -.06em;
+  bottom: .06em;
+  height: .26em;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  opacity: .32;
+  z-index: -1;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform .9s cubic-bezier(.2, .7, .3, 1) .55s;
+}
+
+.ld-title.in .ld-mark::after {
+  transform: scaleX(1);
+}
+
+.ld-lead {
+  margin: 26px 0 0;
+  max-width: 560px;
+  font-size: clamp(17px, 1.6vw, 20px);
+  line-height: 1.95;
+  color: var(--text-muted);
+}
+
+.ld-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 34px;
+}
+
+.ld-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
+}
+
+.ld-trust li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ld-trust .ic {
+  width: 16px;
+  height: 16px;
+  color: var(--primary);
+}
+
+/* ---------- قرص اليوم ---------- */
+
+.ld-hero-visual {
+  position: relative;
+  width: min(100%, 560px);
+  aspect-ratio: 1;
+  margin-inline: auto;
+}
+
+/* على الهاتف: إطار أطول قليلاً حتى يتسع الهاتف المعروض */
+@media (max-width: 600px) {
+  .ld-hero-visual {
+    aspect-ratio: 5 / 6;
+  }
+
+  .phone {
+    width: 56%;
+  }
+}
+
+.ld-dial {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.dial-track {
+  fill: none;
+  stroke: var(--border-light);
+  stroke-width: 22;
+}
+
+.dial-inner {
+  fill: var(--primary-soft);
+  opacity: .55;
+}
+
+.dial-tick {
+  stroke: var(--border);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.dial-tick.major {
+  stroke: var(--text-faint);
+  stroke-width: 3;
+}
+
+/* الأقواس الثلاثة تنرسم واحداً بعد الآخر */
+.dial-arc {
+  fill: none;
+  stroke-width: 22;
+  stroke-linecap: round;
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: arc-draw 1.5s cubic-bezier(.4, 0, .2, 1) forwards;
+}
+
+.dial-arc.morning {
+  stroke: var(--morning);
+  animation-delay: .2s;
+}
+
+.dial-arc.noon {
+  stroke: var(--noon);
+  animation-delay: .5s;
+}
+
+.dial-arc.evening {
+  stroke: var(--evening);
+  animation-delay: .8s;
+}
+
+@keyframes arc-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* الشمس تدور حول اليوم ببطء — دورة كل ٤٠ ثانية */
+.dial-sun {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  animation: sun-orbit 40s linear infinite;
+}
+
+.dial-sun circle {
+  fill: var(--surface);
+  stroke: var(--primary);
+  stroke-width: 6;
+  filter: drop-shadow(0 4px 10px rgba(10, 126, 132, .35));
+}
+
+@keyframes sun-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- الكبسولات الطائرة ---------- */
+
+.ld-capsule {
+  position: absolute;
+  width: 70px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--c) 50%, var(--surface) 50%);
+  border: 2px solid var(--c);
+  box-shadow: var(--shadow-lg);
+  animation: capsule-float 6s ease-in-out infinite;
+}
+
+.ld-capsule.c1 {
+  --c: var(--morning);
+  --r: -28deg;
+  top: 9%;
+  right: 6%;
+}
+
+.ld-capsule.c2 {
+  --c: var(--noon);
+  --r: 18deg;
+  bottom: 14%;
+  right: 0;
+  animation-delay: -2s;
+}
+
+.ld-capsule.c3 {
+  --c: var(--evening);
+  --r: 32deg;
+  top: 20%;
+  left: 1%;
+  animation-delay: -4s;
+}
+
+.ld-capsule.c4 {
+  --c: var(--accent);
+  --r: -14deg;
+  bottom: 6%;
+  left: 14%;
+  width: 54px;
+  height: 22px;
+  animation-delay: -1s;
+}
+
+@keyframes capsule-float {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--r));
+  }
+
+  50% {
+    transform: translateY(-14px) rotate(calc(var(--r) + 8deg));
+  }
+}
+
+/* ============================================================
+   الهاتف — شاشة «اليوم» الحيّة
+   ------------------------------------------------------------
+   كل المقاسات داخله بـ em، والخط مربوط بعرض الهاتف (cqw)،
+   فيبقى متناسقاً مهما صغر أو كبر.
+   ============================================================ */
+
+.phone {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46%;
+  aspect-ratio: 9 / 19;
+  transform: translate(-50%, -50%);
+  container-type: inline-size;
+  border: 10px solid #0E1F21;
+  border-radius: 44px;
+  background: #0E1F21;
+  box-shadow: 0 40px 80px -20px rgba(10, 40, 44, .45), 0 0 0 1.5px var(--border);
+  animation: phone-in 1s cubic-bezier(.2, .7, .3, 1) .15s backwards;
+}
+
+@keyframes phone-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -44%) scale(.94);
+  }
+}
+
+.phone-screen {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 34px;
+  background: var(--bg);
+  padding: 3em 1.15em 1em;
+  font-size: 4.4cqw;
+}
+
+.phone-notch {
+  position: absolute;
+  top: .7em;
+  left: 50%;
+  width: 34%;
+  height: 1.6em;
+  transform: translateX(-50%);
+  border-radius: var(--radius-pill);
+  background: #0E1F21;
+}
+
+.ph-top {
+  display: flex;
+  margin-bottom: .6em;
+}
+
+.ph-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .35em;
+  font-size: 1.05em;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.ph-brand svg {
+  width: 1.3em;
+  height: 1.3em;
+}
+
+.ph-date {
+  font-size: .82em;
+  color: var(--text-soft);
+}
+
+.ph-title {
+  margin-bottom: .7em;
+  font-size: 1.6em;
+  font-weight: 700;
+}
+
+/* بطاقة الجرعة التالية */
+.ph-next {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-radius: 1.4em;
+  padding: .95em 1em;
+  animation: ph-in .45s cubic-bezier(.2, .7, .3, 1);
+}
+
+@keyframes ph-in {
+  from {
+    opacity: 0;
+    transform: translateY(.8em) scale(.97);
+  }
+}
+
+.ph-next-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: .8em;
+  color: var(--on-primary-soft);
+}
+
+.ph-chip {
+  padding: .2em .8em;
+  border-radius: var(--radius-pill);
+  background: var(--c);
+  color: var(--on-period);
+  font-weight: 600;
+}
+
+.ph-next-body {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: .6em;
+  margin-top: .45em;
+}
+
+.ph-time {
+  font-size: 2.3em;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.ph-time small {
+  font-size: .45em;
+  font-weight: 500;
+}
+
+.ph-name {
+  margin-top: .45em;
+  font-size: 1em;
+  font-weight: 600;
+}
+
+.ph-name span {
+  font-weight: 400;
+  color: var(--on-primary-soft);
+}
+
+.ph-member {
+  font-size: .85em;
+  color: var(--on-primary-soft);
+}
+
+.ph-btn {
+  flex-shrink: 0;
+  padding: .65em 1em;
+  border-radius: var(--radius-pill);
+  background: var(--on-primary);
+  color: var(--primary);
+  font-size: .9em;
+  font-weight: 700;
+  transition: transform .18s, box-shadow .18s;
+}
+
+/* «الإصبع» يضغط الزر */
+.ph-btn.pressing {
+  transform: scale(.86);
+  box-shadow: 0 0 0 .5em rgba(255, 255, 255, .25);
+}
+
+.ph-next.done {
+  display: flex;
+  align-items: center;
+  gap: .8em;
+}
+
+.ph-done-icon {
+  width: 2.6em;
+  height: 2.6em;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--morning);
+  color: var(--on-period);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ph-done-icon .ic {
+  width: 1.3em;
+  height: 1.3em;
+}
+
+.ph-next.done .ph-name {
+  margin: 0;
+}
+
+/* شريط التقدّم */
+.ph-progress {
+  display: flex;
+  align-items: center;
+  gap: .3em;
+  margin: 1em 0 .5em;
+}
+
+.ph-seg {
+  flex: 1;
+  height: .5em;
+  border-radius: var(--radius-pill);
+  background: var(--border-light);
+}
+
+.ph-seg.on {
+  background: var(--c);
+  animation: seg-pop .45s cubic-bezier(.3, 1.6, .5, 1);
+}
+
+@keyframes seg-pop {
+  from {
+    transform: scaleY(.3);
+  }
+}
+
+.ph-progress small {
+  margin-inline-start: .3em;
+  font-size: .78em;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+/* صفوف الجرعات */
+.ph-row {
+  display: flex;
+  align-items: center;
+  gap: .65em;
+  padding: .62em 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.ph-marker {
+  width: .32em;
+  height: 2.3em;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: var(--c);
+}
+
+.ph-row-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.ph-row-text b {
+  display: block;
+  font-size: .95em;
+  font-weight: 600;
+  transition: color .3s;
+}
+
+.ph-row-text small {
+  font-size: .76em;
+  color: var(--text-soft);
+}
+
+.ph-row.taken b {
+  color: var(--text-faint);
+  text-decoration: line-through;
+}
+
+.ph-check {
+  width: 2em;
+  height: 2em;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--c-soft);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: check-pop .42s cubic-bezier(.3, 1.6, .5, 1);
+}
+
+.ph-check .ic {
+  width: 1em;
+  height: 1em;
+}
+
+@keyframes check-pop {
+  from {
+    transform: scale(.3);
+    opacity: 0;
+  }
+}
+
+.ph-outline {
+  flex-shrink: 0;
+  padding: .35em .75em;
+  border: 1.5px solid var(--primary);
+  border-radius: var(--radius-pill);
+  color: var(--primary);
+  font-size: .76em;
+  font-weight: 600;
+}
+
+/* رسالة «سُجّلت الجرعة» تظهر ثم تختفي وحدها */
+.ph-toast {
+  position: absolute;
+  bottom: 5.2em;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: .4em;
+  padding: .55em 1em;
+  border-radius: var(--radius-pill);
+  background: var(--text);
+  color: var(--bg);
+  font-size: .82em;
+  font-weight: 600;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  animation: toast-life 1.9s ease forwards;
+}
+
+.ph-toast .ic {
+  width: 1.1em;
+  height: 1.1em;
+  color: var(--accent);
+}
+
+@keyframes toast-life {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, .6em);
+  }
+
+  14%,
+  78% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* شريط التبويبات أسفل الشاشة */
+.ph-tabbar {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 4.4em;
+  padding-bottom: .4em;
+  background: var(--surface);
+  border-top: 1px solid var(--border-light);
+}
+
+.ph-tabbar span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.4em;
+  height: 2.1em;
+  border-radius: var(--radius-pill);
+  color: var(--text-faint);
+}
+
+.ph-tabbar span.on {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.ph-tabbar svg {
+  width: 1.45em;
+  height: 1.45em;
+}
+
+/* ============================================================
+   الجملة الافتتاحية
+   ============================================================ */
+
+.ld-statement {
+  padding-block: 56px 72px;
+}
+
+.ld-statement p {
+  max-width: 940px;
+  margin: 0 auto;
+  text-align: center;
+  font-size: clamp(21px, 2.8vw, 34px);
+  font-weight: 500;
+  line-height: 1.75;
+  color: var(--text-soft);
+}
+
+.ld-statement strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* ============================================================
+   الأقسام — العنوان المشترك
+   ============================================================ */
+
+.ld-section {
+  padding-block: 72px;
+}
+
+@media (min-width: 1024px) {
+  .ld-section {
+    padding-block: 104px;
+  }
+}
+
+.ld-head {
+  margin-bottom: 48px;
+}
+
+.ld-head.center {
+  text-align: center;
+}
+
+.ld-head.center .ld-head-text {
+  margin-inline: auto;
+}
+
+.ld-kicker {
+  display: inline-block;
+  margin: 0;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.ld-head h2 {
+  margin: 16px 0 0;
+  font-size: clamp(30px, 4.4vw, 54px);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.ld-head-text {
+  max-width: 620px;
+  margin: 14px 0 0;
+  font-size: 18px;
+  line-height: 1.85;
+  color: var(--text-soft);
+}
+
+/* ============================================================
+   المزايا — شبكة البطاقات
+   ============================================================ */
+
+.ld-bento {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 900px) {
+  .ld-bento {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .t-next {
+    grid-column: span 3;
+    grid-row: span 2;
+  }
+
+  .t-family,
+  .t-supply {
+    grid-column: span 3;
+  }
+
+  .t-notify,
+  .t-private {
+    grid-column: span 3;
+  }
+}
+
+.ld-tile {
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 28px;
+  transition: transform .3s cubic-bezier(.2, .7, .3, 1), border-color .3s, box-shadow .3s;
+}
+
+.ld-tile:hover {
+  transform: translateY(-4px);
+  border-color: var(--border);
+  box-shadow: var(--shadow-lg);
+}
+
+.ld-tile h3 {
+  margin: 20px 0 6px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.ld-tile p {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.85;
+  color: var(--text-soft);
+}
+
+.ld-tile-ui {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 150px;
+  padding: 18px;
+  border-radius: 20px;
+  background: var(--surface-alt);
+}
+
+.ld-tile-ui.center {
+  align-items: center;
+  gap: 10px;
+}
+
+.t-next .ld-tile-ui {
+  flex: 1;
+  min-height: 240px;
+}
+
+/* بطاقة الجرعة المصغّرة */
+.mini-next {
+  width: min(100%, 340px);
+  margin-inline: auto;
+  padding: 18px;
+  border-radius: 22px;
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.mini-next-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--on-primary-soft);
+}
+
+.mini-chip {
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--c);
+  color: var(--on-period);
+  font-weight: 600;
+}
+
+.mini-next-time {
+  margin-top: 10px;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.mini-next-time small {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.mini-next-name {
+  margin-top: 8px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.mini-next-btn {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 10px 22px;
+  border-radius: var(--radius-pill);
+  background: var(--on-primary);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+/* أفراد العائلة المصغّرون */
+.mini-member {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.mini-member+.mini-member {
+  border-top: 1px solid var(--border-light);
+}
+
+.mini-member b {
+  display: block;
+  font-size: 15px;
+}
+
+.mini-member small {
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.mini-avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mini-avatar.lg {
+  width: 56px;
+  height: 56px;
+  font-size: 19px;
+}
+
+.mini-pill {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mini-pill.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.mini-pill.neutral {
+  background: var(--neutral);
+  color: var(--text-muted);
+}
+
+.mini-pill.private {
+  background: var(--private-soft);
+  color: var(--private);
+}
+
+.mini-notif {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(100%, 320px);
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.mini-notif b {
+  display: block;
+  font-size: 14px;
+}
+
+.mini-notif small {
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.mini-lock {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mini-lock svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* ============================================================
+   كيف يعمل
+   ============================================================ */
+
+.ld-steps {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 900px) {
+  .ld-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
+.ld-step {
+  padding: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 28px;
+}
+
+.ld-step-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--c);
+  color: var(--on-period);
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.ld-step h3 {
+  margin: 22px 0 8px;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.ld-step p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.85;
+  color: var(--text-soft);
+}
+
+/* ============================================================
+   مع الطبيب
+   ============================================================ */
+
+.ld-doctor {
+  display: grid;
+  gap: 48px;
+  align-items: center;
+}
+
+@media (min-width: 1000px) {
+  .ld-doctor {
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+  }
+}
+
+.ld-head.start {
+  margin-bottom: 28px;
+}
+
+.ld-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ld-list li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.ld-list .ic {
+  width: 30px;
+  height: 30px;
+  padding: 6px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.ld-doctor-visual {
+  position: relative;
+}
+
+@media (min-width: 1000px) {
+  .ld-doctor-visual {
+    padding-bottom: 60px;
+  }
+}
+
+.doc-mock {
+  width: min(100%, 420px);
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 28px;
+  box-shadow: var(--shadow-pop);
+}
+
+.doc-mock-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.doc-mock-head small {
+  display: block;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.doc-mock-head b {
+  display: block;
+  font-size: 22px;
+}
+
+.doc-mock-allergy {
+  margin: 18px 0 8px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--danger);
+  border-radius: 16px;
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.doc-mock-allergy small {
+  display: block;
+  font-size: 13px;
+}
+
+.doc-mock-allergy b {
+  font-size: 20px;
+}
+
+.doc-mock-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-faint);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.doc-mock-row i {
+  width: 5px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--c);
+}
+
+.doc-mock-row span {
+  margin-inline-start: auto;
+  font-weight: 400;
+  color: var(--text-soft);
+}
+
+/* بطاقة QR فوق ملف الطبيب، مائلة قليلاً */
+.qr-mock {
+  position: relative;
+  margin: -28px auto 0;
+  width: 168px;
+  padding: 14px 14px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 22px;
+  box-shadow: var(--shadow-pop);
+  transform: rotate(-5deg);
+  text-align: center;
+}
+
+/* على الحاسوب: الملف يميناً وبطاقة QR في الفراغ على اليسار */
+@media (min-width: 1000px) {
+  .qr-mock {
+    position: absolute;
+    bottom: 0;
+    inset-inline-end: 0;
+    margin: 0;
+  }
+}
+
+.qr-art {
+  display: block;
+  width: 100%;
+  fill: var(--text);
+}
+
+.qr-art .qr-ring {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1;
+}
+
+.qr-mock span {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--primary-deep);
+}
+
+/* ============================================================
+   المبادئ — لوحة فيروزية
+   ============================================================ */
+
+.ld-principles {
+  padding-block: 24px;
+}
+
+.ld-principles .ld-wrap {
+  max-width: 1240px;
+  padding: 64px 22px;
+  border-radius: 40px;
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+@media (min-width: 900px) {
+  .ld-principles .ld-wrap {
+    padding: 88px 56px;
+  }
+}
+
+.ld-head.invert .ld-kicker {
+  background: rgba(255, 255, 255, .16);
+  color: var(--on-primary);
+}
+
+.ld-head.invert .ld-head-text {
+  color: var(--on-primary-soft);
+}
+
+.ld-principle-grid {
+  display: grid;
+  gap: 14px;
+}
+
+@media (min-width: 640px) {
+  .ld-principle-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .ld-principle-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.ld-principle {
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, .08);
+}
+
+.ld-principle h3 {
+  margin: 0 0 8px;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.ld-principle p {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.85;
+  color: var(--on-primary-soft);
+}
+
+/* ============================================================
+   الفريق
+   ============================================================ */
+
+.ld-team-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 28px 48px;
+}
+
+.ld-person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  font-size: 17px;
+}
+
+.ld-person-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--c);
+  color: var(--on-period);
+  font-size: 40px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 8px var(--c-soft);
+}
+
+/* ============================================================
+   الدعوة الأخيرة
+   ============================================================ */
+
+.ld-final {
+  padding-block: 32px 88px;
+}
+
+.ld-final-band {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 72px 24px;
+  border-radius: 48px;
+  background: var(--primary);
+  color: var(--on-primary);
+  text-align: center;
+}
+
+/* حلقات الموجة نفسها من شاشة الدخول، ساكنة هنا */
+.ld-final-band::before,
+.ld-final-band::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, .16);
+  pointer-events: none;
+}
+
+.ld-final-band::before {
+  width: 520px;
+  height: 520px;
+  top: -260px;
+  right: -140px;
+}
+
+.ld-final-band::after {
+  width: 380px;
+  height: 380px;
+  bottom: -220px;
+  left: -90px;
+}
+
+.ld-final-band h2 {
+  margin: 8px 0 0;
+  font-size: clamp(30px, 4.6vw, 56px);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.ld-final-band p {
+  margin: 0 0 14px;
+  font-size: 18px;
+  color: var(--on-primary-soft);
+}
+
+/* ============================================================
+   التذييل
+   ============================================================ */
+
+.ld-footer {
+  padding-block: 40px 48px;
+  border-top: 1px solid var(--border-light);
+}
+
+.ld-footer-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.ld-footer p {
+  max-width: 640px;
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: 1.8;
+  color: var(--text-soft);
+}
+
+.ld-footer .ld-copy {
+  color: var(--text-faint);
+}
+
+/* ============================================================
+   الظهور عند التمرير
+   ============================================================ */
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity .8s ease, transform .8s cubic-bezier(.2, .7, .3, 1);
+  transition-delay: var(--d, 0ms);
+}
+
+[data-reveal].in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ============================================================
+   تقليل الحركة: كل شيء ساكن وظاهر من البداية
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.landing) {
+    scroll-behavior: auto;
+  }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .dial-arc {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .dial-sun,
+  .ld-capsule,
+  .phone,
+  .ph-next,
+  .ph-seg.on,
+  .ph-check,
+  .ph-toast {
+    animation: none;
+  }
+
+  .ld-capsule {
+    transform: rotate(var(--r));
+  }
+
+  .ld-mark::after {
+    transform: scaleX(1);
+    transition: none;
+  }
+
+  .ld-btn,
+  .ld-tile {
+    transition: none;
+  }
+}

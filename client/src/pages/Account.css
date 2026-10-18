@@ -63,3 +63,15 @@
   font-size: var(--fs-sm);
   color: var(--text-faint);
 }
+
+.about-link {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.about-link:hover {
+  text-decoration: underline;
+}

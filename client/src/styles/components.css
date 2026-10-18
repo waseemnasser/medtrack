@@ -576,3 +576,34 @@ a:focus-visible {
   color: var(--text);
   font-weight: 600;
 }
+
+/* ---------- زر الشمس والقمر (components/ThemeToggle.jsx) ---------- */
+
+.theme-toggle {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-light);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .15s, transform .2s;
+}
+
+.theme-toggle:hover {
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+}
+
+.theme-toggle:active {
+  transform: scale(.92) rotate(-20deg);
+}
+
+.theme-toggle svg {
+  width: 21px;
+  height: 21px;
+}

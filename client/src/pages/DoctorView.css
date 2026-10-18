@@ -293,6 +293,11 @@
   margin-top: 28px;
 }
 
+.doc-footer a {
+  color: var(--primary);
+  font-weight: 600;
+}
+
 .doc-footer {
   margin-top: 18px;
   text-align: center;

@@ -1,4 +1,6 @@
+import { Link } from "react-router-dom";
 import Mark from "./Mark";
+import ThemeToggle from "./ThemeToggle";
 import "../pages/Auth.css";
 
 // ما يقدّمه التطبيق في ثلاثة أسطر — كل سطر بلون إحدى فترات اليوم
@@ -17,12 +19,23 @@ export default function AuthLayout({ tagline, children }) {
     return (
         <div className="auth-shell">
             <aside className="auth-panel">
-                <div className="auth-mark">
+                {/* بلا هذا الشريط يعلق الزائر في صفحة الدخول: لا رجوع للصفحة التعريفية */}
+                <div className="auth-top">
+                    <Link to="/welcome" className="auth-back">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M9 5l7 7-7 7" />
+                        </svg>
+                        الرئيسية
+                    </Link>
+                    <ThemeToggle className="on-panel" />
+                </div>
+
+                <Link to="/welcome" className="auth-mark" aria-label="طمّني — الصفحة الرئيسية">
                     <div className="auth-ring" />
                     <div className="auth-ring b" />
                     <div className="auth-ring c" />
                     <Mark animated color="var(--on-primary)" tickColor="var(--primary)" />
-                </div>
+                </Link>
 
                 <h1 className="auth-name auth-rise d1">طمّني</h1>
                 <p className="auth-tagline auth-rise d1">{tagline}</p>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { flushSync } from "react-dom";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import PushToggle from "../components/PushToggle";
 import Mark from "../components/Mark";
 import { getTheme, setTheme } from "../utils/theme";
@@ -86,6 +86,7 @@ export default function Account() {
                         ولا تقترح جرعات أو بدائل. استشر طبيبك أو الصيدلاني دائماً.
                     </p>
                     <p className="small">مشروع تخرج — الجامعة الدولية الخاصة للعلوم والتكنولوجيا</p>
+                    <Link to="/welcome" className="about-link">عرض الصفحة التعريفية ←</Link>
                 </div>
             </div>
 

@@ -31,10 +31,57 @@
   text-align: center;
 }
 
+/* ---------- الشريط أعلى اللوحة: رجوع ومظهر ---------- */
+
+.auth-top {
+  align-self: stretch;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.auth-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  padding: 0 14px 0 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, .14);
+  color: var(--on-primary);
+  font-size: var(--fs-base);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background .15s;
+}
+
+.auth-back:hover {
+  background: rgba(255, 255, 255, .24);
+}
+
+.auth-back svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* زر المظهر فوق الفيروزي */
+.theme-toggle.on-panel {
+  border-color: transparent;
+  background: rgba(255, 255, 255, .14);
+  color: var(--on-primary);
+}
+
+.theme-toggle.on-panel:hover {
+  background: rgba(255, 255, 255, .24);
+  color: var(--on-primary);
+}
+
 /* ---------- العلامة والموجة ---------- */
 
 .auth-mark {
   position: relative;
+  border-radius: 50%;
   width: 150px;
   height: 150px;
   display: flex;
@@ -346,6 +393,12 @@
     flex-direction: row;
     padding: 16px;
     gap: 16px;
+  }
+
+  .auth-top {
+    position: absolute;
+    top: 24px;
+    inset-inline: 24px;
   }
 
   .auth-panel {

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -13,6 +13,7 @@ import SharePage from "./pages/SharePage";
 import DoctorView from "./pages/DoctorView";
 import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
+import Landing from "./pages/Landing";
 import FeedbackProvider from "./feedback/FeedbackProvider";
 import "./styles/variables.css";
 import "./styles/base.css";
@@ -20,9 +21,12 @@ import "./styles/components.css";
 
 const loggedIn = () => Boolean(localStorage.getItem("token"));
 
-// صفحات تحتاج تسجيل دخول
+// صفحات تحتاج تسجيل دخول. الزائر الجديد على الرابط الرئيسي يرى
+// الصفحة التعريفية، ومن فتح رابطاً داخلياً يُطلب منه الدخول
 function Protected({ children }) {
-  return loggedIn() ? children : <Navigate to="/login" replace />;
+  const { pathname } = useLocation();
+  if (loggedIn()) return children;
+  return <Navigate to={pathname === "/" ? "/welcome" : "/login"} replace />;
 }
 
 // صفحتا الدخول والتسجيل: من سجّل دخوله لا يحتاجهما
@@ -42,6 +46,7 @@ function GuestOnly({ children }) {
         └ مشاركة مع الطبيب  /members/:id/share
   المواعيد      /appointments
   الحساب        /account
+  الصفحة التعريفية /welcome     (عامة)
   صفحة الطبيب  /share/:token   (عامة، بلا تسجيل دخول)
 */
 export default function App() {
@@ -52,6 +57,7 @@ export default function App() {
           {/* صفحات بلا هيكل */}
           <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
           <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
+          <Route path="/welcome" element={<Landing />} />
           <Route path="/share/:token" element={<DoctorView />} />
 
           {/* صفحات داخل الهيكل */}

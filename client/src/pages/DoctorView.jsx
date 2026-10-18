@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import api from "../api";
 import Mark from "../components/Mark";
 import { periodOf, formatTime, formatDate, calcAge, initial } from "../utils/format";
@@ -216,7 +216,7 @@ export default function DoctorView() {
             <p className="doc-disclaimer">{data.note}</p>
 
             <footer className="doc-footer">
-                عُرض عبر طمّني — أداة تنظيمية لمتابعة أدوية العائلة، لا تقدّم تشخيصاً ولا توصيات علاجية.
+                عُرض عبر <Link to="/welcome">طمّني</Link> — أداة تنظيمية لمتابعة أدوية العائلة، لا تقدّم تشخيصاً ولا توصيات علاجية.
             </footer>
         </div>
     );
