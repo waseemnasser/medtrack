@@ -20,7 +20,9 @@ export default function Login() {
       localStorage.setItem("token", res.data.token);
       navigate("/", { replace: true });
     } catch (err) {
-      setError(err.response?.data?.error || "تعذّر تسجيل الدخول. تحقّق من البريد وكلمة المرور.");
+      setError(!err.response
+        ? "تعذّر الوصول إلى الخادم. نسخة العرض على الإنترنت تعرض الصفحة التعريفية فقط."
+        : err.response.data?.error || "تعذّر تسجيل الدخول. تحقّق من البريد وكلمة المرور.");
     } finally {
       setLoading(false);
     }

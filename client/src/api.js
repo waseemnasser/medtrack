@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: "http://localhost:5000/api",
+    // عنوان الخادم: محلياً localhost، ويمكن تغييره عند النشر بمتغيّر VITE_API_URL
+    baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
 });
 
 // يرفق التوكن تلقائياً مع كل طلب

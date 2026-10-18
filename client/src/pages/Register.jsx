@@ -22,7 +22,9 @@ export default function Register() {
       // حساب جديد بلا أفراد بعد: الخطوة الأولى إضافة فرد
       navigate("/members/new", { replace: true });
     } catch (err) {
-      setError(err.response?.data?.error || "تعذّر إنشاء الحساب. جرّب بريداً آخر.");
+      setError(!err.response
+        ? "تعذّر الوصول إلى الخادم. نسخة العرض على الإنترنت تعرض الصفحة التعريفية فقط."
+        : err.response.data?.error || "تعذّر إنشاء الحساب. جرّب بريداً آخر.");
     } finally {
       setLoading(false);
     }

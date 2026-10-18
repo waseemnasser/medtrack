@@ -51,7 +51,7 @@ function GuestOnly({ children }) {
 */
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, "") || "/"}>
       <FeedbackProvider>
         <Routes>
           {/* صفحات بلا هيكل */}

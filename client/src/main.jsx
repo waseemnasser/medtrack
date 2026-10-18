@@ -9,6 +9,8 @@ createRoot(document.getElementById('root')).render(
 )
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => { });
+    // BASE_URL: «/» محلياً، «/medtrack/» على GitHub Pages
+    const base = import.meta.env.BASE_URL;
+    navigator.serviceWorker.register(`${base}sw.js`, { scope: base }).catch(() => { });
   });
 }

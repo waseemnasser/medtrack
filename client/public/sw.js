@@ -11,8 +11,9 @@ self.addEventListener("push", (event) => {
     event.waitUntil(
         self.registration.showNotification(data.title, {
             body: data.body,
-            icon: "/icon-192.png",
-            badge: "/icon-192.png",
+            // مسارات نسبية إلى مكان sw.js — تعمل على الجذر وعلى /medtrack/
+            icon: "icon-192.png",
+            badge: "icon-192.png",
             dir: "rtl",
             lang: "ar",
             requireInteraction: true,
@@ -23,7 +24,9 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
     event.notification.close();
-    const target = event.notification.data?.url || "/";
+    // «/members/3» ← نسبةً إلى نطاق التطبيق، لا إلى جذر النطاق
+    const path = (event.notification.data?.url || "/").replace(/^\//, "");
+    const target = new URL(path, self.registration.scope).href;
     event.waitUntil(
         self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
             for (const c of list) {
