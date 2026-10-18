@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/medtrack/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>طمّني — متابعة أدوية العائلة</title>
+    <meta name="theme-color" content="#F5FBFA" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0B1A1C" media="(prefers-color-scheme: dark)">
+    <!-- يطبّق المظهر المحفوظ قبل رسم الصفحة، حتى لا تومض بيضاء في الوضع الداكن -->
+    <script>
+        try {
+            var t = localStorage.getItem("theme");
+            if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+        } catch (e) { }
+    </script>
+    <link rel="manifest" href="/medtrack/manifest.json" />
+    <link rel="icon" type="image/png" href="/medtrack/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/medtrack/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="دوائي" />
+  <script type="module" crossorigin src="/medtrack/assets/index-LqfTlsIl.js"></script>
+  <link rel="stylesheet" crossorigin href="/medtrack/assets/index-CINVII3k.css">
+</head>
+
+<body>
+    <div id="root"></div>
+</body>
+
+</html>
