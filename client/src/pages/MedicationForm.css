@@ -162,3 +162,35 @@
   margin: 0;
   min-height: auto;
 }
+
+/* ---------- الحساسية ---------- */
+
+/* تذكير ثابت أعلى النموذج: حساسية الفرد أمام العين أثناء الإضافة */
+.allergy-note {
+  margin-bottom: var(--gap);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: var(--fs-base);
+  line-height: 1.7;
+}
+
+/* تحذير تحت اسم الدواء حين يتعارض مع الحساسية */
+.allergy-warning {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--danger);
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: var(--fs-base);
+  line-height: 1.7;
+}
+
+.allergy-warning+label {
+  margin-top: 18px;
+}

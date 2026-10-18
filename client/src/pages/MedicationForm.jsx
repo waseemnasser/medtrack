@@ -21,7 +21,9 @@ export default function MedicationForm() {
     const isEdit = Boolean(medId);
     const navigate = useNavigate();
     const parent = `/members/${memberId}`;
-    const { toast } = useFeedback();
+    const { toast, confirm } = useFeedback();
+    const [member, setMember] = useState(null);     // لعرض حساسيته وفحصها
+    const [allergyHit, setAllergyHit] = useState(null); // { key, error } نتيجة الفحص المسبق
 
     const [form, setForm] = useState({
         catalog_id: null,
@@ -48,6 +50,35 @@ export default function MedicationForm() {
     const [error, setError] = useState("");
     const [saving, setSaving] = useState(false);
     const debounce = useRef(null);
+    const allergyTimer = useRef(null);
+
+    useEffect(() => {
+        api.get("/members")
+            .then((res) => setMember(res.data.find((m) => String(m.id) === String(memberId)) || null))
+            .catch(() => {});
+    }, [memberId]);
+
+    // فحص الحساسية أثناء الكتابة — تحذير مبكر قبل الضغط على «حفظ»
+    const qName = form.name.trim();
+    const qIngredient = form.active_ingredient.trim();
+    const checkKey = `${qName}|${qIngredient}`;
+    useEffect(() => {
+        if (!member?.allergies || qName.length < 2) return;
+        clearTimeout(allergyTimer.current);
+        allergyTimer.current = setTimeout(async () => {
+            try {
+                const { data } = await api.get("/medications/allergy-check", {
+                    params: { member_id: memberId, name: qName, active_ingredient: qIngredient },
+                });
+                setAllergyHit(data.conflict ? { key: `${qName}|${qIngredient}`, error: data.error } : null);
+            } catch {
+                setAllergyHit(null);
+            }
+        }, 400);
+        return () => clearTimeout(allergyTimer.current);
+    }, [qName, qIngredient, member, memberId]);
+    // التحذير يخص الاسم الذي فُحص فقط؛ إن تغيّر الاسم يختفي حتى يُفحص من جديد
+    const allergyWarning = allergyHit && allergyHit.key === checkKey ? allergyHit.error : "";
 
     // عند التعديل: يملأ النموذج ببيانات الدواء الحالية ومواعيده
     useEffect(() => {
@@ -173,8 +204,25 @@ export default function MedicationForm() {
                     days_of_week: t.days_of_week,
                 })),
             };
-            if (isEdit) await api.put(`/medications/${medId}`, payload);
-            else await api.post("/medications", payload);
+            const save = (extra = {}) => isEdit
+                ? api.put(`/medications/${medId}`, { ...payload, ...extra })
+                : api.post("/medications", { ...payload, ...extra });
+
+            try {
+                await save();
+            } catch (err) {
+                if (err.response?.status !== 409 || err.response.data?.code !== "ALLERGY") throw err;
+                // حساسية معروفة: لا نحفظ إلا بتأكيد صريح أن الطبيب وصفه وهو يعلم
+                const ok = await confirm({
+                    title: "تحذير: حساسية",
+                    message: `${err.response.data.error} لا تضف هذا الدواء إلا إذا وصفه الطبيب وهو يعلم بهذه الحساسية.`,
+                    confirmLabel: "الطبيب يعلم — أضفه",
+                    cancelLabel: "لا تضفه",
+                    danger: true,
+                });
+                if (!ok) return;
+                await save({ allergy_confirmed: true });
+            }
             toast(isEdit ? "حُفظت تعديلات الدواء" : `أُضيف ${form.name.trim()}`);
             // replace: زر الرجوع بعد الحفظ لا يعيد فتح النموذج
             navigate(parent, { replace: true });
@@ -189,6 +237,12 @@ export default function MedicationForm() {
         <div className="page">
             <PageHeader title={isEdit ? "تعديل الدواء" : "إضافة دواء"} back={parent} />
 
+            {member?.allergies && (
+                <div className="allergy-note" role="note">
+                    <strong>حساسية {member.name}:</strong> {member.allergies}
+                </div>
+            )}
+
             <form className="form-card" onSubmit={submit}>
                 {/* ── بيانات الدواء ── */}
                 <h3 className="form-section">بيانات الدواء</h3>
@@ -199,7 +253,7 @@ export default function MedicationForm() {
                         name="name"
                         value={form.name}
                         onChange={onNameChange}
-                        placeholder="ابدأ بالكتابة للبحث..."
+                        placeholder="مثال: باراسيتامول أو PARACETAMOL"
                         autoComplete="off"
                     />
                     {showResults && (
@@ -214,8 +268,14 @@ export default function MedicationForm() {
                     )}
                 </div>
                 <span className="hint">
-                    {searching ? "جارٍ البحث..." : "لم تجد الدواء؟ اكتب اسمه كما هو وتابع."}
+                    {searching ? "جارٍ البحث..." : "ابحث بالعربية أو الإنجليزية. لم تجده؟ اكتب اسمه كما هو وتابع."}
                 </span>
+                {allergyWarning && (
+                    <div className="allergy-warning" role="alert">
+                        <strong>تحذير حساسية</strong>
+                        {allergyWarning}
+                    </div>
+                )}
 
                 <label>المادة الفعّالة</label>
                 <input name="active_ingredient" value={form.active_ingredient} onChange={change} />

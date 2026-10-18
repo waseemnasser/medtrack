@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
 const { estimateSupply, findRefills, todayStr } = require("../supply");
+const { findAllergyConflicts } = require("../drugmatch");
 
 const router = express.Router();
 router.use(auth);
@@ -14,6 +15,33 @@ async function ownsMember(memberId, userId) {
     );
     return r.rows.length > 0;
 }
+
+// هل يتعارض الدواء مع حساسية الفرد؟ يُرجع null أو رسالة + قائمة التعارضات
+async function allergyConflict(memberId, med) {
+    const m = await pool.query("SELECT name, allergies FROM members WHERE id = $1", [memberId]);
+    if (!m.rows.length || !m.rows[0].allergies) return null;
+    const conflicts = findAllergyConflicts(m.rows[0].allergies, med);
+    if (!conflicts.length) return null;
+    const c = conflicts[0];
+    return {
+        error: `${m.rows[0].name} لديه حساسية من «${c.allergy}»، وهذا الدواء يحتوي على ${c.matched}.`,
+        member_name: m.rows[0].name,
+        conflicts,
+    };
+}
+
+// فحص مسبق أثناء الكتابة في نموذج الدواء — لا يحفظ شيئاً
+router.get("/allergy-check", async (req, res) => {
+    const { member_id, name, active_ingredient } = req.query;
+    if (!member_id || !(await ownsMember(member_id, req.userId)))
+        return res.status(403).json({ error: "غير مصرح" });
+    try {
+        const conflict = await allergyConflict(member_id, { name, active_ingredient });
+        res.json(conflict ? { conflict: true, ...conflict } : { conflict: false });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 // أدوية فرد معين مع أوقات جرعاته
 router.get("/member/:memberId", async (req, res) => {
@@ -41,7 +69,7 @@ router.post("/", async (req, res) => {
     const {
         member_id, catalog_id, name, active_ingredient, strength, form,
         instructions, start_date, end_date, units_total, units_per_dose,
-        is_private, times,
+        is_private, times, allergy_confirmed,
     } = req.body;
 
     if (!member_id || !name || !start_date)
@@ -49,6 +77,12 @@ router.post("/", async (req, res) => {
 
     if (!(await ownsMember(member_id, req.userId)))
         return res.status(403).json({ error: "غير مصرح" });
+
+    // حساسية معروفة: لا يُحفظ الدواء إلا بتأكيد صريح أن الطبيب وصفه رغم ذلك
+    if (!allergy_confirmed) {
+        const conflict = await allergyConflict(member_id, { name, active_ingredient });
+        if (conflict) return res.status(409).json({ code: "ALLERGY", ...conflict });
+    }
 
     const client = await pool.connect();
     try {
@@ -94,11 +128,23 @@ router.put("/:id", async (req, res) => {
     const {
         catalog_id, name, active_ingredient, strength, form,
         instructions, start_date, end_date, units_total, units_per_dose,
-        is_private, times,
+        is_private, times, allergy_confirmed,
     } = req.body;
 
     if (!name || !start_date)
         return res.status(400).json({ error: "اسم الدواء وتاريخ البدء مطلوبين" });
+
+    if (!allergy_confirmed) {
+        const owner = await pool.query(
+            `SELECT m.member_id FROM medications m JOIN members mem ON mem.id = m.member_id
+       WHERE m.id = $1 AND mem.user_id = $2`,
+            [req.params.id, req.userId]
+        );
+        if (owner.rows.length) {
+            const conflict = await allergyConflict(owner.rows[0].member_id, { name, active_ingredient });
+            if (conflict) return res.status(409).json({ code: "ALLERGY", ...conflict });
+        }
+    }
 
     const client = await pool.connect();
     try {
