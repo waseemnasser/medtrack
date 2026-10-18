@@ -602,3 +602,52 @@
   flex-shrink: 0;
 }
 
+/* ---------- مواعيد قريبة ---------- */
+
+/* نفس شكل «تنفد قريباً» لكن بالفيروزي: معلومة، لا تحذير */
+.soon-appts {
+  margin-bottom: 18px;
+  padding: 14px 16px 6px;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-inline-start: 4px solid var(--primary);
+  border-radius: var(--radius-md);
+}
+
+.soon-appts h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--primary-deep);
+}
+
+.soon-appts h2 svg {
+  width: 20px;
+  height: 20px;
+}
+
+.soon-appts ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.soon-appts li+li {
+  border-top: 1px solid var(--border-faint);
+}
+
+.soon-appts a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.soon-appts .chip {
+  flex-shrink: 0;
+}

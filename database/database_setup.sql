@@ -34,7 +34,9 @@ CREATE TABLE public.appointments (
     doctor_name character varying(100),
     location character varying(150),
     scheduled_at timestamp without time zone NOT NULL,
-    notes text
+    notes text,
+    reminded_day_before boolean DEFAULT false NOT NULL,
+    reminded_soon boolean DEFAULT false NOT NULL
 );
 
 

@@ -25,6 +25,7 @@ export default function Today() {
     const [saving, setSaving] = useState(null); // schedule_id الجاري تأكيده
     const [alarm, setAlarm] = useState(null);
     const [refills, setRefills] = useState([]); // أدوية تنفد خلال ٣ أيام
+    const [appts, setAppts] = useState([]);     // مواعيد اليوم والغد
     const { toast } = useFeedback();
 
     useEffect(() => {
@@ -45,6 +46,11 @@ export default function Today() {
         // قائمة «تنفد قريباً» — لا تؤخّر الصفحة ولا تُظهر خطأ إن فشلت
         api.get("/medications/refills")
             .then((res) => setRefills(res.data))
+            .catch(() => {});
+
+        // مواعيد اليوم والغد — تذكير هادئ بجانب الجرعات
+        api.get("/appointments?upcoming=true")
+            .then((res) => setAppts(res.data.filter((a) => dayOffset(a.scheduled_at) <= 1)))
             .catch(() => {});
     }, []);
 
@@ -178,6 +184,8 @@ export default function Today() {
                             </div>
                         </>
                     )}
+
+                    {appts.length > 0 && <SoonAppointments items={appts} />}
 
                     {refills.length > 0 && <RefillList items={refills} />}
 
@@ -317,3 +325,40 @@ function RefillList({ items }) {
     );
 }
 
+// كم يوماً بين اليوم وتاريخ الموعد: ٠ اليوم، ١ غداً
+function dayOffset(scheduledAt) {
+    const d = new Date(String(scheduledAt).replace(" ", "T"));
+    const start = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate());
+    return Math.round((start(d) - start(new Date())) / 86400000);
+}
+
+// مواعيد اليوم والغد — كل سطر يفتح صفحة المواعيد
+function SoonAppointments({ items }) {
+    return (
+        <section className="soon-appts" aria-labelledby="soon-appts-title">
+            <h2 id="soon-appts-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="3.5" y="5" width="17" height="15" rx="3" />
+                    <path d="M3.5 10h17M8 3v4M16 3v4" />
+                </svg>
+                مواعيد قريبة
+            </h2>
+            <ul>
+                {items.map((a) => {
+                    const time = String(a.scheduled_at).replace("T", " ").split(" ")[1].slice(0, 5);
+                    return (
+                        <li key={a.id}>
+                            <Link to="/appointments">
+                                <span className="chip">{dayOffset(a.scheduled_at) === 0 ? "اليوم" : "غداً"}</span>
+                                <span className="refill-text">
+                                    <b>{a.title}</b>
+                                    <small>{formatTime(time)} · {a.member_name}{a.location ? ` · ${a.location}` : ""}</small>
+                                </span>
+                            </Link>
+                        </li>
+                    );
+                })}
+            </ul>
+        </section>
+    );
+}

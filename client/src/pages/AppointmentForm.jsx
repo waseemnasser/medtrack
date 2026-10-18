@@ -123,6 +123,10 @@ export default function AppointmentForm() {
                     onChange={change}
                 />
 
+                <span className="hint">
+                    يصلك تذكير مساء اليوم السابق، وتذكير آخر قبل الموعد بساعتين.
+                </span>
+
                 <label>اسم الطبيب</label>
                 <input name="doctor_name" value={form.doctor_name} onChange={change} />
 

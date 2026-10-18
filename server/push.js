@@ -77,6 +77,8 @@ function startScheduler() {
                 [todayStr, dayOfWeek, nowTime]
             );
 
+            await checkAppointments().catch((err) => console.error("[push] appointments:", err.message));
+
             for (const d of due.rows) {
                 const key = `${d.schedule_id}-${todayStr}`;
                 if (sentToday.has(key)) continue;   // أُرسل سابقاً اليوم
@@ -98,7 +100,59 @@ function startScheduler() {
     // إشعار واحد لكل حساب، مهما كان عدد الأدوية — لا نغرق المستخدم.
     cron.schedule("0 10 * * *", sendRefillReminders);
 
-    console.log("[push] المجدول يعمل — فحص الجرعات كل دقيقة، والأدوية التي تنفد يومياً ١٠:٠٠");
+    console.log("[push] المجدول يعمل — الجرعات والمواعيد كل دقيقة، والأدوية التي تنفد يومياً ١٠:٠٠");
+}
+
+// ساعة التذكير بالمواعيد في المساء السابق
+const DAY_BEFORE_HOUR = 18;
+
+// «2026-10-28 11:00:00» ← «11:00 ص»
+function apptTime(scheduledAt) {
+    const [h, m] = String(scheduledAt).replace("T", " ").split(" ")[1].split(":");
+    const hour = parseInt(h, 10);
+    return `${hour % 12 === 0 ? 12 : hour % 12}:${m} ${hour < 12 ? "ص" : "م"}`;
+}
+
+function apptBody(a, withLocation) {
+    const extra = [a.doctor_name, withLocation && a.location].filter(Boolean).join(" · ");
+    return `${a.title} لـ${a.member_name} — الساعة ${apptTime(a.scheduled_at)}${extra ? " · " + extra : ""}`;
+}
+
+/**
+ * تذكيران لكل موعد:
+ *  - مساء اليوم السابق (من الساعة ٦): «موعد غداً»
+ *  - قبل الموعد بساعتين: «موعد بعد قليل» مع المكان
+ * نعلّم الموعد قبل الإرسال، حتى لا يتكرر التذكير لو فشل الإرسال أو أُعيد تشغيل الخادم.
+ */
+async function checkAppointments() {
+    const dayBefore = await pool.query(
+        `UPDATE appointments a SET reminded_day_before = TRUE
+         FROM members mem
+         WHERE mem.id = a.member_id
+           AND NOT a.reminded_day_before
+           AND a.scheduled_at::date = CURRENT_DATE + 1
+           AND EXTRACT(HOUR FROM LOCALTIMESTAMP) >= $1
+         RETURNING a.*, mem.name AS member_name, mem.user_id`,
+        [DAY_BEFORE_HOUR]
+    );
+    for (const a of dayBefore.rows) {
+        console.log(`[push] تذكير موعد الغد: ${a.title} — ${a.member_name}`);
+        await sendToUser(a.user_id, { title: "موعد غداً", body: apptBody(a, false), url: "/appointments" });
+    }
+
+    const soon = await pool.query(
+        `UPDATE appointments a SET reminded_soon = TRUE, reminded_day_before = TRUE
+         FROM members mem
+         WHERE mem.id = a.member_id
+           AND NOT a.reminded_soon
+           AND a.scheduled_at > LOCALTIMESTAMP
+           AND a.scheduled_at <= LOCALTIMESTAMP + INTERVAL '2 hours'
+         RETURNING a.*, mem.name AS member_name, mem.user_id`
+    );
+    for (const a of soon.rows) {
+        console.log(`[push] تذكير موعد قريب: ${a.title} — ${a.member_name}`);
+        await sendToUser(a.user_id, { title: "موعد بعد قليل", body: apptBody(a, true), url: "/appointments" });
+    }
 }
 
 // «ينفد اليوم» / «يكفي يوماً واحداً» / «يكفي ٣ أيام»

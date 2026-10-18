@@ -49,7 +49,10 @@ router.post("/", async (req, res) => {
 router.put("/:id", async (req, res) => {
     const { title, doctor_name, location, scheduled_at, notes } = req.body;
     const result = await pool.query(
-        `UPDATE appointments SET title=$1, doctor_name=$2, location=$3, scheduled_at=$4, notes=$5
+        // إن تغيّر وقت الموعد نعيد تذكيراته؛ في UPDATE تشير الأعمدة إلى القيم القديمة
+        `UPDATE appointments SET title=$1, doctor_name=$2, location=$3, scheduled_at=$4, notes=$5,
+            reminded_day_before = CASE WHEN scheduled_at IS DISTINCT FROM $4::timestamp THEN FALSE ELSE reminded_day_before END,
+            reminded_soon       = CASE WHEN scheduled_at IS DISTINCT FROM $4::timestamp THEN FALSE ELSE reminded_soon END
      WHERE id=$6 AND member_id IN (SELECT id FROM members WHERE user_id=$7)
      RETURNING *`,
         [title, doctor_name || null, location || null, scheduled_at, notes || null, req.params.id, req.userId]
