@@ -22,5 +22,13 @@ app.get("/api/health", async (req, res) => {
     res.json({ ok: true, time: result.rows[0].now });
 });
 
-require("./push").startScheduler();
-app.listen(5000, () => console.log("Server running on port 5000"));
+// تحديثات قاعدة البيانات أولاً، ثم المجدول والخادم
+require("./migrate")()
+    .then(() => {
+        require("./push").startScheduler();
+        app.listen(5000, () => console.log("Server running on port 5000"));
+    })
+    .catch((err) => {
+        console.error("تعذّر تحديث قاعدة البيانات:", err.message);
+        process.exit(1);
+    });

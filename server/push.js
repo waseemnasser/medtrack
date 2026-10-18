@@ -1,6 +1,7 @@
 const webpush = require("web-push");
 const cron = require("node-cron");
 const pool = require("./db");
+const { findRefills } = require("./supply");
 
 webpush.setVapidDetails(
     process.env.VAPID_SUBJECT || "mailto:admin@example.com",
@@ -93,7 +94,50 @@ function startScheduler() {
         }
     });
 
-    console.log("[push] المجدول يعمل — فحص كل دقيقة");
+    // كل يوم الساعة ١٠ صباحاً: الأدوية التي تنفد خلال ٣ أيام أو أقل.
+    // إشعار واحد لكل حساب، مهما كان عدد الأدوية — لا نغرق المستخدم.
+    cron.schedule("0 10 * * *", sendRefillReminders);
+
+    console.log("[push] المجدول يعمل — فحص الجرعات كل دقيقة، والأدوية التي تنفد يومياً ١٠:٠٠");
 }
 
-module.exports = { sendToUser, startScheduler };
+// «ينفد اليوم» / «يكفي يوماً واحداً» / «يكفي ٣ أيام»
+function daysText(n) {
+    if (n <= 0) return "نفد تقريباً";
+    if (n === 1) return "يكفي يوماً واحداً";
+    if (n === 2) return "يكفي يومين";
+    return `يكفي ${n} أيام`;
+}
+
+async function sendRefillReminders() {
+    try {
+        const refills = await findRefills();
+        const byUser = new Map();
+        for (const r of refills) {
+            if (!byUser.has(r.user_id)) byUser.set(r.user_id, []);
+            byUser.get(r.user_id).push(r);
+        }
+
+        for (const [userId, list] of byUser) {
+            const first = list[0];
+            const payload = list.length === 1
+                ? {
+                    title: "دواء يقترب من النفاد",
+                    body: `${first.name} لـ${first.member_name} — ${daysText(first.days_left)}. جدّد العلبة قريباً.`,
+                    url: `/members/${first.member_id}`,
+                }
+                : {
+                    title: `${list.length} أدوية تقترب من النفاد`,
+                    body: list.slice(0, 3).map((r) => `${r.name} لـ${r.member_name}`).join("، ")
+                        + (list.length > 3 ? "، وغيرها" : ""),
+                    url: "/",
+                };
+            console.log(`[push] تنبيه نفاد للمستخدم ${userId}: ${list.length} دواء`);
+            await sendToUser(userId, payload);
+        }
+    } catch (err) {
+        console.error("[push] refills:", err.message);
+    }
+}
+
+module.exports = { sendToUser, startScheduler, sendRefillReminders };

@@ -48,6 +48,7 @@ export default function MemberProfile() {
     const [member, setMember] = useState(null);
     const [meds, setMeds] = useState([]);
     const [supply, setSupply] = useState({}); // medication_id → تقدير النفاد
+    const [refilling, setRefilling] = useState(null); // الدواء المفتوح نموذج تجديده
     const [appts, setAppts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -219,8 +220,28 @@ export default function MemberProfile() {
                                                 <SupplyChip supply={supply[m.id]} />
                                             </div>
                                         )}
+
+                                        {refilling === m.id && (
+                                            <RefillForm
+                                                med={m}
+                                                onCancel={() => setRefilling(null)}
+                                                onDone={(next) => {
+                                                    setSupply((s) => ({ ...s, [m.id]: next }));
+                                                    setRefilling(null);
+                                                    toast(`سُجّلت العلبة الجديدة — تكفي ${next.days_left} يوماً تقريباً`);
+                                                }}
+                                            />
+                                        )}
                                     </div>
                                     <div className="card-actions">
+                                        {m.units_total > 0 && refilling !== m.id && (
+                                            <button
+                                                className={supply[m.id]?.needs_refill_soon ? "urgent" : ""}
+                                                onClick={() => setRefilling(m.id)}
+                                            >
+                                                جدّدت العلبة
+                                            </button>
+                                        )}
                                         <button onClick={() => navigate(`/members/${id}/medications/${m.id}/edit`)}>
                                             تعديل
                                         </button>
@@ -300,5 +321,50 @@ function ApptCard({ a, dim, onEdit }) {
                 </div>
             )}
         </div>
+    );
+}
+
+// «جدّدت العلبة»: عدد الوحدات في العلبة الجديدة، فيبدأ العدّ من اليوم
+function RefillForm({ med, onCancel, onDone }) {
+    // أول تجديد؟ غالباً العلبة الجديدة بحجم الأولى
+    const [units, setUnits] = useState(med.supply_since ? "" : String(med.units_total || ""));
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState("");
+
+    const submit = async (e) => {
+        e.preventDefault();
+        if (!(Number(units) > 0)) return setError("أدخل عدد الوحدات في العلبة الجديدة");
+        setSaving(true);
+        setError("");
+        try {
+            const res = await api.post(`/medications/${med.id}/refill`, { units: Number(units) });
+            onDone(res.data);
+        } catch (err) {
+            setError(err.response?.data?.error || "تعذّر الحفظ، حاول مجدداً");
+            setSaving(false);
+        }
+    };
+
+    return (
+        <form className="refill-form" onSubmit={submit}>
+            <label htmlFor={`refill-${med.id}`}>كم وحدة في العلبة الجديدة؟</label>
+            <div className="refill-row">
+                <input
+                    id={`refill-${med.id}`}
+                    type="number"
+                    inputMode="numeric"
+                    min="1"
+                    value={units}
+                    onChange={(e) => setUnits(e.target.value)}
+                    autoFocus
+                />
+                <button type="submit" className="btn-primary" disabled={saving}>
+                    {saving ? "..." : "حفظ"}
+                </button>
+                <button type="button" className="btn-outline" onClick={onCancel}>إلغاء</button>
+            </div>
+            <p className="hint">يُضاف إلى ما تبقّى من العلبة الحالية، ويبدأ العدّ من اليوم.</p>
+            {error && <div className="error">{error}</div>}
+        </form>
     );
 }

@@ -529,3 +529,76 @@
     top: 16px;
   }
 }
+
+/* ============================================================
+   تنفد قريباً
+   ------------------------------------------------------------
+   أدوية بقي فيها ٣ أيام أو أقل. أحمر هادئ: تحتاج قراراً
+   (شراء علبة) لكنها ليست طارئة مثل جرعة متأخرة.
+   ============================================================ */
+
+.refill-box {
+  margin-bottom: 18px;
+  padding: 14px 16px 6px;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-inline-start: 4px solid var(--danger);
+  border-radius: var(--radius-md);
+}
+
+.refill-box h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.refill-box h2 svg {
+  width: 20px;
+  height: 20px;
+}
+
+.refill-box ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.refill-box li+li {
+  border-top: 1px solid var(--border-faint);
+}
+
+.refill-box a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 52px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.refill-text {
+  min-width: 0;
+}
+
+.refill-text b {
+  display: block;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.refill-text small {
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
+}
+
+.refill-box .chip {
+  flex-shrink: 0;
+}
+

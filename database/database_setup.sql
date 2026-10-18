@@ -191,7 +191,8 @@ CREATE TABLE public.medications (
     units_per_dose numeric(5,2) DEFAULT 1,
     is_active boolean DEFAULT true,
     is_private boolean DEFAULT false,
-    created_at timestamp without time zone DEFAULT now()
+    created_at timestamp without time zone DEFAULT now(),
+    supply_since date
 );
 
 

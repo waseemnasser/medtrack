@@ -24,6 +24,7 @@ export default function Today() {
     const [error, setError] = useState("");
     const [saving, setSaving] = useState(null); // schedule_id الجاري تأكيده
     const [alarm, setAlarm] = useState(null);
+    const [refills, setRefills] = useState([]); // أدوية تنفد خلال ٣ أيام
     const { toast } = useFeedback();
 
     useEffect(() => {
@@ -40,6 +41,11 @@ export default function Today() {
         };
 
         load();
+
+        // قائمة «تنفد قريباً» — لا تؤخّر الصفحة ولا تُظهر خطأ إن فشلت
+        api.get("/medications/refills")
+            .then((res) => setRefills(res.data))
+            .catch(() => {});
     }, []);
 
 
@@ -173,6 +179,8 @@ export default function Today() {
                         </>
                     )}
 
+                    {refills.length > 0 && <RefillList items={refills} />}
+
                     <PushToggle hideWhenOn />
                 </aside>
 
@@ -272,3 +280,40 @@ function NextDose({ dose, late, saving, onConfirm }) {
         </section>
     );
 }
+
+// «يكفي يومين» / «نفد تقريباً»
+function daysText(n) {
+    if (n <= 0) return "نفد تقريباً";
+    if (n === 1) return "يكفي يوماً واحداً";
+    if (n === 2) return "يكفي يومين";
+    return `يكفي ${n} أيام`;
+}
+
+// الأدوية التي تنفد قريباً — كل سطر يفتح ملف صاحبه حيث زر «جدّدت العلبة»
+function RefillList({ items }) {
+    return (
+        <section className="refill-box" aria-labelledby="refill-title">
+            <h2 id="refill-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="6" y="3" width="12" height="18" rx="3" />
+                    <path d="M6 14h12" />
+                </svg>
+                تنفد قريباً
+            </h2>
+            <ul>
+                {items.map((r) => (
+                    <li key={r.medication_id}>
+                        <Link to={`/members/${r.member_id}`}>
+                            <span className="refill-text">
+                                <b>{r.name}</b>
+                                <small>{r.member_name}</small>
+                            </span>
+                            <span className="chip danger">{daysText(r.days_left)}</span>
+                        </Link>
+                    </li>
+                ))}
+            </ul>
+        </section>
+    );
+}
+

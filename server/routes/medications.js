@@ -1,6 +1,7 @@
 const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
+const { estimateSupply, findRefills, todayStr } = require("../supply");
 
 const router = express.Router();
 router.use(auth);
@@ -157,55 +158,62 @@ router.patch("/:id/stop", async (req, res) => {
     if (!r.rows.length) return res.status(404).json({ error: "الدواء غير موجود" });
     res.json(r.rows[0]);
 });
+// الأدوية التي تنفد قريباً لكل أفراد المستخدم — لقائمة صفحة اليوم
+router.get("/refills", async (req, res) => {
+    try {
+        const list = await findRefills(req.userId);
+        res.json(list.map(({ user_id, ...rest }) => rest));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// دواء واحد مع مواعيده — بشرط أن يتبع للمستخدم الحالي
+async function ownedMedication(id, userId) {
+    const med = await pool.query(
+        `SELECT m.* FROM medications m
+       JOIN members mem ON mem.id = m.member_id
+       WHERE m.id = $1 AND mem.user_id = $2`,
+        [id, userId]
+    );
+    if (!med.rows.length) return null;
+    const sched = await pool.query(
+        "SELECT days_of_week FROM dose_schedules WHERE medication_id = $1",
+        [id]
+    );
+    return { medication: med.rows[0], schedules: sched.rows };
+}
+
 // متى يخلص الدواء
 router.get("/:id/supply", async (req, res) => {
     try {
-        const med = await pool.query(
-            `SELECT m.* FROM medications m
-       JOIN members mem ON mem.id = m.member_id
-       WHERE m.id = $1 AND mem.user_id = $2`,
-            [req.params.id, req.userId]
+        const found = await ownedMedication(req.params.id, req.userId);
+        if (!found) return res.status(404).json({ error: "الدواء غير موجود" });
+        res.json(estimateSupply(found.medication, found.schedules));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// «جدّدت العلبة»: ما تبقّى تقديرياً + العلبة الجديدة، والعدّ يبدأ من اليوم
+router.post("/:id/refill", async (req, res) => {
+    const units = Number(req.body.units);
+    if (!Number.isFinite(units) || units <= 0 || units > 10000)
+        return res.status(400).json({ error: "أدخل عدد الوحدات في العلبة الجديدة" });
+
+    try {
+        const found = await ownedMedication(req.params.id, req.userId);
+        if (!found) return res.status(404).json({ error: "الدواء غير موجود" });
+
+        const before = estimateSupply(found.medication, found.schedules);
+        const left = before.known ? before.remaining_estimate : 0;
+
+        const updated = await pool.query(
+            `UPDATE medications SET units_total = $1, supply_since = $2
+       WHERE id = $3 RETURNING *`,
+            [Math.round(left + units), todayStr(), req.params.id]
         );
-        if (!med.rows.length) return res.status(404).json({ error: "الدواء غير موجود" });
-
-        const medication = med.rows[0];
-        if (!medication.units_total)
-            return res.json({ known: false, message: "عدد الحبات غير مسجل" });
-
-        const sched = await pool.query(
-            "SELECT days_of_week FROM dose_schedules WHERE medication_id = $1",
-            [req.params.id]
-        );
-        if (!sched.rows.length)
-            return res.json({ known: false, message: "لا توجد مواعيد مسجلة" });
-
-        // استهلاك الأسبوع: كل موعد × عدد أيامه × كمية الجرعة
-        const perDose = Number(medication.units_per_dose) || 1;
-        let weekly = 0;
-        for (const s of sched.rows) weekly += (s.days_of_week || "1234567").length * perDose;
-        const perDay = weekly / 7;
-
-        const start = new Date(medication.start_date);
-        const today = new Date(new Date().toISOString().slice(0, 10));
-        const daysPassed = Math.max(0, Math.round((today - start) / 86400000));
-
-        const consumed = daysPassed * perDay;
-        const remaining = Math.max(0, medication.units_total - consumed);
-        const daysLeft = perDay > 0 ? Math.floor(remaining / perDay) : null;
-
-        const depletionDate = new Date(today);
-        depletionDate.setDate(depletionDate.getDate() + (daysLeft || 0));
-
-        res.json({
-            known: true,
-            units_total: medication.units_total,
-            per_day: Number(perDay.toFixed(2)),
-            consumed_estimate: Math.round(consumed),
-            remaining_estimate: Math.round(remaining),
-            days_left: daysLeft,
-            depletion_date: depletionDate.toISOString().slice(0, 10),
-            needs_refill_soon: daysLeft !== null && daysLeft <= 4,
-        });
+        res.json(estimateSupply(updated.rows[0], found.schedules));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
