@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import PushToggle from "../components/PushToggle";
 import Mark from "../components/Mark";
 import { getTheme, setTheme } from "../utils/theme";
+import { disablePushForThisDevice } from "../push";
 import "./Account.css";
 
 const THEMES = [
@@ -31,7 +32,14 @@ export default function Account() {
         });
     };
 
-    const logout = () => {
+    const logout = async () => {
+        // هذا الجهاز لا يستقبل تذكيرات هذا الحساب بعد الخروج —
+        // مهم إن كان الحاسوب مشتركاً بين أفراد العائلة
+        try {
+            await disablePushForThisDevice();
+        } catch {
+            // الخادم لا يستجيب؟ نكمل الخروج على أي حال
+        }
         localStorage.removeItem("token");
         navigate("/login", { replace: true });
     };

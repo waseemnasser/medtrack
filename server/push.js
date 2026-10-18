@@ -8,13 +8,15 @@ webpush.setVapidDetails(
     process.env.VAPID_PRIVATE
 );
 
-// إرسال إشعار لكل أجهزة مستخدم معيّن
+// إرسال إشعار لكل أجهزة مستخدم معيّن — يُرجع عدد ما وصل وما فشل
 async function sendToUser(userId, payload) {
     const subs = await pool.query(
         "SELECT * FROM push_subscriptions WHERE user_id = $1",
         [userId]
     );
 
+    let sent = 0;
+    let failed = 0;
     for (const s of subs.rows) {
         const subscription = {
             endpoint: s.endpoint,
@@ -22,7 +24,9 @@ async function sendToUser(userId, payload) {
         };
         try {
             await webpush.sendNotification(subscription, JSON.stringify(payload));
+            sent++;
         } catch (err) {
+            failed++;
             // 410/404 تعني أن الاشتراك لم يعد صالحاً — نحذفه
             if (err.statusCode === 410 || err.statusCode === 404) {
                 await pool.query("DELETE FROM push_subscriptions WHERE id = $1", [s.id]);
@@ -31,6 +35,7 @@ async function sendToUser(userId, payload) {
             }
         }
     }
+    return { sent, failed };
 }
 
 // يفحص كل دقيقة: أي جرعة حان وقتها الآن ولم تُؤكَّد

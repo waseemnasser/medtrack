@@ -34,21 +34,44 @@ router.post("/subscribe", async (req, res) => {
     }
 });
 
+// إلغاء ربط جهاز بالحساب — عند تسجيل الخروج
+router.post("/unsubscribe", async (req, res) => {
+    const { endpoint } = req.body;
+    if (!endpoint) return res.status(400).json({ error: "الجهاز غير محدد" });
+    try {
+        await pool.query(
+            "DELETE FROM push_subscriptions WHERE endpoint = $1 AND user_id = $2",
+            [endpoint, req.userId]
+        );
+        res.json({ ok: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // إشعار تجريبي — مفيد جداً أثناء التطوير والعرض
 router.post("/test", async (req, res) => {
-    const subs = await pool.query(
-        "SELECT COUNT(*)::int AS n FROM push_subscriptions WHERE user_id = $1",
-        [req.userId]
-    );
-    if (subs.rows[0].n === 0)
-        return res.status(400).json({ error: "لا يوجد جهاز مشترك — فعّل الإشعارات أولاً" });
+    try {
+        const subs = await pool.query(
+            "SELECT COUNT(*)::int AS n FROM push_subscriptions WHERE user_id = $1",
+            [req.userId]
+        );
+        if (subs.rows[0].n === 0)
+            return res.status(400).json({ error: "لا يوجد جهاز مربوط بهذا الحساب — اضغط «تفعيل» من جديد" });
 
-    await sendToUser(req.userId, {
-        title: "تجربة الإشعارات",
-        body: "الإشعارات تعمل بنجاح ✓",
-        url: "/",
-    });
-    res.json({ ok: true, devices: subs.rows[0].n });
+        const { sent } = await sendToUser(req.userId, {
+            title: "تجربة الإشعارات",
+            body: "الإشعارات تعمل بنجاح ✓",
+            url: "/",
+        });
+        if (sent === 0)
+            return res.status(502).json({ error: "لم يصل الإشعار إلى أي جهاز — أعد تفعيل الإشعارات على هذا الجهاز" });
+
+        res.json({ ok: true, devices: sent });
+    } catch (err) {
+        console.error("[push] test:", err.message);
+        res.status(500).json({ error: "خطأ في الخادم أثناء إرسال الإشعار" });
+    }
 });
 
 module.exports = router;
