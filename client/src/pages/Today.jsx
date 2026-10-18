@@ -4,6 +4,8 @@ import api from "../api";
 import useDoseAlarm from "../useDoseAlarm";
 import { playBeep } from "../beep";
 import PushToggle from "../components/PushToggle";
+import Skeleton from "../components/Skeleton";
+import { useFeedback } from "../feedback/context";
 import { PERIODS, periodOf, timeParts, formatTime, formatDate } from "../utils/format";
 import "./Today.css";
 
@@ -22,6 +24,7 @@ export default function Today() {
     const [error, setError] = useState("");
     const [saving, setSaving] = useState(null); // schedule_id الجاري تأكيده
     const [alarm, setAlarm] = useState(null);
+    const { toast } = useFeedback();
 
     useEffect(() => {
         const load = async () => {
@@ -56,7 +59,7 @@ export default function Today() {
                 )
             );
         } catch {
-            alert("تعذّر تسجيل الجرعة، حاول مجدداً");
+            toast("تعذّر تسجيل الجرعة، حاول مجدداً", "error");
         } finally {
             setSaving(null);
         }
@@ -77,7 +80,7 @@ export default function Today() {
         return now > doseTime;
     };
 
-    if (loading) return <div className="page"><p>جارٍ التحميل...</p></div>;
+    if (loading) return <Skeleton variant="today" rows={3} />;
 
     const sorted = [...doses].sort((a, b) => a.time_of_day.localeCompare(b.time_of_day));
     const takenCount = doses.filter((d) => d.status === "taken").length;

@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api from "../api";
+import Skeleton from "../components/Skeleton";
+import { useFeedback } from "../feedback/context";
 import "./Appointments.css";
 
 const DAY_MS = 86400000;
@@ -35,6 +37,7 @@ export default function Appointments() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const navigate = useNavigate();
+    const { confirm, toast } = useFeedback();
 
     useEffect(() => {
         const load = async () => {
@@ -55,21 +58,27 @@ export default function Appointments() {
         load();
     }, []);
 
-
     const memberName = (id) =>
         members.find((m) => m.id === id)?.name || "";
 
     const remove = async (a) => {
-        if (!window.confirm(`سيتم حذف موعد «${a.title}». هل أنت متأكد؟`)) return;
+        const ok = await confirm({
+            title: "حذف الموعد؟",
+            message: `سيُحذف موعد «${a.title}» نهائياً.`,
+            confirmLabel: "حذف",
+            danger: true,
+        });
+        if (!ok) return;
         try {
             await api.delete(`/appointments/${a.id}`);
             setAppts((prev) => prev.filter((x) => x.id !== a.id));
+            toast("حُذف الموعد");
         } catch {
-            alert("تعذّر الحذف، حاول مجدداً");
+            toast("تعذّر الحذف، حاول مجدداً", "error");
         }
     };
 
-    if (loading) return <div className="page"><p>جارٍ التحميل...</p></div>;
+    if (loading) return <Skeleton rows={3} />;
 
     const now = new Date();
     const upcoming = appts

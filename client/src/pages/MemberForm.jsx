@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api";
 import PageHeader from "../components/PageHeader";
+import { useFeedback } from "../feedback/context";
 import "./Members.css";
 
 export default function MemberForm() {
     const { id } = useParams();          // موجود عند التعديل، غير موجود عند الإضافة
     const isEdit = Boolean(id);
     const navigate = useNavigate();
+    const { confirm, toast } = useFeedback();
     const parent = isEdit ? `/members/${id}` : "/members";
 
     const [form, setForm] = useState({
@@ -50,6 +52,7 @@ export default function MemberForm() {
         try {
             if (isEdit) {
                 await api.put(`/members/${id}`, form);
+                toast("حُفظت التعديلات");
                 navigate(parent, { replace: true });
             } else {
                 // بعد الإضافة نفتح ملف الفرد مباشرة: الخطوة التالية غالباً إضافة دواء
@@ -64,13 +67,17 @@ export default function MemberForm() {
     };
 
     const remove = async () => {
-        const ok = window.confirm(
-            `سيتم حذف ${form.name} وكل أدويته ومواعيده نهائياً. هل أنت متأكد؟`
-        );
+        const ok = await confirm({
+            title: `حذف ${form.name}؟`,
+            message: "ستُحذف كل أدويته ومواعيده وسجل جرعاته نهائياً. لا يمكن التراجع عن ذلك.",
+            confirmLabel: "حذف نهائياً",
+            danger: true,
+        });
         if (!ok) return;
         setDeleting(true);
         try {
             await api.delete(`/members/${id}`);
+            toast(`حُذف ${form.name}`);
             navigate("/members", { replace: true });
         } catch {
             setError("تعذّر الحذف، حاول مجدداً");

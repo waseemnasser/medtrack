@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import api from "../api";
 import PageHeader from "../components/PageHeader";
+import Skeleton from "../components/Skeleton";
+import { useFeedback } from "../feedback/context";
 import { periodOf, formatTime, formatDate, calcAge, initial } from "../utils/format";
 import "./MemberProfile.css";
 
@@ -39,6 +41,7 @@ const ICONS = {
 export default function MemberProfile() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { confirm, toast } = useFeedback();
     const [searchParams, setSearchParams] = useSearchParams();
     const tab = searchParams.get("tab") === "appts" ? "appts" : "meds";
 
@@ -83,24 +86,26 @@ export default function MemberProfile() {
     }, [id]);
 
 
-    // تقدير النفاد لكل دواء فعّال — لا يمنع عرض الصفحة إن فشل
-
     const setTab = (t) => setSearchParams(t === "appts" ? { tab: "appts" } : {}, { replace: true });
 
     const stopMedication = async (med) => {
-        const ok = window.confirm(
-            `سيتوقف تذكيرك بدواء ${med.name}، وسيبقى في السجل الطبي. متابعة؟`
-        );
+        const ok = await confirm({
+            title: `إيقاف ${med.name}؟`,
+            message: "ستتوقف تذكيرات هذا الدواء، ويبقى في السجل ضمن «أدوية متوقفة».",
+            confirmLabel: "إيقاف الدواء",
+            danger: true,
+        });
         if (!ok) return;
         try {
             await api.patch(`/medications/${med.id}/stop`);
             setMeds((prev) => prev.map((m) => (m.id === med.id ? { ...m, is_active: false } : m)));
+            toast(`أُوقف ${med.name}`);
         } catch {
-            alert("تعذّر إيقاف الدواء، حاول مجدداً");
+            toast("تعذّر إيقاف الدواء، حاول مجدداً", "error");
         }
     };
 
-    if (loading) return <div className="page"><p>جارٍ التحميل...</p></div>;
+    if (loading) return <Skeleton variant="profile" rows={2} />;
     if (error) return <div className="page"><PageHeader back="/members" /><div className="error">{error}</div></div>;
     if (!member) {
         return (

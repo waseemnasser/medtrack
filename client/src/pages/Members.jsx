@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api";
+import Skeleton from "../components/Skeleton";
 import { calcAge, initial } from "../utils/format";
 import "./Members.css";
 
@@ -26,7 +27,7 @@ export default function Members() {
         loadMembers();
     }, []);
 
-    if (loading) return <div className="page"><p>جارٍ التحميل...</p></div>;
+    if (loading) return <Skeleton rows={3} />;
 
     return (
         <div className="page">

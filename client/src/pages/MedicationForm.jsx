@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
 import PageHeader from "../components/PageHeader";
+import { useFeedback } from "../feedback/context";
 import "./MedicationForm.css";
 
 const DAY_LABELS = [
@@ -20,6 +21,7 @@ export default function MedicationForm() {
     const isEdit = Boolean(medId);
     const navigate = useNavigate();
     const parent = `/members/${memberId}`;
+    const { toast } = useFeedback();
 
     const [form, setForm] = useState({
         catalog_id: null,
@@ -173,6 +175,7 @@ export default function MedicationForm() {
             };
             if (isEdit) await api.put(`/medications/${medId}`, payload);
             else await api.post("/medications", payload);
+            toast(isEdit ? "حُفظت تعديلات الدواء" : `أُضيف ${form.name.trim()}`);
             // replace: زر الرجوع بعد الحفظ لا يعيد فتح النموذج
             navigate(parent, { replace: true });
         } catch (err) {

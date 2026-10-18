@@ -13,6 +13,7 @@ import SharePage from "./pages/SharePage";
 import DoctorView from "./pages/DoctorView";
 import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
+import FeedbackProvider from "./feedback/FeedbackProvider";
 import "./styles/variables.css";
 import "./styles/base.css";
 import "./styles/components.css";
@@ -46,32 +47,34 @@ function GuestOnly({ children }) {
 export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        {/* صفحات بلا هيكل */}
-        <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
-        <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
-        <Route path="/share/:token" element={<DoctorView />} />
+      <FeedbackProvider>
+        <Routes>
+          {/* صفحات بلا هيكل */}
+          <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
+          <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
+          <Route path="/share/:token" element={<DoctorView />} />
 
-        {/* صفحات داخل الهيكل */}
-        <Route element={<Protected><Layout /></Protected>}>
-          <Route path="/" element={<Today />} />
+          {/* صفحات داخل الهيكل */}
+          <Route element={<Protected><Layout /></Protected>}>
+            <Route path="/" element={<Today />} />
 
-          <Route path="/members" element={<Members />} />
-          <Route path="/members/new" element={<MemberForm />} />
-          <Route path="/members/:id" element={<MemberProfile />} />
-          <Route path="/members/:id/edit" element={<MemberForm />} />
-          <Route path="/members/:id/medications/new" element={<MedicationForm />} />
-          <Route path="/members/:id/medications/:medId/edit" element={<MedicationForm />} />
-          <Route path="/members/:id/share" element={<SharePage />} />
+            <Route path="/members" element={<Members />} />
+            <Route path="/members/new" element={<MemberForm />} />
+            <Route path="/members/:id" element={<MemberProfile />} />
+            <Route path="/members/:id/edit" element={<MemberForm />} />
+            <Route path="/members/:id/medications/new" element={<MedicationForm />} />
+            <Route path="/members/:id/medications/:medId/edit" element={<MedicationForm />} />
+            <Route path="/members/:id/share" element={<SharePage />} />
 
-          <Route path="/appointments" element={<Appointments />} />
-          <Route path="/appointments/new" element={<AppointmentForm />} />
-          <Route path="/appointments/:id/edit" element={<AppointmentForm />} />
+            <Route path="/appointments" element={<Appointments />} />
+            <Route path="/appointments/new" element={<AppointmentForm />} />
+            <Route path="/appointments/:id/edit" element={<AppointmentForm />} />
 
-          <Route path="/account" element={<Account />} />
-          <Route path="*" element={<NotFound />} />
-        </Route>
-      </Routes>
+            <Route path="/account" element={<Account />} />
+            <Route path="*" element={<NotFound />} />
+          </Route>
+        </Routes>
+      </FeedbackProvider>
     </BrowserRouter>
   );
 }

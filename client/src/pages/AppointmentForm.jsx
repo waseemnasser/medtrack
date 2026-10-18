@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import api from "../api";
 import PageHeader from "../components/PageHeader";
+import { useFeedback } from "../feedback/context";
 import "./Appointments.css";
 
 export default function AppointmentForm() {
     const { id } = useParams();
     const isEdit = Boolean(id);
     const navigate = useNavigate();
+    const { toast } = useFeedback();
     // فُتح النموذج من ملف فرد؟ نختاره مسبقاً ونرجع إلى ملفه بعد الحفظ
     const [searchParams] = useSearchParams();
     const fromMember = searchParams.get("member_id");
@@ -83,6 +85,7 @@ export default function AppointmentForm() {
         try {
             if (isEdit) await api.put(`/appointments/${id}`, payload);
             else await api.post("/appointments", payload);
+            toast(isEdit ? "حُفظ الموعد" : "أُضيف الموعد");
             navigate(parent, { replace: true });
         } catch (err) {
             setError(err.response?.data?.error || "تعذّر الحفظ، حاول مجدداً");
