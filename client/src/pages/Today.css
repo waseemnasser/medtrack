@@ -495,3 +495,37 @@
   }
 }
 
+
+/* ============================================================
+   صفحة اليوم على الحاسوب — عمودان
+   ------------------------------------------------------------
+   اليمين: الجرعة التالية والتقدّم، ثابتان أثناء التمرير.
+   اليسار: باقي جرعات اليوم حسب الفترة.
+   ============================================================ */
+
+@media (min-width: 1024px) {
+  .today-grid {
+    display: grid;
+    grid-template-columns: 380px minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+  }
+
+  /* لا جرعات أخرى؟ عمود واحد بدل فراغ على اليسار */
+  .today-grid:not(:has(.period)) {
+    grid-template-columns: minmax(0, 520px);
+  }
+
+  .today-side {
+    position: sticky;
+    top: 24px;
+  }
+
+  .today-main .period:first-child {
+    margin-top: 0;
+  }
+
+  .alarm-bar {
+    top: 16px;
+  }
+}

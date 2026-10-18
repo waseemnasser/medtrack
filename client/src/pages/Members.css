@@ -104,3 +104,11 @@
   opacity: .6;
   cursor: default;
 }
+
+/* على الحاسوب: الأفراد في عمودين */
+@media (min-width: 1024px) {
+  .member-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

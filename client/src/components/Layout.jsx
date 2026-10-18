@@ -63,7 +63,12 @@ export default function Layout() {
                 <Outlet />
             </main>
 
+            {/* شريط سفلي على الهاتف، وشريط جانبي على الحاسوب — نفس العنصر */}
             <nav className="bottom-nav" aria-label="التنقل الرئيسي">
+                <Link to="/" className="brand nav-brand">
+                    <Mark size={30} />
+                    طمّني
+                </Link>
                 {TABS.map((t) => (
                     <NavLink key={t.to} to={t.to} end={t.to === "/"}>
                         <span className="nav-icon">
@@ -74,6 +79,7 @@ export default function Layout() {
                         <span>{t.label}</span>
                     </NavLink>
                 ))}
+                <p className="nav-foot">أداة تنظيمية فقط — لا تغني عن استشارة الطبيب أو الصيدلاني.</p>
             </nav>
         </div>
     );

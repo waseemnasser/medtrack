@@ -144,3 +144,11 @@
     animation: none;
   }
 }
+
+/* على الحاسوب لا شريط سفلي: الرسالة في أسفل منطقة المحتوى */
+@media (min-width: 1024px) {
+  .toast-stack {
+    bottom: 32px;
+    inset-inline-start: 264px;
+  }
+}
