@@ -45,7 +45,7 @@
   font-weight: 600;
   padding: 3px 12px;
   border-radius: var(--radius-pill);
-  color: var(--text);
+  color: var(--on-period);
 }
 
 .next-chip.late {
@@ -160,7 +160,7 @@
   flex-shrink: 0;
   border-radius: 50%;
   background: var(--morning);
-  color: var(--text);
+  color: var(--on-period);
   display: flex;
   align-items: center;
   justify-content: center;

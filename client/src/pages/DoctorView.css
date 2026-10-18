@@ -345,6 +345,36 @@
 
 /* الطبيب قد يطبع الملف ليضعه في سجل المريض الورقي */
 @media print {
+
+  /* الورق أبيض دائماً: نعيد ألوان الوضع الفاتح حتى لو كان جهاز الطبيب
+     في الوضع الداكن. ‎:not(#_)‎ يرفع الأولوية فوق كتل الوضع الداكن */
+  :root:not(#_) {
+    color-scheme: light;
+    --bg: #FFFFFF;
+    --surface: #FFFFFF;
+    --surface-alt: #F5F5F5;
+    --text: #0F2A2E;
+    --text-muted: #3E5659;
+    --text-soft: #4F6669;
+    --text-faint: #62797C;
+    --primary: #0A7E84;
+    --primary-deep: #066369;
+    --primary-soft: #DDF3F1;
+    --danger: #B3261E;
+    --danger-soft: #FCE4E1;
+    --morning-soft: #FDF1C8;
+    --noon-soft: #FDE3CC;
+    --evening-soft: #E3E7FA;
+    --neutral: #E6F1F0;
+    --private: #3E5659;
+    --notice-bg: #F5F5F5;
+    --notice-border: #CCCCCC;
+    --notice-text: #2E4649;
+    --border: #CCCCCC;
+    --border-light: #DDDDDD;
+    --border-faint: #EEEEEE;
+  }
+
   body {
     background: #fff;
   }

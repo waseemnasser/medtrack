@@ -76,37 +76,6 @@
   color: var(--private);
 }
 
-/* ---------- اختيار المدة ---------- */
-
-.segmented {
-  display: flex;
-  gap: 6px;
-  padding: 5px;
-  background: var(--tabs-bg);
-  border-radius: var(--radius-pill);
-  margin-bottom: var(--gap-lg);
-}
-
-.segmented button {
-  flex: 1;
-  min-height: var(--tap-sm);
-  border: none;
-  border-radius: var(--radius-pill);
-  background: transparent;
-  color: var(--text-soft);
-  font-family: inherit;
-  font-size: var(--fs-base);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background .15s, color .15s;
-}
-
-.segmented button.on {
-  background: var(--surface);
-  color: var(--text);
-  font-weight: 600;
-}
-
 .share-create {
   width: 100%;
 }

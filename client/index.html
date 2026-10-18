@@ -6,7 +6,15 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>طمّني — متابعة أدوية العائلة</title>
-    <meta name="theme-color" content="#F5FBFA">
+    <meta name="theme-color" content="#F5FBFA" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0B1A1C" media="(prefers-color-scheme: dark)">
+    <!-- يطبّق المظهر المحفوظ قبل رسم الصفحة، حتى لا تومض بيضاء في الوضع الداكن -->
+    <script>
+        try {
+            var t = localStorage.getItem("theme");
+            if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+        } catch (e) { }
+    </script>
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/png" href="/favicon-32.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

@@ -56,3 +56,10 @@
 .logout-btn:hover {
   background: var(--danger-soft);
 }
+
+/* شرح تحت اختيار المظهر */
+.theme-hint {
+  margin: -14px 0 0;
+  font-size: var(--fs-sm);
+  color: var(--text-faint);
+}

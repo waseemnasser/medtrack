@@ -64,7 +64,7 @@
 }
 
 .btn-danger-solid:hover {
-  background: #8F1D17;
+  background: var(--danger-deep);
 }
 
 @keyframes dialog-in {
@@ -116,7 +116,7 @@
   flex-shrink: 0;
   border-radius: 50%;
   background: var(--accent);
-  color: var(--text);
+  color: var(--on-period);
   font-size: 13px;
   font-weight: 700;
   display: flex;

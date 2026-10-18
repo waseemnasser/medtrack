@@ -13,7 +13,7 @@
 /* خلفيته من لون الصفحة لا أبيض: الشريط ليس بطاقة،
    وفصله بالأبيض يقطع الشاشة بلا سبب */
 .top-bar {
-  background: rgba(245, 251, 250, .92);
+  background: var(--topbar-bg);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-faint);
   padding: 12px 20px;

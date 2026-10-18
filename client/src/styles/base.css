@@ -78,3 +78,19 @@ body {
     animation: none;
   }
 }
+
+/* ---------- تغيير المظهر ---------- */
+
+/* الدائرة المنتشرة يرسمها utils/theme.js. نلغي التلاشي الافتراضي
+   للمتصفح حتى تظهر الدائرة نظيفة فوق المظهر القديم */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* بديل للمتصفحات التي لا تدعم الدائرة: الألوان تتلاشى بهدوء */
+.theme-fading,
+.theme-fading * {
+  transition: background-color .4s ease, color .4s ease, border-color .4s ease, fill .4s ease, stroke .4s ease !important;
+}
