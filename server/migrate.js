@@ -2,6 +2,7 @@ const pool = require("./db");
 const { ensureArabicNames } = require("./catalogData");
 const { syncIngredients } = require("./ingredients");
 const { syncDrugClasses } = require("./drugClasses");
+const { setupAllergyTables } = require("./allergy");
 
 // تعديلات صغيرة على قاعدة البيانات تُطبَّق تلقائياً عند تشغيل الخادم.
 // كل سطر آمن للتكرار (IF NOT EXISTS)، فلا يحتاج أحد من الفريق
@@ -22,6 +23,8 @@ async function migrate() {
     // المواد الفعّالة كجداول — أساس فحص الحساسية (ingredients.js)
     await syncIngredients(pool);
     await syncDrugClasses(pool);
+    // حساسية الأفراد كصفوف منظّمة، وترحيل النص القديم (allergy.js)
+    await setupAllergyTables(pool);
 }
 
 module.exports = migrate;

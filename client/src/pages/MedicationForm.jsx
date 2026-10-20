@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
 import PageHeader from "../components/PageHeader";
+import AllergenSearch from "../components/AllergenSearch";
 import { useFeedback } from "../feedback/context";
 import "./MedicationForm.css";
 
@@ -14,6 +15,14 @@ const DAY_LABELS = [
 // تاريخ اليوم بصيغة حقل التاريخ «2026-10-18»
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
+// مستوى التعارض بكلمات بسيطة (allergy.js في الخادم)
+const LEVEL_LABEL = {
+    direct: "المادة نفسها",
+    class: "من العائلة نفسها",
+    family: "تحسّس متصالب",
+    cross: "تحسّس متصالب منخفض",
+};
+
 const FORMS = ["أقراص", "أقراص ملبسة", "محافظ", "شراب", "معلق", "محلول للحقن", "تحاميل", "قطرة", "مرهم", "كريم", "بخاخ"];
 
 export default function MedicationForm() {
@@ -23,7 +32,8 @@ export default function MedicationForm() {
     const parent = `/members/${memberId}`;
     const { toast, confirm } = useFeedback();
     const [member, setMember] = useState(null);     // لعرض حساسيته وفحصها
-    const [allergyHit, setAllergyHit] = useState(null); // { key, error } نتيجة الفحص المسبق
+    const [allergyHit, setAllergyHit] = useState(null); // { key, conflicts, unchecked, needs_ingredients }
+    const [ingredients, setIngredients] = useState([]); // مواد دواء مكتوب يدوياً: [{ id, name, name_ar }]
 
     const [form, setForm] = useState({
         catalog_id: null,
@@ -58,29 +68,32 @@ export default function MedicationForm() {
             .catch(() => {});
     }, [memberId]);
 
+    // دواء من الكتالوغ: موادّه معروفة. مكتوب يدوياً: يختار المستخدم موادّه
+    const fromCatalog = Boolean(Number(form.catalog_id));
+    const ingredientIds = fromCatalog ? [] : ingredients.map((i) => i.id);
+
     // فحص الحساسية أثناء الكتابة — تحذير مبكر قبل الضغط على «حفظ»
     const qName = form.name.trim();
-    const qIngredient = form.active_ingredient.trim();
-    // رقم الكتالوغ: الخادم يأخذ المواد الفعّالة منه مباشرة
-    const qCatalog = Number(form.catalog_id) || "";
-    const checkKey = `${qName}|${qIngredient}|${qCatalog}`;
+    const qCatalog = fromCatalog ? Number(form.catalog_id) : "";
+    const qIds = ingredientIds.join(",");
+    const checkKey = `${qName}|${qCatalog}|${qIds}`;
     useEffect(() => {
         if (!member?.allergies || qName.length < 2) return;
         clearTimeout(allergyTimer.current);
         allergyTimer.current = setTimeout(async () => {
             try {
                 const { data } = await api.get("/medications/allergy-check", {
-                    params: { member_id: memberId, name: qName, active_ingredient: qIngredient, catalog_id: qCatalog || undefined },
+                    params: { member_id: memberId, name: qName, catalog_id: qCatalog || undefined, ingredient_ids: qIds || undefined },
                 });
-                setAllergyHit(data.conflict ? { key: `${qName}|${qIngredient}|${qCatalog}`, error: data.error } : null);
+                setAllergyHit({ key: `${qName}|${qCatalog}|${qIds}`, ...data });
             } catch {
                 setAllergyHit(null);
             }
         }, 400);
         return () => clearTimeout(allergyTimer.current);
-    }, [qName, qIngredient, qCatalog, member, memberId]);
-    // التحذير يخص الاسم الذي فُحص فقط؛ إن تغيّر الاسم يختفي حتى يُفحص من جديد
-    const allergyWarning = allergyHit && allergyHit.key === checkKey ? allergyHit.error : "";
+    }, [qName, qCatalog, qIds, member, memberId]);
+    // النتيجة تخص ما فُحص فقط؛ إن تغيّر الاسم أو المواد تختفي حتى يُفحص من جديد
+    const check = allergyHit && allergyHit.key === checkKey ? allergyHit : null;
 
     // عند التعديل: يملأ النموذج ببيانات الدواء الحالية ومواعيده
     useEffect(() => {
@@ -103,6 +116,7 @@ export default function MedicationForm() {
                     units_per_dose: m.units_per_dose ?? "1",
                     is_private: Boolean(m.is_private),
                 });
+                if (!m.catalog_id) setIngredients(m.ingredients || []);
                 if (m.schedules?.length) {
                     setTimes(m.schedules.map((s) => ({
                         time_of_day: s.time_of_day,
@@ -152,8 +166,16 @@ export default function MedicationForm() {
             strength: item.strength || "",
             form: item.form || f.form,
         }));
+        setIngredients([]);
         setResults([]);
     };
+
+    // مادة أو اسم تجاري (← موادّه) لدواء مكتوب يدوياً
+    const addIngredients = (pick) => {
+        const fresh = pick.type === "brand" ? pick.ingredients : [{ id: pick.id, name: pick.name, name_ar: pick.name_ar }];
+        setIngredients((list) => [...list, ...fresh.filter((f) => !list.some((x) => x.id === f.id))]);
+    };
+    const removeIngredient = (id) => setIngredients((list) => list.filter((x) => x.id !== id));
 
     const addTime = () =>
         setTimes((t) => [...t, { time_of_day: "20:00", days_of_week: "1234567" }]);
@@ -192,7 +214,9 @@ export default function MedicationForm() {
                 member_id: Number(memberId),
                 catalog_id: form.catalog_id === "manual" ? null : form.catalog_id,
                 name: form.name.trim(),
-                active_ingredient: form.active_ingredient || null,
+                // من الكتالوغ: نصّه كما هو. يدوياً: الخادم يكتبه من المواد المختارة
+                active_ingredient: fromCatalog || !ingredients.length ? form.active_ingredient || null : null,
+                ingredient_ids: fromCatalog ? undefined : ingredientIds,
                 strength: form.strength || null,
                 form: form.form || null,
                 instructions: form.instructions || null,
@@ -210,20 +234,41 @@ export default function MedicationForm() {
                 ? api.put(`/medications/${medId}`, { ...payload, ...extra })
                 : api.post("/medications", { ...payload, ...extra });
 
-            try {
-                await save();
-            } catch (err) {
-                if (err.response?.status !== 409 || err.response.data?.code !== "ALLERGY") throw err;
-                // حساسية معروفة: لا نحفظ إلا بتأكيد صريح أن الطبيب وصفه وهو يعلم
-                const ok = await confirm({
-                    title: "تحذير: حساسية",
-                    message: `${err.response.data.error} لا تضف هذا الدواء إلا إذا وصفه الطبيب وهو يعلم بهذه الحساسية.`,
-                    confirmLabel: "الطبيب يعلم — أضفه",
-                    cancelLabel: "لا تضفه",
-                    danger: true,
-                });
-                if (!ok) return;
-                await save({ allergy_confirmed: true });
+            // الخادم قد يطلب تأكيداً صريحاً (حساسية، أو مواد غير معروفة).
+            // كل تأكيد يُسجَّل عنده: من أكّد، ومتى، وعلى ماذا
+            const extra = {};
+            for (let attempt = 0; ; attempt++) {
+                try {
+                    await save(extra);
+                    break;
+                } catch (err) {
+                    const code = err.response?.status === 409 && err.response.data?.code;
+                    if (!code || attempt > 2) throw err;
+                    if (code === "ALLERGY") {
+                        const list = err.response.data.conflicts.map((c) => `• ${c.message}`).join("\n");
+                        const ok = await confirm({
+                            title: "تحذير: حساسية",
+                            message: `${list}\n\nلا تضف هذا الدواء إلا إذا وصفه الطبيب وهو يعلم بهذه الحساسية.`,
+                            confirmLabel: "الطبيب يعلم — أضفه",
+                            cancelLabel: "لا تضفه",
+                            danger: true,
+                        });
+                        if (!ok) return;
+                        extra.allergy_confirmed = true;
+                    } else if (code === "INGREDIENTS_UNKNOWN") {
+                        const ok = await confirm({
+                            title: "المادة الفعّالة غير معروفة",
+                            message: err.response.data.error,
+                            confirmLabel: "احفظه دون فحص",
+                            cancelLabel: "سأختار المادة",
+                            danger: true,
+                        });
+                        if (!ok) return;
+                        extra.ingredients_unknown_confirmed = true;
+                    } else {
+                        throw err;
+                    }
+                }
             }
             toast(isEdit ? "حُفظت تعديلات الدواء" : `أُضيف ${form.name.trim()}`);
             // replace: زر الرجوع بعد الحفظ لا يعيد فتح النموذج
@@ -275,15 +320,58 @@ export default function MedicationForm() {
                 <span className="hint">
                     {searching ? "جارٍ البحث..." : "ابحث بالعربية أو الإنجليزية. لم تجده؟ اكتب اسمه كما هو وتابع."}
                 </span>
-                {allergyWarning && (
+                {check?.conflicts?.length > 0 && (
                     <div className="allergy-warning" role="alert">
                         <strong>تحذير حساسية</strong>
-                        {allergyWarning}
+                        <ul className="conflict-list">
+                            {check.conflicts.map((c) => (
+                                <li key={`${c.allergy_id}-${c.ingredient}`} className={c.level}>
+                                    <span className="conflict-level">{LEVEL_LABEL[c.level]}:</span>
+                                    {c.message}
+                                    {c.reaction && <> التفاعل المسجّل: {c.reaction}.</>}
+                                </li>
+                            ))}
+                        </ul>
                     </div>
                 )}
 
-                <label>المادة الفعّالة</label>
-                <input name="active_ingredient" value={form.active_ingredient} onChange={change} />
+                <label htmlFor="ingredient-search">المادة الفعّالة</label>
+                {fromCatalog ? (
+                    <>
+                        <input value={form.active_ingredient} readOnly dir="ltr" />
+                        <span className="hint">من الكتالوغ — تُفحص مع الحساسية تلقائياً</span>
+                    </>
+                ) : (
+                    <>
+                        <AllergenSearch
+                            id="ingredient-search"
+                            types={["ingredient", "brand"]}
+                            onPick={addIngredients}
+                            placeholder="ابحث عن المادة أو اسم العلبة: IBUPROFEN، بروفين..."
+                        />
+                        {ingredients.length > 0 && (
+                            <div className="ingredient-chips">
+                                {ingredients.map((i) => (
+                                    <span key={i.id}>
+                                        {i.name_ar || i.name}
+                                        <button type="button" onClick={() => removeIngredient(i.id)} aria-label={`إزالة ${i.name}`}>×</button>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                        <span className="hint">
+                            {check?.needs_ingredients
+                                ? `مطلوبة: بدونها لا يمكن فحص الدواء مع حساسية ${member?.name || "الفرد"}.`
+                                : "لم تجد الدواء في الكتالوغ؟ اختر مادته الفعّالة ليُفحص مع الحساسية."}
+                            {!ingredients.length && form.active_ingredient && ` (المكتوب سابقاً: ${form.active_ingredient})`}
+                        </span>
+                    </>
+                )}
+                {check?.unchecked?.length > 0 && (
+                    <span className="hint">
+                        حساسية مكتوبة نصاً لا تُفحص تلقائياً: {check.unchecked.join("، ")}. راجعها بنفسك.
+                    </span>
+                )}
 
                 <label>العيار</label>
                 <input name="strength" value={form.strength} onChange={change} placeholder="مثال: 5 ملغ" />

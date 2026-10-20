@@ -1,7 +1,8 @@
 const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
-const { searchArabic, hasArabic, explainAllergies } = require("../drugmatch");
+const { searchArabic, hasArabic } = require("../drugmatch");
+const { searchAllergens } = require("../allergy");
 
 const router = express.Router();
 router.use(auth);
@@ -50,11 +51,12 @@ router.get("/search", async (req, res) => {
     }
 });
 
-// نموذج الفرد: كيف سيُفهم كل بند في خانة الحساسية؟
-// «ASITAMOL» ← اسم تجاري مادته PARACETAMOL، «غبار» ← غير موجود في الكتالوغ
-router.get("/allergy-explain", async (req, res) => {
+// مسبّبات الحساسية والمواد الفعّالة: عائلات، مواد، وأسماء تجارية (← موادها)
+// types: «class,ingredient,brand» — نموذج الدواء يطلب المواد والأسماء التجارية فقط
+router.get("/allergens", async (req, res) => {
     try {
-        res.json(await explainAllergies(String(req.query.text || "").slice(0, 500)));
+        const types = String(req.query.types || "class,ingredient,brand").split(",");
+        res.json(await searchAllergens(pool, String(req.query.q || "").slice(0, 80), types));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

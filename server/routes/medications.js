@@ -2,7 +2,11 @@ const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
 const { estimateSupply, findRefills, todayStr } = require("../supply");
-const { findAllergyConflicts } = require("../drugmatch");
+const {
+    ingredientsForDraft, saveMedicationIngredients, checkIngredients,
+    describeConflict, listAllergies,
+} = require("../allergy");
+const { ingredientsByExactName } = require("../ingredients");
 
 const router = express.Router();
 router.use(auth);
@@ -16,30 +20,81 @@ async function ownsMember(memberId, userId) {
     return r.rows.length > 0;
 }
 
-// هل يتعارض الدواء مع حساسية الفرد؟ يُرجع null أو رسالة + قائمة التعارضات
-async function allergyConflict(memberId, med) {
-    const m = await pool.query("SELECT name, allergies FROM members WHERE id = $1", [memberId]);
-    if (!m.rows.length || !m.rows[0].allergies) return null;
-    const conflicts = await findAllergyConflicts(m.rows[0].allergies, med);
-    if (!conflicts.length) return null;
-    const c = conflicts[0];
-    // «ASITAMOL» اسم تجاري: نوضّح أن المادة الفعّالة هي سبب التنبيه لا الاسم
-    const via = c.via ? ` (مادته الفعّالة ${c.via})` : "";
+// ---------- فحص الحساسية ----------
+// مواد الدواء ← تقاطعها مع حساسية الفرد (allergy.js). لا أسماء ولا تخمين.
+
+async function memberName(memberId) {
+    const r = await pool.query("SELECT name FROM members WHERE id = $1", [memberId]);
+    return r.rows[0]?.name || "";
+}
+
+/**
+ * يُرجع { ingredientIds, conflicts, unchecked, needsIngredients }
+ * needsIngredients: للفرد حساسية قابلة للفحص، لكن مواد الدواء غير معروفة
+ */
+async function allergyGate(memberId, draft) {
+    let ingredientIds = await ingredientsForDraft(pool, draft);
+    // دواء كُتب يدوياً بلا اختيار مواد: تطابق تام مع الاسم فقط («ميتفورمين»)
+    if (!ingredientIds.length && !Number(draft.catalog_id) && draft.name) {
+        ingredientIds = await ingredientsByExactName(pool, draft.name);
+    }
+    const name = await memberName(memberId);
+    const { conflicts, unchecked } = await checkIngredients(pool, memberId, ingredientIds);
+    const allergies = await listAllergies(pool, memberId);
     return {
-        error: `عند ${m.rows[0].name} حساسية من «${c.allergy}»${via}، وهذا الدواء يحتوي على ${c.matched}.`,
-        member_name: m.rows[0].name,
-        conflicts,
+        ingredientIds,
+        conflicts: conflicts.map((c) => ({ ...c, message: describeConflict(c, name) })),
+        unchecked,
+        needsIngredients: !ingredientIds.length && allergies.some((a) => a.checked),
+        memberName: name,
     };
+}
+
+/** رد 409 إن وُجد ما يحتاج تأكيداً صريحاً، وإلا null */
+function gateResponse(gate, body) {
+    if (gate.needsIngredients && !body.ingredients_unknown_confirmed) {
+        return {
+            code: "INGREDIENTS_UNKNOWN",
+            error: `لا نعرف المادة الفعّالة لهذا الدواء، فلا يمكن فحصه مع حساسية ${gate.memberName}. اختر المادة الفعّالة، أو أكّد الحفظ دون فحص.`,
+        };
+    }
+    if (gate.conflicts.length && !body.allergy_confirmed) {
+        return { code: "ALLERGY", error: gate.conflicts[0].message, conflicts: gate.conflicts };
+    }
+    return null;
+}
+
+// كل تأكيد رغم التعارض يُسجَّل: من، ومتى، وعلى ماذا
+async function recordOverride(client, medicationId, userId, gate) {
+    if (!gate.conflicts.length && !gate.needsIngredients) return;
+    await client.query(
+        "INSERT INTO allergy_overrides (medication_id, user_id, conflicts) VALUES ($1, $2, $3)",
+        [medicationId, userId, JSON.stringify({ conflicts: gate.conflicts, ingredients_unknown: gate.needsIngredients })]
+    );
+}
+
+// نص المادة الفعّالة للعرض، من المواد المختارة إن لم يُكتب
+async function ingredientText(text, ingredientIds) {
+    if (text && String(text).trim()) return text;
+    if (!ingredientIds.length) return null;
+    const r = await pool.query("SELECT name FROM ingredients WHERE id = ANY($1::int[]) ORDER BY name", [ingredientIds]);
+    return r.rows.map((x) => x.name).join("+") || null;
 }
 
 // فحص مسبق أثناء الكتابة في نموذج الدواء — لا يحفظ شيئاً
 router.get("/allergy-check", async (req, res) => {
-    const { member_id, name, active_ingredient, catalog_id } = req.query;
+    const { member_id, name, catalog_id, ingredient_ids } = req.query;
     if (!member_id || !(await ownsMember(member_id, req.userId)))
         return res.status(403).json({ error: "غير مصرح" });
     try {
-        const conflict = await allergyConflict(member_id, { name, active_ingredient, catalog_id });
-        res.json(conflict ? { conflict: true, ...conflict } : { conflict: false });
+        const gate = await allergyGate(member_id, { name, catalog_id, ingredient_ids });
+        res.json({
+            conflict: gate.conflicts.length > 0,
+            conflicts: gate.conflicts,
+            error: gate.conflicts[0]?.message || null,
+            unchecked: gate.unchecked,
+            needs_ingredients: gate.needsIngredients,
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -61,6 +116,11 @@ router.get("/member/:memberId", async (req, res) => {
             [med.id]
         );
         med.schedules = times.rows;
+        med.ingredients = (await pool.query(
+            `SELECT i.id, i.name, i.name_ar FROM medication_ingredients mi
+             JOIN ingredients i ON i.id = mi.ingredient_id WHERE mi.medication_id = $1 ORDER BY i.name`,
+            [med.id]
+        )).rows;
     }
 
     res.json(meds.rows);
@@ -71,7 +131,7 @@ router.post("/", async (req, res) => {
     const {
         member_id, catalog_id, name, active_ingredient, strength, form,
         instructions, start_date, end_date, units_total, units_per_dose,
-        is_private, times, allergy_confirmed,
+        is_private, times, ingredient_ids,
     } = req.body;
 
     if (!member_id || !name || !start_date)
@@ -80,11 +140,11 @@ router.post("/", async (req, res) => {
     if (!(await ownsMember(member_id, req.userId)))
         return res.status(403).json({ error: "غير مصرح" });
 
-    // حساسية معروفة: لا يُحفظ الدواء إلا بتأكيد صريح أن الطبيب وصفه رغم ذلك
-    if (!allergy_confirmed) {
-        const conflict = await allergyConflict(member_id, { name, active_ingredient, catalog_id });
-        if (conflict) return res.status(409).json({ code: "ALLERGY", ...conflict });
-    }
+    // حساسية معروفة أو مواد مجهولة: لا يُحفظ إلا بتأكيد صريح، ويُسجَّل التأكيد
+    const gate = await allergyGate(member_id, { name, catalog_id, ingredient_ids });
+    const blocked = gateResponse(gate, req.body);
+    if (blocked) return res.status(409).json(blocked);
+    const ingredientLabel = await ingredientText(active_ingredient, gate.ingredientIds);
 
     const client = await pool.connect();
     try {
@@ -95,13 +155,15 @@ router.post("/", async (req, res) => {
        (member_id, catalog_id, name, active_ingredient, strength, form, instructions,
         start_date, end_date, units_total, units_per_dose, is_private)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
-            [member_id, catalog_id || null, name, active_ingredient || null, strength || null,
+            [member_id, catalog_id || null, name, ingredientLabel, strength || null,
                 form || null, instructions || null, start_date, end_date || null,
                 units_total || null, units_per_dose || 1, is_private || false]
         );
 
         const medication = med.rows[0];
         medication.schedules = [];
+        await saveMedicationIngredients(client, medication.id, gate.ingredientIds);
+        await recordOverride(client, medication.id, req.userId, gate);
 
         if (Array.isArray(times)) {
             for (const t of times) {
@@ -130,23 +192,23 @@ router.put("/:id", async (req, res) => {
     const {
         catalog_id, name, active_ingredient, strength, form,
         instructions, start_date, end_date, units_total, units_per_dose,
-        is_private, times, allergy_confirmed,
+        is_private, times, ingredient_ids,
     } = req.body;
 
     if (!name || !start_date)
         return res.status(400).json({ error: "اسم الدواء وتاريخ البدء مطلوبين" });
 
-    if (!allergy_confirmed) {
-        const owner = await pool.query(
-            `SELECT m.member_id FROM medications m JOIN members mem ON mem.id = m.member_id
+    const owner = await pool.query(
+        `SELECT m.member_id FROM medications m JOIN members mem ON mem.id = m.member_id
        WHERE m.id = $1 AND mem.user_id = $2`,
-            [req.params.id, req.userId]
-        );
-        if (owner.rows.length) {
-            const conflict = await allergyConflict(owner.rows[0].member_id, { name, active_ingredient, catalog_id });
-            if (conflict) return res.status(409).json({ code: "ALLERGY", ...conflict });
-        }
-    }
+        [req.params.id, req.userId]
+    );
+    if (!owner.rows.length) return res.status(404).json({ error: "الدواء غير موجود" });
+
+    const gate = await allergyGate(owner.rows[0].member_id, { name, catalog_id, ingredient_ids });
+    const blocked = gateResponse(gate, req.body);
+    if (blocked) return res.status(409).json(blocked);
+    const ingredientLabel = await ingredientText(active_ingredient, gate.ingredientIds);
 
     const client = await pool.connect();
     try {
@@ -159,7 +221,7 @@ router.put("/:id", async (req, res) => {
          units_per_dose = $10, is_private = $11
        WHERE id = $12 AND member_id IN (SELECT id FROM members WHERE user_id = $13)
        RETURNING *`,
-            [catalog_id || null, name, active_ingredient || null, strength || null,
+            [catalog_id || null, name, ingredientLabel, strength || null,
                 form || null, instructions || null, start_date, end_date || null,
                 units_total || null, units_per_dose || 1, is_private || false,
                 req.params.id, req.userId]
@@ -172,6 +234,8 @@ router.put("/:id", async (req, res) => {
 
         const medication = med.rows[0];
         medication.schedules = [];
+        await saveMedicationIngredients(client, medication.id, gate.ingredientIds);
+        await recordOverride(client, medication.id, req.userId, gate);
 
         if (Array.isArray(times)) {
             await client.query("DELETE FROM dose_schedules WHERE medication_id = $1", [medication.id]);

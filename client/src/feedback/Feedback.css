@@ -152,3 +152,8 @@
     inset-inline-start: 264px;
   }
 }
+
+/* رسائل من عدة أسطر (قائمة تعارضات الحساسية) */
+#confirm-message {
+  white-space: pre-line;
+}

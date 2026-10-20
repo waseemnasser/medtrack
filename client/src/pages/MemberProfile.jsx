@@ -5,6 +5,7 @@ import PageHeader from "../components/PageHeader";
 import Skeleton from "../components/Skeleton";
 import { useFeedback } from "../feedback/context";
 import { periodOf, formatTime, formatDate, calcAge, initial } from "../utils/format";
+import "../components/AllergenSearch.css";
 import "./MemberProfile.css";
 
 const DAYS = { 1: "الأحد", 2: "الإثنين", 3: "الثلاثاء", 4: "الأربعاء", 5: "الخميس", 6: "الجمعة", 7: "السبت" };
@@ -50,6 +51,9 @@ export default function MemberProfile() {
     const [supply, setSupply] = useState({}); // medication_id → تقدير النفاد
     const [refilling, setRefilling] = useState(null); // الدواء المفتوح نموذج تجديده
     const [appts, setAppts] = useState([]);
+    // الفحص المعاكس: أدوية حالية تتعارض مع الحساسية، وأدوية موادها غير معروفة
+    const [allergyCheck, setAllergyCheck] = useState({ medications: [], unknown_ingredients: [] });
+    const [checkedAllergies, setCheckedAllergies] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -67,11 +71,14 @@ export default function MemberProfile() {
 
         const load = async () => {
             try {
-                const [mRes, medRes, apRes] = await Promise.all([
+                const [mRes, medRes, apRes, alRes] = await Promise.all([
                     api.get("/members"),
                     api.get(`/medications/member/${id}`),
                     api.get(`/appointments?member_id=${id}`),
+                    api.get(`/members/${id}/allergies`),
                 ]);
+                setAllergyCheck(alRes.data.conflicts);
+                setCheckedAllergies(alRes.data.allergies.some((a) => a.checked));
                 setMember(mRes.data.find((x) => String(x.id) === String(id)) || null);
                 setMeds(medRes.data);
                 setAppts(apRes.data);
@@ -100,6 +107,11 @@ export default function MemberProfile() {
         try {
             await api.patch(`/medications/${med.id}/stop`);
             setMeds((prev) => prev.map((m) => (m.id === med.id ? { ...m, is_active: false } : m)));
+            // دواء متوقّف لا يُفحص: يخرج من تنبيه الحساسية
+            setAllergyCheck((c) => ({
+                medications: c.medications.filter((m) => m.id !== med.id),
+                unknown_ingredients: c.unknown_ingredients.filter((m) => m.id !== med.id),
+            }));
             toast(`أُوقف ${med.name}`);
         } catch {
             toast("تعذّر إيقاف الدواء، حاول مجدداً", "error");
@@ -156,6 +168,36 @@ export default function MemberProfile() {
                     )}
                 </div>
             </div>
+
+            {/* أدوية حالية تتعارض مع الحساسية — تظهر حتى لو أُضيفت الحساسية بعد الدواء */}
+            {allergyCheck.medications.length > 0 && (
+                <div className="allergy-alert" role="alert">
+                    <strong>تعارض مع الحساسية</strong>
+                    {allergyCheck.medications.map((m) => (
+                        <div key={m.id} className="allergy-alert-med">
+                            <Link to={`/members/${id}/medications/${m.id}/edit`}>{m.name}</Link>
+                            <ul className="conflict-list">
+                                {m.conflicts.map((c) => (
+                                    <li key={`${c.allergy_id}-${c.ingredient}`} className={c.level}>{c.message}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    ))}
+                    <small>إن كان الطبيب يعلم بهذا، فلا شيء عليك. وإلا فراجعه قبل الجرعة التالية.</small>
+                </div>
+            )}
+            {checkedAllergies && allergyCheck.unknown_ingredients.length > 0 && (
+                <div className="allergy-unknown" role="note">
+                    لا يمكن فحص هذه الأدوية مع الحساسية لأن مادتها الفعّالة غير معروفة:{" "}
+                    {allergyCheck.unknown_ingredients.map((m, i) => (
+                        <span key={m.id}>
+                            {i > 0 && "، "}
+                            <Link to={`/members/${id}/medications/${m.id}/edit`}>{m.name}</Link>
+                        </span>
+                    ))}
+                    . افتح الدواء واختر مادته.
+                </div>
+            )}
 
             {/* الإجراءات السريعة: كل ما يخصّ هذا الفرد يبدأ من هنا */}
             <div className="quick-actions">

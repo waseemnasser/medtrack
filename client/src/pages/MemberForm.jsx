@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api";
 import PageHeader from "../components/PageHeader";
+import AllergyEditor from "../components/AllergyEditor";
+import { fromServer, toPayload } from "../utils/allergies";
 import { useFeedback } from "../feedback/context";
 import "./Members.css";
 
@@ -16,13 +18,12 @@ export default function MemberForm() {
         name: "",
         birth_date: "",
         chronic_conditions: "",
-        allergies: "",
     });
+    // الحساسية بنود منظّمة (مادة أو عائلة)، لا نص — تُحفظ بطلب منفصل
+    const [allergies, setAllergies] = useState([]);
     const [error, setError] = useState("");
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(false);
-    const [allergyRead, setAllergyRead] = useState({ text: "", items: [] });
-    const allergyTimer = useRef(null);
 
     // عند التعديل: يجلب بيانات الفرد الحالية
     useEffect(() => {
@@ -34,33 +35,16 @@ export default function MemberForm() {
                     name: m.name || "",
                     birth_date: m.birth_date ? String(m.birth_date).slice(0, 10) : "",
                     chronic_conditions: m.chronic_conditions || "",
-                    allergies: m.allergies || "",
                 });
             }
         });
+        api.get(`/members/${id}/allergies`)
+            .then((res) => setAllergies(res.data.allergies.map(fromServer)))
+            .catch(() => setError("تعذّر تحميل الحساسية"));
     }, [id, isEdit]);
 
     const change = (e) =>
         setForm({ ...form, [e.target.name]: e.target.value });
-
-    // كيف سيُفهم كل بند في الحساسية؟ اسم تجاري ← مادته الفعّالة.
-    // حتى يعرف المستخدم أن «ASITAMOL» تعني كل أدوية الباراسيتامول، أياً كانت الشركة
-    const allergyText = form.allergies.trim();
-    useEffect(() => {
-        clearTimeout(allergyTimer.current);
-        if (allergyText.length < 3) return;
-        allergyTimer.current = setTimeout(async () => {
-            try {
-                const { data } = await api.get("/catalog/allergy-explain", { params: { text: allergyText } });
-                setAllergyRead({ text: allergyText, items: data });
-            } catch {
-                setAllergyRead({ text: "", items: [] });
-            }
-        }, 450);
-        return () => clearTimeout(allergyTimer.current);
-    }, [allergyText]);
-    // الشرح يخص النص الذي فُحص فقط
-    const allergyItems = allergyRead.text === allergyText ? allergyRead.items : [];
 
     const submit = async (e) => {
         e.preventDefault();
@@ -71,15 +55,19 @@ export default function MemberForm() {
         }
         setSaving(true);
         try {
-            if (isEdit) {
-                await api.put(`/members/${id}`, form);
+            const memberId = isEdit
+                ? (await api.put(`/members/${id}`, form), id)
+                : (await api.post("/members", form)).data.id;
+            const { data } = await api.put(`/members/${memberId}/allergies`, { items: toPayload(allergies) });
+
+            // حساسية جديدة لدواء يأخذه أصلاً: ننبّه الآن، والتفاصيل في ملفه
+            if (data.conflicts.medications.length) {
+                toast(`تنبيه: دواء حالي لـ${form.name} يتعارض مع الحساسية المسجّلة — التفاصيل في الملف`);
+            } else if (isEdit) {
                 toast("حُفظت التعديلات");
-                navigate(parent, { replace: true });
-            } else {
-                // بعد الإضافة نفتح ملف الفرد مباشرة: الخطوة التالية غالباً إضافة دواء
-                const res = await api.post("/members", form);
-                navigate(`/members/${res.data.id}`, { replace: true });
             }
+            // بعد الإضافة نفتح ملف الفرد مباشرة: الخطوة التالية غالباً إضافة دواء
+            navigate(`/members/${memberId}`, { replace: true });
         } catch (err) {
             setError(err.response?.data?.error || "تعذّر الحفظ، حاول مجدداً");
         } finally {
@@ -140,32 +128,11 @@ export default function MemberForm() {
                 />
 
                 <label htmlFor="allergies">الحساسية من أدوية</label>
-                <input
-                    id="allergies"
-                    name="allergies"
-                    value={form.allergies}
-                    onChange={change}
-                    placeholder="مثال: بنسلين، باراسيتامول، BRUFEN"
-                />
+                <AllergyEditor items={allergies} onChange={setAllergies} />
                 <span className="hint">
-                    المادة الفعّالة أو الاسم التجاري، مفصولة بفاصلة. ننبّهك لكل دواء
-                    يحتوي المادة نفسها، أياً كانت الشركة. وتظهر للطبيب بالأحمر عند المشاركة.
+                    اختر المادة الفعّالة أو العائلة أو الاسم التجاري من القائمة، فننبّهك لكل دواء
+                    يحتويها أياً كانت الشركة. وتظهر للطبيب بالأحمر عند المشاركة.
                 </span>
-                {allergyItems.length > 0 && (
-                    <ul className="allergy-read" aria-live="polite">
-                        {allergyItems.map((a) => (
-                            <li key={a.term} className={a.kind === "text" ? "unknown" : ""}>
-                                <b>{a.term}</b>
-                                {a.kind === "family" && <span>عائلة أدوية كاملة</span>}
-                                {a.kind === "ingredient" && <span dir="ltr">{a.ingredients.join(" + ")}</span>}
-                                {a.kind === "brand" && (
-                                    <span>اسم تجاري، مادته <bdi dir="ltr">{a.ingredients.join(" + ")}</bdi></span>
-                                )}
-                                {a.kind === "text" && <span>غير موجود في الكتالوغ، يُفحص بالاسم فقط</span>}
-                            </li>
-                        ))}
-                    </ul>
-                )}
 
                 {error && <div className="error">{error}</div>}
 

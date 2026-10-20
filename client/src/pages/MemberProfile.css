@@ -243,3 +243,47 @@
 .refill-form .error {
   margin: 10px 0 0;
 }
+
+/* ---------- تعارض الأدوية الحالية مع الحساسية ---------- */
+
+.allergy-alert {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: var(--gap-lg);
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--danger-soft);
+  color: var(--text);
+}
+
+.allergy-alert > strong {
+  color: var(--danger);
+  font-size: var(--fs-md);
+}
+
+.allergy-alert-med > a {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.allergy-alert > small {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+/* أدوية بلا مواد معروفة: لا تُفحص — تنبيه هادئ بلون الظهر */
+.allergy-unknown {
+  margin-bottom: var(--gap-lg);
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--noon-soft);
+  font-size: var(--fs-sm);
+  line-height: 1.8;
+}
+
+.allergy-unknown a {
+  color: var(--text);
+  font-weight: 600;
+}
+
