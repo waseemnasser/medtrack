@@ -2,6 +2,7 @@ const express = require("express");
 const crypto = require("crypto");
 const QRCode = require("qrcode");
 const pool = require("../db");
+const { listAllergies } = require("../allergy");
 const auth = require("../middleware/auth");
 
 const router = express.Router();
@@ -105,8 +106,18 @@ router.get("/:token", async (req, res) => {
             [memberId]
         );
 
+        // الحساسية منظّمة مع شدّتها ونوع التفاعل — أهم ما يقرؤه الطبيب
+        const allergies = (await listAllergies(pool, memberId)).map((x) => ({
+            label: x.label,
+            kind: x.kind,
+            latin: x.kind === "class" ? x.class_name : x.kind === "ingredient" ? x.ingredient_name : null,
+            severity: x.severity,
+            reaction: x.reaction,
+        }));
+
         res.json({
             member: member.rows[0],
+            allergies,
             medications: meds.rows,
             upcoming_appointments: appts.rows,
             self_reported_confirmations: logs.rows,

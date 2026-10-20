@@ -20,6 +20,8 @@ function fmtDateTime(v, withWeekday = true) {
 }
 
 // الصفحة الوحيدة التي يراها شخص من خارج التطبيق — بلا تسجيل دخول
+const SEVERITY = { severe: "شديدة", mild: "خفيفة" };
+
 export default function DoctorView() {
     const { token } = useParams();
     const [data, setData] = useState(null);
@@ -92,7 +94,7 @@ export default function DoctorView() {
             <section className="doc-patient">
                 <span className="avatar lg" aria-hidden="true">{initial(m.name)}</span>
                 <div>
-                    <p className="doc-eyebrow">ملف المريض</p>
+                    <p className="doc-eyebrow kicker">ملف المريض</p>
                     <h1>{m.name}</h1>
                     <p className="doc-meta">
                         {years !== null ? `${years} سنة` : "العمر غير مسجّل"}
@@ -105,7 +107,25 @@ export default function DoctorView() {
             <div className="doc-facts">
                 <div className={`doc-fact${m.allergies ? " warn" : ""}`}>
                     <span className="doc-fact-key">الحساسية من أدوية</span>
-                    <span className="doc-fact-value">{m.allergies || "لا توجد حساسية مسجّلة"}</span>
+                    {data.allergies?.length ? (
+                        // كل بند بشدّته ونوع التفاعل، والشديد أولاً
+                        <ul className="doc-allergies">
+                            {[...data.allergies]
+                                .sort((x, y) => (y.severity === "severe") - (x.severity === "severe"))
+                                .map((a) => (
+                                    <li key={a.label}>
+                                        <b>{a.label}</b>
+                                        {a.latin && <bdi dir="ltr" className="doc-latin">{a.latin}</bdi>}
+                                        {a.severity !== "unknown" && (
+                                            <span className={`doc-sev ${a.severity}`}>{SEVERITY[a.severity]}</span>
+                                        )}
+                                        {a.reaction && <span className="doc-reaction">التفاعل: {a.reaction}</span>}
+                                    </li>
+                                ))}
+                        </ul>
+                    ) : (
+                        <span className="doc-fact-value">{m.allergies || "لا توجد حساسية مسجّلة"}</span>
+                    )}
                 </div>
                 <div className="doc-fact">
                     <span className="doc-fact-key">الأمراض المزمنة</span>
