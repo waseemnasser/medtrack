@@ -35,11 +35,11 @@
   cursor: default;
 }
 
-/* الزر الثانوي: إطار حبر بلا تعبئة */
+/* الزر الثانوي: إطار داكن بلا تعبئة، يمتلئ عند المرور — كما في الصفحة التعريفية */
 .btn-outline {
   background: transparent;
-  color: var(--primary);
-  border: 1.5px solid var(--primary);
+  color: var(--text);
+  border: 1.5px solid var(--text);
   border-radius: var(--radius-pill);
   padding: 0 18px;
   min-height: var(--tap-sm);
@@ -51,7 +51,8 @@
 }
 
 .btn-outline:hover:not(:disabled) {
-  background: var(--primary-soft);
+  background: var(--text);
+  color: var(--bg);
 }
 
 .btn-outline:active:not(:disabled) {
@@ -59,8 +60,8 @@
 }
 
 .btn-outline:disabled {
-  color: var(--primary-muted);
-  border-color: var(--primary-muted);
+  color: var(--text-faint);
+  border-color: var(--border);
   cursor: default;
 }
 
@@ -355,13 +356,39 @@ a:focus-visible {
   margin-bottom: var(--gap);
 }
 
-/* شاشة فارغة: دعوة لفعل شيء، لا اعتذار عن الفراغ */
+/* شاشة فارغة: دعوة لفعل شيء، لا اعتذار عن الفراغ.
+   ثلاث كبسولات بألوان الفترات فوق النص — توقيع الصفحة التعريفية */
 .empty {
   text-align: center;
-  color: var(--text-soft);
-  font-size: var(--fs-md);
+  color: var(--text-muted);
+  font-family: var(--display);
+  font-size: var(--fs-lg);
+  font-weight: 600;
   line-height: 1.9;
-  padding: 48px 20px;
+  padding: 44px 20px;
+}
+
+.empty::before {
+  content: "";
+  display: block;
+  width: 96px;
+  height: 24px;
+  margin: 0 auto 16px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 24'%3E%3Cg transform='rotate(-20 14 12)'%3E%3Crect x='2' y='6' width='24' height='12' rx='6' fill='%23F7CF4E'/%3E%3Crect x='2' y='6' width='12' height='12' rx='6' fill='%23fff' fill-opacity='.6'/%3E%3C/g%3E%3Cg transform='rotate(-20 48 12)'%3E%3Crect x='36' y='6' width='24' height='12' rx='6' fill='%23F5A25D'/%3E%3Crect x='36' y='6' width='12' height='12' rx='6' fill='%23fff' fill-opacity='.6'/%3E%3C/g%3E%3Cg transform='rotate(-20 82 12)'%3E%3Crect x='70' y='6' width='24' height='12' rx='6' fill='%238E9BE8'/%3E%3Crect x='70' y='6' width='12' height='12' rx='6' fill='%23fff' fill-opacity='.6'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* ---------- قائمة بخطوط (أسلوب المجلة) ---------- */
+
+/* خط داكن فوق القائمة، وخط رفيع بين كل صفّين — بدل صندوق لكل صف */
+.ruled {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1.5px solid var(--text);
+}
+
+.ruled > * {
+  border-bottom: 1px solid var(--border);
 }
 
 /* ---------- عناصر الأدوية ---------- */

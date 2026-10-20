@@ -30,18 +30,40 @@ body {
   padding: 24px 16px 48px;
 }
 
-/* رأس الصفحة: العنوان على اليمين والزر الأساسي على اليسار */
+/* رأس الصفحة: العنوان على اليمين والزر الأساسي على اليسار،
+   وتحتهما خط داكن — أسلوب المجلة نفسه في الصفحة التعريفية */
 .page-head {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 12px;
   margin-bottom: var(--gap-lg);
+  padding-bottom: 18px;
+  border-bottom: 1.5px solid var(--text);
+}
+
+/* العناوين بخط العرض Alexandria */
+.page h1,
+.page h2,
+.page h3 {
+  font-family: var(--display);
+  text-wrap: balance;
 }
 
 .page h1 {
-  margin: 0 0 4px;
+  margin: 0 0 6px;
   font-size: var(--fs-2xl);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* سطر صغير فيروزي فوق العنوان: التاريخ، نوع الصفحة */
+.kicker {
+  display: block;
+  margin: 0 0 6px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--primary);
 }
 
 /* السطر التوضيحي تحت العنوان */
@@ -51,11 +73,19 @@ body {
   font-size: var(--fs-base);
 }
 
-/* عنوان قسم داخل الصفحة: «المواعيد القادمة»، «أدوية متوقفة» */
-.section-title {
-  font-size: var(--fs-md);
-  color: var(--text-soft);
-  margin: 26px 0 12px;
+/* عنوان قسم داخل الصفحة: «المواعيد القادمة»، «أدوية متوقفة».
+   كلمة صغيرة فيروزية وخط رفيع تحتها — مثل «المزايا» في الصفحة التعريفية */
+.page .section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 32px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--primary);
 }
 
 /* ---------- دخول الصفحة ---------- */

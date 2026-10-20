@@ -31,6 +31,7 @@
   text-decoration: none;
   align-items: center;
   gap: 9px;
+  font-family: var(--display);
   font-size: var(--fs-xl);
   font-weight: 700;
   color: var(--primary);
@@ -120,8 +121,9 @@
   flex: 1;
   min-width: 0;
   margin: 0;
+  font-family: var(--display);
   font-size: var(--fs-xl);
-  font-weight: 600;
+  font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -229,6 +231,7 @@
     margin: 0 8px 28px;
     gap: 10px;
     color: var(--primary);
+    font-family: var(--display);
     font-size: 24px;
     font-weight: 700;
   }
