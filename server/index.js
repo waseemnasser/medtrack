@@ -1,12 +1,14 @@
 const express = require("express");
-const cors = require("cors");
 const pool = require("./db");
+const { applySecurity } = require("./security");
 require("dotenv").config();
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+// ترويسات الأمان، العناوين المسموح لها، وحدّ المحاولات (security.js)
+applySecurity(app);
+// لا نقبل طلبات ضخمة: أكبر نموذج في التطبيق أقل من هذا بكثير
+app.use(express.json({ limit: "100kb" }));
 
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/members", require("./routes/members"));

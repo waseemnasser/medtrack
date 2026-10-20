@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const QRCode = require("qrcode");
 const pool = require("../db");
 const { listAllergies } = require("../allergy");
+const { shareLimiter } = require("../security");
 const auth = require("../middleware/auth");
 
 const router = express.Router();
@@ -47,7 +48,7 @@ router.post("/:memberId", auth, async (req, res) => {
 });
 
 /* ========== 2) فتح الرابط — عام، بدون تسجيل دخول ========== */
-router.get("/:token", async (req, res) => {
+router.get("/:token", shareLimiter, async (req, res) => {
     try {
         const link = await pool.query(
             "SELECT * FROM share_links WHERE token = $1",
