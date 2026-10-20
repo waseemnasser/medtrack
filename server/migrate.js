@@ -1,6 +1,7 @@
 const pool = require("./db");
 const { ensureArabicNames } = require("./catalogData");
 const { syncIngredients } = require("./ingredients");
+const { syncDrugClasses } = require("./drugClasses");
 
 // تعديلات صغيرة على قاعدة البيانات تُطبَّق تلقائياً عند تشغيل الخادم.
 // كل سطر آمن للتكرار (IF NOT EXISTS)، فلا يحتاج أحد من الفريق
@@ -20,6 +21,7 @@ async function migrate() {
     await ensureArabicNames(pool);
     // المواد الفعّالة كجداول — أساس فحص الحساسية (ingredients.js)
     await syncIngredients(pool);
+    await syncDrugClasses(pool);
 }
 
 module.exports = migrate;
