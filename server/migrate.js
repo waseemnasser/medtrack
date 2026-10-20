@@ -15,6 +15,18 @@ const MIGRATIONS = [
     "ALTER TABLE appointments ADD COLUMN IF NOT EXISTS reminded_soon BOOLEAN NOT NULL DEFAULT FALSE",
     // الاسم العربي في الكتالوغ — نقل صوتي للبحث فقط، يُملأ من ملف الكتالوغ أدناه
     "ALTER TABLE medicines_catalog ADD COLUMN IF NOT EXISTS name_ar TEXT",
+    // سجل الإشعارات — نافذة الجرس (routes/notifications.js)
+    `CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        kind TEXT NOT NULL DEFAULT 'other',
+        title TEXT NOT NULL,
+        body TEXT,
+        url TEXT NOT NULL DEFAULT '/',
+        created_at TIMESTAMP NOT NULL DEFAULT now(),
+        read_at TIMESTAMP
+    )`,
+    "CREATE INDEX IF NOT EXISTS notifications_user_time ON notifications (user_id, created_at DESC)",
 ];
 
 async function migrate() {

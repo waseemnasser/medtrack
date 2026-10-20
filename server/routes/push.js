@@ -63,7 +63,7 @@ router.post("/test", async (req, res) => {
             title: "تجربة الإشعارات",
             body: "الإشعارات تعمل بنجاح ✓",
             url: "/",
-        });
+        }, "test");
         if (sent === 0)
             return res.status(502).json({ error: "لم يصل الإشعار إلى أي جهاز — أعد تفعيل الإشعارات على هذا الجهاز" });
 

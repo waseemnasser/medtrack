@@ -2,6 +2,7 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const pool = require("../db");
+const auth = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -46,6 +47,17 @@ router.post("/login", async (req, res) => {
 
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "7d" });
         res.json({ token, user: { id: user.id, name: user.name, email: user.email } });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// الحساب الحالي — الاسم في زاوية التطبيق
+router.get("/me", auth, async (req, res) => {
+    try {
+        const r = await pool.query("SELECT id, name, email FROM users WHERE id = $1", [req.userId]);
+        if (!r.rows.length) return res.status(404).json({ error: "الحساب غير موجود" });
+        res.json(r.rows[0]);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

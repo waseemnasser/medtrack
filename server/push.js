@@ -9,8 +9,23 @@ webpush.setVapidDetails(
     process.env.VAPID_PRIVATE
 );
 
-// إرسال إشعار لكل أجهزة مستخدم معيّن — يُرجع عدد ما وصل وما فشل
-async function sendToUser(userId, payload) {
+// إشعار لمستخدم: يُحفظ في سجل الإشعارات (نافذة الجرس) أولاً، ثم يُرسل
+// لكل أجهزته. السجل يُحفظ حتى لو لم يكن له جهاز مفعّل — يراه داخل التطبيق.
+// kind: dose | appointment | refill | test — يحدد أيقونة الإشعار ولونه
+// يُرجع عدد ما وصل وما فشل
+async function sendToUser(userId, payload, kind = "other") {
+    const saved = await pool.query(
+        `INSERT INTO notifications (user_id, kind, title, body, url)
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        [userId, kind, payload.title, payload.body || null, payload.url || "/"]
+    );
+    // السجل يبقى ٦٠ يوماً فقط
+    await pool.query(
+        "DELETE FROM notifications WHERE user_id = $1 AND created_at < now() - interval '60 days'",
+        [userId]
+    );
+    payload = { ...payload, id: saved.rows[0].id, kind };
+
     const subs = await pool.query(
         "SELECT * FROM push_subscriptions WHERE user_id = $1",
         [userId]
@@ -89,7 +104,7 @@ function startScheduler() {
                     title: "حان وقت الجرعة",
                     body: `${d.medication_name}${d.strength ? " " + d.strength : ""} — ${d.member_name}`,
                     url: "/",
-                });
+                }, "dose");
             }
         } catch (err) {
             console.error("[push] scheduler:", err.message);
@@ -137,7 +152,7 @@ async function checkAppointments() {
     );
     for (const a of dayBefore.rows) {
         console.log(`[push] تذكير موعد الغد: ${a.title} — ${a.member_name}`);
-        await sendToUser(a.user_id, { title: "موعد غداً", body: apptBody(a, false), url: "/appointments" });
+        await sendToUser(a.user_id, { title: "موعد غداً", body: apptBody(a, false), url: "/appointments" }, "appointment");
     }
 
     const soon = await pool.query(
@@ -151,7 +166,7 @@ async function checkAppointments() {
     );
     for (const a of soon.rows) {
         console.log(`[push] تذكير موعد قريب: ${a.title} — ${a.member_name}`);
-        await sendToUser(a.user_id, { title: "موعد بعد قليل", body: apptBody(a, true), url: "/appointments" });
+        await sendToUser(a.user_id, { title: "موعد بعد قليل", body: apptBody(a, true), url: "/appointments" }, "appointment");
     }
 }
 
@@ -187,7 +202,7 @@ async function sendRefillReminders() {
                     url: "/",
                 };
             console.log(`[push] تنبيه نفاد للمستخدم ${userId}: ${list.length} دواء`);
-            await sendToUser(userId, payload);
+            await sendToUser(userId, payload, "refill");
         }
     } catch (err) {
         console.error("[push] refills:", err.message);

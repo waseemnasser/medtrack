@@ -16,6 +16,7 @@ app.use("/api/doses", require("./routes/doses"));
 app.use("/api/appointments", require("./routes/appointments"));
 app.use("/api/share", require("./routes/share"));
 app.use("/api/push", require("./routes/push"));
+app.use("/api/notifications", require("./routes/notifications"));
 
 app.get("/api/health", async (req, res) => {
     const result = await pool.query("SELECT NOW()");
