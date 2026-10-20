@@ -9,13 +9,15 @@
 
 /* ---------- عناوين أقسام النموذج ---------- */
 
+/* عنوان قسم في النموذج: بخط العرض وتحته خط داكن */
 .form-section {
-  font-size: var(--fs-md);
+  font-family: var(--display);
+  font-size: var(--fs-lg);
   color: var(--text);
-  font-weight: 600;
-  margin: 22px 0 12px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--border-light);
+  font-weight: 700;
+  margin: 28px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px solid var(--text);
 }
 
 .form-card .form-section:first-child {

@@ -88,9 +88,23 @@ export default function Appointments() {
         .filter((a) => parseDT(a.scheduled_at) < now)
         .sort((a, b) => parseDT(b.scheduled_at) - parseDT(a.scheduled_at));
 
+    // ورقة التقويم على جانب البطاقة: اليوم بخط كبير والشهر تحته
+    const dateBlock = (v) => {
+        const d = parseDT(v);
+        return {
+            day: d.toLocaleDateString("ar-SY", { day: "numeric" }),
+            month: d.toLocaleDateString("ar-SY", { month: "long" }),
+        };
+    };
+
     const Card = ({ a, dim }) => (
         <div className={`card${dim ? " dim" : ""}`} key={a.id}>
-            <div className="card-body no-click">
+            <div className="card-body no-click appt-body">
+                <div className="appt-date" aria-hidden="true">
+                    <b>{dateBlock(a.scheduled_at).day}</b>
+                    <small>{dateBlock(a.scheduled_at).month}</small>
+                </div>
+                <div className="appt-info">
                 <div className="med-title">
                     <h2>{a.title}</h2>
                     {!dim && relativeLabel(a.scheduled_at) && (
@@ -106,6 +120,7 @@ export default function Appointments() {
                 {a.doctor_name && <p className="muted small">{a.doctor_name}</p>}
                 {a.location && <p className="muted small">{a.location}</p>}
                 {a.notes && <p className="muted small">{a.notes}</p>}
+                </div>
             </div>
             <div className="card-actions">
                 <button onClick={() => navigate(`/appointments/${a.id}/edit`)}>تعديل</button>
