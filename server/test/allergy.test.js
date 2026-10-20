@@ -100,8 +100,10 @@ describe("allergy check against the real catalog", () => {
         ["amoxicillin → ampicillin (same family)", () => [{ ingredient_id: ing.AMOXICILLIN }], () => ids("AMPICILLIN", "CLOXACILLIN"), "family"],
         ["penicillins → cefuroxime (cross-reaction)", () => [{ class_id: cls.J01C }], () => ids("CEFUROXIME"), "cross"],
         ["ceftriaxone → amoxicillin (cross-reaction)", () => [{ ingredient_id: ing.CEFTRIAXONE }], () => ids("AMOXICILLIN"), "cross"],
+        ["penicillins → penicillamine (cross-reaction, per its label)", () => [{ class_id: cls.J01C }], () => catalogIngredients("PENICILLAMINE"), "cross"],
+        ["amoxicillin → penicillamine (via the penicillin family)", () => [{ ingredient_id: ing.AMOXICILLIN }], () => ids("PENICILLAMINE"), "cross"],
         // يجب ألا تُنبّه:
-        ["penicillins ↛ penicillamine", () => [{ class_id: cls.J01C }], () => ids("PENICILLAMINE"), null],
+        ["ibuprofen ↛ penicillamine", () => [{ ingredient_id: ing.IBUPROFEN }], () => ids("PENICILLAMINE"), null],
         ["paracetamol ↛ caffeine alone", () => [{ ingredient_id: ing.PARACETAMOL }], () => ids("CAFFEINE"), null],
         ["ibuprofen ↛ paracetamol", () => [{ ingredient_id: ing.IBUPROFEN }], () => ids("PARACETAMOL"), null],
         ["text note is never matched", () => [{ note: "باراسيتامول" }], () => ids("PARACETAMOL"), null],
