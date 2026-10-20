@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import PushToggle from "../components/PushToggle";
 import Mark from "../components/Mark";
 import { getTheme, setTheme } from "../utils/theme";
+import { getEasyMode, setEasyMode } from "../utils/easyMode";
 import { disablePushForThisDevice } from "../push";
 import "./Account.css";
 
@@ -16,6 +17,12 @@ const THEMES = [
 export default function Account() {
     const navigate = useNavigate();
     const [theme, setThemeState] = useState(getTheme);
+    const [easy, setEasy] = useState(getEasyMode);
+
+    const toggleEasy = () => {
+        setEasyMode(!easy);
+        setEasy(!easy);
+    };
 
     // الدائرة تنتشر من الزر المضغوط. flushSync يحدّث الزر المختار
     // داخل نفس اللقطة، حتى لا يقفز بعد انتهاء الحركة
@@ -49,11 +56,11 @@ export default function Account() {
             <div className="page-head">
                 <div>
                     <h1>الحساب</h1>
-                    <p className="sub">المظهر والإشعارات والخصوصية</p>
+                    <p className="sub">العرض والإشعارات والخصوصية</p>
                 </div>
             </div>
 
-            <h2 className="section-title">المظهر</h2>
+            <h2 className="section-title">العرض</h2>
             <div className="segmented" role="radiogroup" aria-label="المظهر">
                 {THEMES.map((t) => (
                     <button
@@ -69,6 +76,20 @@ export default function Account() {
                 ))}
             </div>
             <p className="theme-hint">«تلقائي» يتبع إعداد هاتفك أو حاسوبك.</p>
+
+            <button
+                type="button"
+                role="switch"
+                aria-checked={easy}
+                className="switch-row"
+                onClick={toggleEasy}
+            >
+                <span className="switch-text">
+                    <strong>الوضع المريح</strong>
+                    <small>نص أكبر وأزرار أوسع وتباين أعلى. يُحفظ على هذا الجهاز فقط.</small>
+                </span>
+                <span className="switch" aria-hidden="true" />
+            </button>
 
             <h2 className="section-title">الإشعارات</h2>
             <PushToggle />

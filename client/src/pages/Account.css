@@ -75,3 +75,83 @@
 .about-link:hover {
   text-decoration: underline;
 }
+
+/* ---------- مفتاح تشغيل/إيقاف (الوضع المريح) ---------- */
+
+/* الصف كله زر واحد: هدف لمس كبير، لا مفتاح صغير وحده */
+.switch-row {
+  width: 100%;
+  margin-top: var(--gap-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  min-height: var(--tap);
+  padding: 14px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.switch-row:hover {
+  background: var(--surface-alt);
+}
+
+.switch-text strong {
+  display: block;
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+.switch-text small {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-sm);
+  color: var(--text-faint);
+  line-height: 1.6;
+}
+
+/* المسار والدائرة. في الواجهة العربية «مفعّل» = الدائرة على اليسار */
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 48px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+  transition: background .2s;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  inset-inline-start: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+  transition: inset-inline-start .2s;
+}
+
+.switch-row[aria-checked="true"] .switch {
+  background: var(--primary);
+}
+
+.switch-row[aria-checked="true"] .switch::after {
+  inset-inline-start: 23px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .switch,
+  .switch::after {
+    transition: none;
+  }
+}

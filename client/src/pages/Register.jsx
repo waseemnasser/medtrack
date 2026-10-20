@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import api from "../api";
 import AuthLayout from "../components/AuthLayout";
 import PasswordInput from "../components/PasswordInput";
+import { getEasyMode, setEasyMode } from "../utils/easyMode";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -10,6 +11,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [easy, setEasy] = useState(getEasyMode);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -67,6 +69,22 @@ export default function Register() {
           minLength={8}
           required
         />
+
+        {/* يُطبَّق فوراً حتى يرى المستخدم الفرق قبل أن يقرّر */}
+        <label className="auth-check">
+          <input
+            type="checkbox"
+            checked={easy}
+            onChange={(e) => {
+              setEasyMode(e.target.checked);
+              setEasy(e.target.checked);
+            }}
+          />
+          <span>
+            الوضع المريح: نص أكبر وأزرار أوسع
+            <small>يمكنك تغييره لاحقاً من صفحة الحساب</small>
+          </span>
+        </label>
 
         {error && <div className="error">{error}</div>}
 

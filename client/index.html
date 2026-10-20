@@ -8,11 +8,13 @@
     <title>طمّني — متابعة أدوية العائلة</title>
     <meta name="theme-color" content="#FAF6EE" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#0B1A1C" media="(prefers-color-scheme: dark)">
-    <!-- يطبّق المظهر المحفوظ قبل رسم الصفحة، حتى لا تومض بيضاء في الوضع الداكن -->
+    <!-- يطبّق المظهر والوضع المريح المحفوظين قبل رسم الصفحة،
+         حتى لا تومض بيضاء في الوضع الداكن ولا تقفز الأحجام -->
     <script>
         try {
             var t = localStorage.getItem("theme");
             if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+            if (localStorage.getItem("easy") === "1") document.documentElement.dataset.easy = "";
         } catch (e) { }
     </script>
     <link rel="manifest" href="/manifest.json" />

@@ -294,6 +294,34 @@
   background-color: var(--surface);
 }
 
+/* ---------- خيار «الوضع المريح» في إنشاء الحساب ---------- */
+
+.auth-form .auth-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: -6px 0 20px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.auth-form .auth-check input {
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  flex-shrink: 0;
+  accent-color: var(--primary);
+}
+
+.auth-check small {
+  display: block;
+  margin-top: 2px;
+  line-height: 1.5;
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--text-faint);
+}
+
 /* ---------- كلمة المرور مع زر الإظهار ---------- */
 
 .password-wrap {
