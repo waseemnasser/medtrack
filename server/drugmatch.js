@@ -3,7 +3,8 @@
 // الحل: نختصر الاسمين إلى «هيكل الأصوات» — الحروف الساكنة فقط، وكل
 // حرفين ينطقان متقاربين يصيران حرفاً واحداً (ب/P، ف/V، ك/C/Q...):
 //   باراسيتامول → brstml      PARACETAMOL → brstml
-// تُستخدم في: البحث بالعربية، وفحص الحساسية عند إضافة دواء.
+// تُستخدم في: البحث بالعربية، وفحص الحساسية عند إضافة دواء
+// (بالمادة الفعّالة لا بالاسم التجاري — انظر brandIngredients).
 
 const pool = require("./db");
 
@@ -67,6 +68,108 @@ async function loadCatalog() {
         ingredient: words(r.active_ingredient).map(latinSkeleton),
     }));
     return catalog;
+}
+
+// ---------- من الاسم التجاري إلى المادة الفعّالة ----------
+// الدواء نفسه تصنعه شركات كثيرة بأسماء تجارية مختلفة (ASITAMOL و ACETALGIN
+// كلاهما PARACETAMOL). لذلك نقارن المواد الفعّالة لا الأسماء.
+
+// «AMLODIPINE+ATORVASTATIN» ← ["AMLODIPINE", "ATORVASTATIN"]
+const splitIngredients = (text) => String(text || "")
+    .toUpperCase()
+    .split(/\s*[+/&،,]\s*|\s+AND\s+/)
+    .map((s) => s.replace(/\s+/g, " ").trim())
+    .filter((s) => s.length >= 3);
+
+// كل المواد الفعّالة المفردة في الكتالوغ (~٧٠٠)، مع هيكل أصوات كلمتها الأولى
+let ingredientIndex = null;
+
+async function loadIngredients() {
+    if (ingredientIndex) return ingredientIndex;
+    const names = new Set();
+    for (const it of await loadCatalog()) splitIngredients(it.row.active_ingredient).forEach((n) => names.add(n));
+    ingredientIndex = [...names].map((name) => ({ name, first: words(name)[0] || name, sk: latinSkeleton(words(name)[0] || name) }));
+    return ingredientIndex;
+}
+
+// هل الكلمة اسم مادة فعّالة؟ «باراسيتامول» ← PARACETAMOL
+// نتحقق من هذا قبل الأسماء التجارية: منتج اسمه «PARACETAMOL + CAFFEINE»
+// لا يجعل حساسية الباراسيتامول حساسيةً من الكافيين.
+async function ingredientByName(term) {
+    const list = await loadIngredients();
+    if (hasArabic(term)) {
+        const compact = term.replace(/\s+/g, "");
+        const sk = arabicSkeleton(compact);
+        if (sk.length < 4) return null;
+        const spelled = roughLatin(compact);
+        const scored = list
+            .filter((i) => i.sk === sk)
+            .map((i) => ({ i, near: distance(spelled, looseLatin(i.first)) }))
+            .sort((a, b) => a.near - b.near || a.i.name.length - b.i.name.length);
+        if (!scored.length || scored[0].near > Math.max(2, spelled.length / 3)) return null;
+        return scored[0].i.name;
+    }
+    const T = term.toUpperCase().replace(/\s+/g, " ").trim();
+    const exact = list.find((i) => i.name === T) || list.find((i) => i.first === T);
+    return exact ? exact.name : null;
+}
+
+/**
+ * يبحث عن اسم تجاري في الكتالوغ ويُرجع مواده الفعّالة.
+ * بالإنجليزية: تطابق تام مع الاسم أو كلمته الأولى («ASIAPROFEN» ← «ASIAPROFEN 400»).
+ * بالعربية: نفس هيكل الأصوات للكلمة الأولى، والأقرب كتابةً فقط.
+ * يُرجع { brand, ingredients } أو null.
+ */
+async function brandIngredients(name) {
+    const term = String(name || "").trim();
+    if (term.length < 3) return null;
+
+    // اسم مادة فعّالة لا اسم تجاري: هي وحدها، بلا شركائها في المنتجات المركّبة
+    const asIngredient = await ingredientByName(term);
+    if (asIngredient) return { brand: null, ingredients: [asIngredient] };
+
+    const rows = await loadCatalog();
+    let hits;
+
+    if (hasArabic(term)) {
+        const compact = term.replace(/\s+/g, "");
+        const sk = arabicSkeleton(compact);
+        if (sk.length < 3) return null;
+        const spelled = roughLatin(compact);
+        const scored = rows
+            .filter((it) => it.brand[0] === sk)
+            .map((it) => ({ it, near: distance(spelled, looseLatin(words(it.row.brand_name)[0] || "")) }));
+        if (!scored.length) return null;
+        const best = Math.min(...scored.map((x) => x.near));
+        // كتابة بعيدة جداً عن أي اسم = ليس اسماً تجارياً نعرفه
+        if (best > Math.max(2, spelled.length / 3)) return null;
+        hits = scored.filter((x) => x.near === best).map((x) => x.it.row);
+    } else {
+        const T = term.toUpperCase().replace(/\s+/g, " ");
+        hits = rows.map((it) => it.row).filter((r) => {
+            const b = r.brand_name.toUpperCase().trim();
+            return b === T || words(b)[0] === T;
+        });
+    }
+    if (!hits.length) return null;
+
+    const ingredients = [...new Set(hits.flatMap((r) => splitIngredients(r.active_ingredient)))];
+    return { brand: hits[0].brand_name, ingredients };
+}
+
+// المواد الفعّالة للدواء الذي يُضاف: من الكتالوغ إن اختير منه،
+// وإلا مما كتبه المستخدم، وإلا من اسمه التجاري.
+async function medIngredients(med) {
+    if (med.catalog_id && Number(med.catalog_id)) {
+        const rows = await loadCatalog();
+        const hit = rows.find((it) => it.row.id === Number(med.catalog_id));
+        if (hit) return splitIngredients(hit.row.active_ingredient);
+    }
+    if (med.active_ingredient && String(med.active_ingredient).trim()) {
+        return splitIngredients(med.active_ingredient);
+    }
+    const byBrand = await brandIngredients(med.name);
+    return byBrand ? byBrand.ingredients : [];
 }
 
 // كتابة لاتينية تقريبية مع الحروف الصائتة — لترتيب النتائج المتشابهة في الهيكل:
@@ -148,41 +251,83 @@ const FAMILIES = [
 const normAr = (s) => s.trim().toLowerCase()
     .replace(/[أإآ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي");
 
+const allergyTerms = (allergies) => String(allergies || "")
+    .split(/[،,;؛\n]|\sو(?=\S)|\sand\s/i)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 3);
+
 /**
- * allergies: نص الحساسية كما كتبه المستخدم («بنسلين، سلفا»)
- * med: { name, active_ingredient }
- * يُرجع: [{ allergy: «بنسلين», matched: «AMOXICILLIN» }]
+ * allergies: نص الحساسية كما كتبه المستخدم («بنسلين، ASITAMOL»)
+ * med: { name, active_ingredient, catalog_id }
+ * يُرجع: [{ allergy: «ASITAMOL», via: «PARACETAMOL», matched: «PARACETAMOL» }]
+ *   via: المادة الفعّالة للاسم التجاري المكتوب في الحساسية (إن كان اسماً تجارياً)
  */
-function findAllergyConflicts(allergies, med) {
-    if (!allergies) return [];
-    const terms = String(allergies).split(/[،,;؛\n]|\sو(?=\S)|\sand\s/i).map((t) => t.trim()).filter((t) => t.length >= 3);
-    const haystack = `${med.name || ""} ${med.active_ingredient || ""}`.toUpperCase();
+async function findAllergyConflicts(allergies, med) {
+    const terms = allergyTerms(allergies);
+    if (!terms.length) return [];
+
+    const ingredients = await medIngredients(med);
+    const haystack = `${med.name || ""} ${ingredients.join(" ")}`.toUpperCase();
     const medWords = words(haystack);
     const medSkeletons = medWords.map(latinSkeleton);
 
     const conflicts = [];
     for (const term of terms) {
         const family = FAMILIES.find((f) => f.names.some((n) => normAr(n) === normAr(term)));
-        let matched = null;
+        let matched = null, via = null;
 
+        // ١. عائلة أدوية: «بنسلين» ← كل ما ينتهي بـ CILLIN
         if (family) {
             const part = family.parts.find((p) => haystack.includes(p));
             if (part) matched = medWords.find((w) => w.includes(part)) || part;
         }
+
+        // ٢. اسم تجاري: نقارن مادته الفعّالة بمواد الدواء الجديد
+        if (!matched && !family) {
+            const brand = await brandIngredients(term);
+            if (brand) {
+                const shared = brand.ingredients.find((i) => ingredients.includes(i));
+                if (shared) {
+                    matched = shared;
+                    // نذكر المادة الفعّالة فقط إن كتب المستخدم اسماً تجارياً
+                    if (brand.brand) via = brand.ingredients.join(" + ");
+                }
+            }
+        }
+
+        // ٣. اسم مادة فعّالة مكتوب مباشرة (بالإنجليزية أو بالعربية بالصوت)
         if (!matched && !hasArabic(term)) {
             matched = medWords.find((w) => w.includes(term.toUpperCase())) || null;
         }
         if (!matched) {
-            // بالصوت: «أموكسيسيلين» في الحساسية ↔ AMOXICILLIN في الدواء
+            // «أموكسيسيلين» في الحساسية ↔ AMOXICILLIN في الدواء
             const sk = skeleton(term.replace(/\s+/g, ""));
             if (sk.length >= 4) {
                 const i = medSkeletons.findIndex((s) => s.startsWith(sk) || sk.startsWith(s) && s.length >= 4);
                 if (i >= 0) matched = medWords[i];
             }
         }
-        if (matched) conflicts.push({ allergy: term, matched });
+        if (matched) conflicts.push({ allergy: term, via, matched });
     }
     return conflicts;
 }
 
-module.exports = { searchArabic, findAllergyConflicts, skeleton, hasArabic };
+/**
+ * لنموذج الفرد: كيف سيُفهم كل بند في الحساسية؟
+ * يُرجع [{ term, kind: "family" | "ingredient" | "brand" | "text", ingredients? }]
+ */
+async function explainAllergies(allergies) {
+    const out = [];
+    for (const term of allergyTerms(allergies)) {
+        if (FAMILIES.some((f) => f.names.some((n) => normAr(n) === normAr(term)))) {
+            out.push({ term, kind: "family" });
+            continue;
+        }
+        const brand = await brandIngredients(term);
+        if (!brand) out.push({ term, kind: "text" });
+        else out.push({ term, kind: brand.brand ? "brand" : "ingredient", ingredients: brand.ingredients });
+    }
+    return out;
+}
+
+module.exports = { searchArabic, findAllergyConflicts, explainAllergies, skeleton, hasArabic };

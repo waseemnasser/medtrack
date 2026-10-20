@@ -61,22 +61,24 @@ export default function MedicationForm() {
     // فحص الحساسية أثناء الكتابة — تحذير مبكر قبل الضغط على «حفظ»
     const qName = form.name.trim();
     const qIngredient = form.active_ingredient.trim();
-    const checkKey = `${qName}|${qIngredient}`;
+    // رقم الكتالوغ: الخادم يأخذ المواد الفعّالة منه مباشرة
+    const qCatalog = Number(form.catalog_id) || "";
+    const checkKey = `${qName}|${qIngredient}|${qCatalog}`;
     useEffect(() => {
         if (!member?.allergies || qName.length < 2) return;
         clearTimeout(allergyTimer.current);
         allergyTimer.current = setTimeout(async () => {
             try {
                 const { data } = await api.get("/medications/allergy-check", {
-                    params: { member_id: memberId, name: qName, active_ingredient: qIngredient },
+                    params: { member_id: memberId, name: qName, active_ingredient: qIngredient, catalog_id: qCatalog || undefined },
                 });
-                setAllergyHit(data.conflict ? { key: `${qName}|${qIngredient}`, error: data.error } : null);
+                setAllergyHit(data.conflict ? { key: `${qName}|${qIngredient}|${qCatalog}`, error: data.error } : null);
             } catch {
                 setAllergyHit(null);
             }
         }, 400);
         return () => clearTimeout(allergyTimer.current);
-    }, [qName, qIngredient, member, memberId]);
+    }, [qName, qIngredient, qCatalog, member, memberId]);
     // التحذير يخص الاسم الذي فُحص فقط؛ إن تغيّر الاسم يختفي حتى يُفحص من جديد
     const allergyWarning = allergyHit && allergyHit.key === checkKey ? allergyHit.error : "";
 

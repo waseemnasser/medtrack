@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api";
 import PageHeader from "../components/PageHeader";
@@ -21,6 +21,8 @@ export default function MemberForm() {
     const [error, setError] = useState("");
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [allergyRead, setAllergyRead] = useState({ text: "", items: [] });
+    const allergyTimer = useRef(null);
 
     // عند التعديل: يجلب بيانات الفرد الحالية
     useEffect(() => {
@@ -40,6 +42,25 @@ export default function MemberForm() {
 
     const change = (e) =>
         setForm({ ...form, [e.target.name]: e.target.value });
+
+    // كيف سيُفهم كل بند في الحساسية؟ اسم تجاري ← مادته الفعّالة.
+    // حتى يعرف المستخدم أن «ASITAMOL» تعني كل أدوية الباراسيتامول، أياً كانت الشركة
+    const allergyText = form.allergies.trim();
+    useEffect(() => {
+        clearTimeout(allergyTimer.current);
+        if (allergyText.length < 3) return;
+        allergyTimer.current = setTimeout(async () => {
+            try {
+                const { data } = await api.get("/catalog/allergy-explain", { params: { text: allergyText } });
+                setAllergyRead({ text: allergyText, items: data });
+            } catch {
+                setAllergyRead({ text: "", items: [] });
+            }
+        }, 450);
+        return () => clearTimeout(allergyTimer.current);
+    }, [allergyText]);
+    // الشرح يخص النص الذي فُحص فقط
+    const allergyItems = allergyRead.text === allergyText ? allergyRead.items : [];
 
     const submit = async (e) => {
         e.preventDefault();
@@ -124,9 +145,27 @@ export default function MemberForm() {
                     name="allergies"
                     value={form.allergies}
                     onChange={change}
-                    placeholder="مثال: بنسلين"
+                    placeholder="مثال: بنسلين، باراسيتامول، BRUFEN"
                 />
-                <span className="hint">تظهر للطبيب بالأحمر عند المشاركة</span>
+                <span className="hint">
+                    المادة الفعّالة أو الاسم التجاري، مفصولة بفاصلة. ننبّهك لكل دواء
+                    يحتوي المادة نفسها، أياً كانت الشركة. وتظهر للطبيب بالأحمر عند المشاركة.
+                </span>
+                {allergyItems.length > 0 && (
+                    <ul className="allergy-read" aria-live="polite">
+                        {allergyItems.map((a) => (
+                            <li key={a.term} className={a.kind === "text" ? "unknown" : ""}>
+                                <b>{a.term}</b>
+                                {a.kind === "family" && <span>عائلة أدوية كاملة</span>}
+                                {a.kind === "ingredient" && <span dir="ltr">{a.ingredients.join(" + ")}</span>}
+                                {a.kind === "brand" && (
+                                    <span>اسم تجاري، مادته <bdi dir="ltr">{a.ingredients.join(" + ")}</bdi></span>
+                                )}
+                                {a.kind === "text" && <span>غير موجود في الكتالوغ، يُفحص بالاسم فقط</span>}
+                            </li>
+                        ))}
+                    </ul>
+                )}
 
                 {error && <div className="error">{error}</div>}
 

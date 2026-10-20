@@ -20,11 +20,13 @@ async function ownsMember(memberId, userId) {
 async function allergyConflict(memberId, med) {
     const m = await pool.query("SELECT name, allergies FROM members WHERE id = $1", [memberId]);
     if (!m.rows.length || !m.rows[0].allergies) return null;
-    const conflicts = findAllergyConflicts(m.rows[0].allergies, med);
+    const conflicts = await findAllergyConflicts(m.rows[0].allergies, med);
     if (!conflicts.length) return null;
     const c = conflicts[0];
+    // «ASITAMOL» اسم تجاري: نوضّح أن المادة الفعّالة هي سبب التنبيه لا الاسم
+    const via = c.via ? ` (مادته الفعّالة ${c.via})` : "";
     return {
-        error: `${m.rows[0].name} لديه حساسية من «${c.allergy}»، وهذا الدواء يحتوي على ${c.matched}.`,
+        error: `عند ${m.rows[0].name} حساسية من «${c.allergy}»${via}، وهذا الدواء يحتوي على ${c.matched}.`,
         member_name: m.rows[0].name,
         conflicts,
     };
@@ -32,11 +34,11 @@ async function allergyConflict(memberId, med) {
 
 // فحص مسبق أثناء الكتابة في نموذج الدواء — لا يحفظ شيئاً
 router.get("/allergy-check", async (req, res) => {
-    const { member_id, name, active_ingredient } = req.query;
+    const { member_id, name, active_ingredient, catalog_id } = req.query;
     if (!member_id || !(await ownsMember(member_id, req.userId)))
         return res.status(403).json({ error: "غير مصرح" });
     try {
-        const conflict = await allergyConflict(member_id, { name, active_ingredient });
+        const conflict = await allergyConflict(member_id, { name, active_ingredient, catalog_id });
         res.json(conflict ? { conflict: true, ...conflict } : { conflict: false });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -80,7 +82,7 @@ router.post("/", async (req, res) => {
 
     // حساسية معروفة: لا يُحفظ الدواء إلا بتأكيد صريح أن الطبيب وصفه رغم ذلك
     if (!allergy_confirmed) {
-        const conflict = await allergyConflict(member_id, { name, active_ingredient });
+        const conflict = await allergyConflict(member_id, { name, active_ingredient, catalog_id });
         if (conflict) return res.status(409).json({ code: "ALLERGY", ...conflict });
     }
 
@@ -141,7 +143,7 @@ router.put("/:id", async (req, res) => {
             [req.params.id, req.userId]
         );
         if (owner.rows.length) {
-            const conflict = await allergyConflict(owner.rows[0].member_id, { name, active_ingredient });
+            const conflict = await allergyConflict(owner.rows[0].member_id, { name, active_ingredient, catalog_id });
             if (conflict) return res.status(409).json({ code: "ALLERGY", ...conflict });
         }
     }
