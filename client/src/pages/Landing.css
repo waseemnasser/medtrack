@@ -503,52 +503,68 @@ html:has(.landing) {
   height: 16px;
 }
 
-/* ---------- الشريط المتحرك ---------- */
+/* ---------- كبسولات المزايا ---------- */
 
-.ld-ticker {
-  overflow: hidden;
-  background: var(--primary);
-  color: var(--on-primary);
-  padding: 16px 0;
-  /* الاتجاه من اليسار لليمين للحركة فقط؛ النص داخله عربي */
-  direction: ltr;
+/* صف هادئ ثابت بين البطل والمزايا: كل ميزة في كبسولة،
+   وبجانبها حبّة دواء بلونين — نصفها بلون الفترة */
+.ld-pills {
+  border-block: 1px solid var(--border-light);
+  background: var(--surface-alt);
+  padding: 28px 0;
 }
 
-.ld-ticker-track {
+.ld-pills ul {
+  list-style: none;
+  margin: 0 auto;
   display: flex;
-  width: max-content;
-  animation: ld-ticker 38s linear infinite;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
 }
 
-.ld-ticker-group {
-  display: flex;
-  direction: rtl;
-}
-
-.ld-ticker span {
+.ld-pills li {
   display: inline-flex;
   align-items: center;
-  gap: 18px;
-  padding-inline: 18px;
-  font-family: var(--display);
-  font-size: 18px;
+  gap: 10px;
+  padding: 9px 18px 9px 16px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-size: 15px;
   font-weight: 600;
   white-space: nowrap;
 }
 
-.ld-ticker i {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--morning);
+/* على الهاتف كبسولتان في كل سطر، لا عمود طويل */
+@media (max-width: 600px) {
+  .ld-pills {
+    padding: 20px 0;
+  }
+
+  .ld-pills ul {
+    gap: 8px;
+  }
+
+  .ld-pills li {
+    gap: 8px;
+    padding: 7px 12px 7px 11px;
+    font-size: 13px;
+  }
 }
 
-.ld-ticker span:nth-child(3n+2) i { background: var(--noon); }
-.ld-ticker span:nth-child(3n) i { background: var(--evening); }
-
-@keyframes ld-ticker {
-  to { transform: translateX(-50%); }
+.ld-cap {
+  width: 26px;
+  height: 12px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: linear-gradient(90deg, var(--surface-alt) 50%, var(--cap) 50%);
+  transform: rotate(-20deg);
 }
+
+.ld-cap.morning { --cap: var(--morning); }
+.ld-cap.noon { --cap: var(--noon); }
+.ld-cap.evening { --cap: var(--evening); }
 
 /* ---------- الأقسام ---------- */
 
@@ -1298,10 +1314,6 @@ html:has(.landing) {
   [data-reveal] {
     opacity: 1;
     transform: none;
-  }
-
-  .ld-ticker-track {
-    animation: none;
   }
 
   .wk-cell.pop {

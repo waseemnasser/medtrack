@@ -23,7 +23,8 @@ const PERIODS = [
     { key: "evening", label: "مساء" },
 ];
 
-const TICKER = [
+// أبرز المزايا في كبسولات — كل كبسولة بلون فترة، بالتناوب
+const HIGHLIGHTS = [
     "تذكير بكل جرعة",
     "ملف لكل شخص",
     "تنبيه الحساسية",
@@ -146,17 +147,16 @@ export default function Landing() {
                     </div>
                 </section>
 
-                {/* ---------- شريط المزايا المتحرك ---------- */}
-                <div className="ld-ticker" aria-hidden="true">
-                    <div className="ld-ticker-track">
-                        {[0, 1].map((copy) => (
-                            <div className="ld-ticker-group" key={copy}>
-                                {TICKER.map((t) => (
-                                    <span key={t}><i />{t}</span>
-                                ))}
-                            </div>
+                {/* ---------- كبسولات المزايا ---------- */}
+                <div className="ld-pills">
+                    <ul className="ld-wrap">
+                        {HIGHLIGHTS.map((t, i) => (
+                            <li key={t} data-reveal style={{ "--d": `${i * 50}ms` }}>
+                                <span className={`ld-cap ${PERIODS[i % 3].key}`} aria-hidden="true" />
+                                {t}
+                            </li>
                         ))}
-                    </div>
+                    </ul>
                 </div>
 
                 {/* ---------- المزايا: قائمة مرقّمة ---------- */}
