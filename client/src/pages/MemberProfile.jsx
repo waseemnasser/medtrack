@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom"
 import api from "../api";
 import PageHeader from "../components/PageHeader";
 import Skeleton from "../components/Skeleton";
+import AdherenceReport from "../components/AdherenceReport";
 import { useFeedback } from "../feedback/context";
 import { periodOf, formatTime, formatDate, calcAge, initial } from "../utils/format";
 import "../components/AllergenSearch.css";
@@ -54,6 +55,8 @@ export default function MemberProfile() {
     // الفحص المعاكس: أدوية حالية تتعارض مع الحساسية، وأدوية موادها غير معروفة
     const [allergyCheck, setAllergyCheck] = useState({ medications: [], unknown_ingredients: [] });
     const [checkedAllergies, setCheckedAllergies] = useState(false);
+    const [adherence, setAdherence] = useState(null);
+    const [adherenceDays, setAdherenceDays] = useState(7);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -92,6 +95,13 @@ export default function MemberProfile() {
 
         load();
     }, [id]);
+
+    // تقرير الالتزام: يُعاد عند تغيير الفترة (٧ / ٣٠ يوماً)
+    useEffect(() => {
+        api.get(`/members/${id}/adherence`, { params: { days: adherenceDays } })
+            .then((r) => setAdherence(r.data))
+            .catch(() => setAdherence(null));
+    }, [id, adherenceDays]);
 
 
     const setTab = (t) => setSearchParams(t === "appts" ? { tab: "appts" } : {}, { replace: true });
@@ -221,6 +231,11 @@ export default function MemberProfile() {
                     مشاركة مع الطبيب
                 </Link>
             </div>
+
+            {/* الالتزام بالجرعات — نسبة وشريط يومي وكل دواء */}
+            {adherence && active.length > 0 && (
+                <AdherenceReport data={adherence} onDays={setAdherenceDays} />
+            )}
 
             <div className="tabs" role="tablist">
                 <button role="tab" aria-selected={tab === "meds"} className={tab === "meds" ? "active" : ""} onClick={() => setTab("meds")}>

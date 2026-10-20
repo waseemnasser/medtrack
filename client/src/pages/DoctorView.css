@@ -456,3 +456,14 @@
     break-after: avoid;
   }
 }
+
+/* ---------- الالتزام بالجرعات ---------- */
+
+.doc-adherence {
+  margin-top: 34px;
+  break-inside: avoid;
+}
+
+.doc-adherence .doc-hint {
+  margin-top: 0;
+}

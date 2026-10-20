@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import api from "../api";
 import Mark from "../components/Mark";
 import { periodOf, formatTime, formatDate, calcAge, initial } from "../utils/format";
+import AdherenceReport from "../components/AdherenceReport";
 import "./DoctorView.css";
 
 const DAYS = { 1: "الأحد", 2: "الإثنين", 3: "الثلاثاء", 4: "الأربعاء", 5: "الخميس", 6: "الجمعة", 7: "السبت" };
@@ -181,6 +182,14 @@ export default function DoctorView() {
             )}
 
             {/* ---------- المواعيد ---------- */}
+            {/* الالتزام آخر ٣٠ يوماً: هل يأخذ المريض أدويته فعلاً؟ */}
+            {data.adherence?.scheduled > 0 && (
+                <div className="doc-adherence">
+                    <AdherenceReport data={data.adherence} kicker="الالتزام بالجرعات — آخر ٣٠ يوماً" />
+                    <p className="doc-hint">محسوب من تأكيدات المستخدم نفسه في التطبيق، لا من سجل طبي.</p>
+                </div>
+            )}
+
             <h2 className="doc-section">
                 المواعيد القادمة <span className="doc-count">{data.upcoming_appointments.length}</span>
             </h2>

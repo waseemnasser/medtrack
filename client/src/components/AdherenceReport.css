@@ -1,0 +1,210 @@
+/* ============================================================
+   تقرير الالتزام بالجرعات
+   ------------------------------------------------------------
+   نسبة كبيرة بخط العرض، شريط خانة لكل يوم (كعلبة الأسبوع في
+   الصفحة التعريفية)، ثم الأدوية في قائمة بخطوط فاصلة.
+   الألوان: فيروزي ٩٠٪ فأكثر، مشمشي ٧٠–٨٩٪، أحمر أقل من ذلك.
+   ============================================================ */
+
+.adherence {
+  margin-bottom: var(--gap-lg);
+  padding-bottom: 6px;
+}
+
+.adh-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1.5px solid var(--text);
+}
+
+.adh-percent {
+  margin: 2px 0 0;
+  font-family: var(--display);
+  font-size: calc(var(--fs-hero) + 6px);
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.adh-percent small {
+  font-size: .45em;
+  font-weight: 700;
+  margin-inline-start: 2px;
+}
+
+.adh-sub {
+  margin: 8px 0 0;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+/* الألوان حسب النسبة — محصورة داخل التقرير */
+.adherence .good { color: var(--primary); }
+.adherence .fair { color: var(--text); }
+.adherence .low { color: var(--danger); }
+
+/* الشريط المتوسط مشمشي (النص يبقى داكناً ليُقرأ) */
+.adherence .adh-bar i.fair { background: var(--noon); }
+
+/* مفتاح «٧ أيام / ٣٠ يوماً» */
+.adh-range {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--tabs-bg);
+  flex-shrink: 0;
+}
+
+.adh-range button {
+  min-height: calc(var(--tap-sm) - 6px);
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-soft);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.adh-range button.on {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ---------- خانة لكل يوم ---------- */
+
+.adh-strip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 3px;
+  margin-top: 14px;
+  /* الأيام من الأقدم إلى الأحدث، والأحدث على اليسار كما يُقرأ الزمن في العربية */
+}
+
+.adh-day {
+  height: 28px;
+  border-radius: 6px;
+  background: var(--surface-alt);
+  border: 1px dashed var(--border);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.adh-strip.week .adh-day {
+  height: 44px;
+  border-radius: 10px;
+}
+
+.adh-day small {
+  padding-bottom: 4px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.adh-day.full {
+  background: var(--primary);
+  border: 1px solid var(--primary);
+}
+
+.adh-day.full small {
+  color: var(--on-primary);
+}
+
+/* بعض الجرعات: نصف الخانة فيروزي */
+.adh-day.part {
+  border: 1px solid var(--primary-muted);
+  background: linear-gradient(to top, var(--primary-muted) 50%, var(--surface) 50%);
+}
+
+.adh-day.missed {
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-soft);
+}
+
+.adh-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 10px 0 0;
+  font-size: var(--fs-xs);
+  color: var(--text-soft);
+}
+
+.adh-legend span {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-inline-end: -6px;
+  border-radius: 3px;
+}
+
+.adh-legend .full { background: var(--primary); }
+.adh-legend .part { background: linear-gradient(to top, var(--primary-muted) 50%, var(--surface-alt) 50%); border: 1px solid var(--primary-muted); }
+.adh-legend .missed { background: var(--danger-soft); }
+
+/* ---------- الأدوية ---------- */
+
+.adh-meds {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+}
+
+.adh-meds li {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-top: 1px solid var(--border);
+}
+
+.adh-med-name {
+  font-size: var(--fs-base);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adh-bar {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--border-light);
+  overflow: hidden;
+}
+
+.adh-bar i {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+}
+
+.adh-med-pct {
+  min-width: 3.4em;
+  font-family: var(--display);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.adh-med-pct small {
+  display: block;
+  font-family: var(--font);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--text-faint);
+}
