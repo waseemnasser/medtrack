@@ -6,18 +6,56 @@ import "./Landing.css";
 
 /*
   الصفحة التعريفية — أول ما يراه الزائر قبل التسجيل.
-  الفكرة المحورية: «قرص اليوم». طمّني عن الوقت، فالبطل قرص ٢٤ ساعة
-  بأقواس الفترات الثلاث، وفوقه هاتف يعرض شاشة «اليوم» وهي تعمل فعلاً.
+  الفكرة المحورية: «علبة الأسبوع». علبة الأدوية الأسبوعية التي يعرفها
+  الجميع، بخاناتها الملوّنة حسب الفترة، تمتلئ جرعة بعد جرعة. وبعدها
+  صفحة بأسلوب المجلات: عناوين كبيرة، أرقام، وخطوط فاصلة.
 */
 
 const loggedIn = () => Boolean(localStorage.getItem("token"));
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-// جرعات العرض التوضيحي في الهاتف — أمثلة لا بيانات حقيقية
-const DEMO = [
-    { time: "8:00", suffix: "ص", name: "ميتفورمين", strength: "500 ملغ", member: "سارة", period: "morning", label: "الصباح" },
-    { time: "1:00", suffix: "م", name: "أموكسيسيلين", strength: "250 ملغ", member: "خالد", period: "noon", label: "الظهر" },
-    { time: "8:00", suffix: "م", name: "أتورفاستاتين", strength: "20 ملغ", member: "ليلى", period: "evening", label: "المساء" },
+// أيام الأسبوع تبدأ بالسبت، و«اليوم» هو العمود الرابع في العرض
+const DAYS = ["س", "ح", "ن", "ث", "ر", "خ", "ج"];
+const TODAY = 3;
+const PERIODS = [
+    { key: "morning", label: "صباح" },
+    { key: "noon", label: "ظهر" },
+    { key: "evening", label: "مساء" },
+];
+
+const TICKER = [
+    "تذكير بكل جرعة",
+    "ملف لكل شخص",
+    "تنبيه الحساسية",
+    "قبل أن ينفد الدواء",
+    "مواعيد الطبيب",
+    "مشاركة برابط مؤقّت",
+    "الوضع المريح",
+    "على الهاتف والحاسوب",
+];
+
+const FEATURES = [
+    ["الجرعة التالية أولاً", "تفتح التطبيق فترى ما يجب أخذه الآن ولمن. لمسة واحدة وتُسجَّل."],
+    ["تذكير والتطبيق مغلق", "إشعار على الهاتف في موعد كل جرعة، وتنبيه هادئ إن تأخّرت."],
+    ["ملف لكل شخص", "أدويته ومواعيده وأمراضه المزمنة وحساسيته، في صفحة واحدة واضحة."],
+    ["تنبيه الحساسية", "إن أضفت دواءً يتعارض مع حساسية مسجّلة، يتوقف طمّني ويسألك قبل الحفظ."],
+    ["قبل أن ينفد الدواء", "تقدير لتاريخ نفاد كل علبة، وتذكير صباحي لتجدّدها في وقتها."],
+    ["مواعيد الطبيب", "تذكير مساء اليوم السابق، وآخر قبل الموعد بساعتين."],
+];
+
+// يوم كامل مع طمّني — كل بطاقة شيء يحدث فعلاً في التطبيق
+const DAY = [
+    { time: "8:00", suffix: "ص", period: "morning", title: "حان وقت جرعة الصباح", text: "ميتفورمين 500 ملغ — سارة", tag: "سُجّلت بلمسة" },
+    { time: "10:00", suffix: "ص", period: "morning", title: "ميتفورمين ينفد خلال ٣ أيام", text: "تذكير التجديد اليومي", tag: "جدّدت العلبة" },
+    { time: "1:20", suffix: "م", period: "noon", title: "تأخّرت جرعة الظهر", text: "أموكسيسيلين 250 ملغ — خالد", tag: "تنبيه هادئ" },
+    { time: "8:00", suffix: "م", period: "evening", title: "موعد طبيب القلب غداً", text: "الساعة 10:00 صباحاً — خالد", tag: "قبل يوم" },
+];
+
+const FAQ = [
+    ["هل يقترح طمّني جرعات أو أدوية؟", "لا. طمّني أداة تنظيمية فقط: تسجّل ما وصفه الطبيب وتذكّرك به. لا يشخّص ولا يقترح جرعات ولا بدائل."],
+    ["هل تصلني التذكيرات والتطبيق مغلق؟", "نعم، بعد تفعيل الإشعارات من صفحة الحساب. على الآيفون يجب تثبيت طمّني على الشاشة الرئيسية أولاً."],
+    ["هل يحتاج الطبيب حساباً ليرى الملف؟", "لا. ترسل له رابطاً مؤقّتاً أو رمز QR، فيرى الملف للقراءة فقط، والرابط ينتهي وحده."],
+    ["من يرى بياناتي؟", "أنت فقط. لا يُشارَك شيء إلا برابط تنشئه بنفسك، والأدوية المعلّمة «خاصة» لا تظهر فيه أبداً."],
 ];
 
 export default function Landing() {
@@ -38,11 +76,14 @@ export default function Landing() {
                     io.unobserve(e.target);
                 }
             }),
-            { threshold: 0.18, rootMargin: "0px 0px -40px 0px" }
+            { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
         );
         items.forEach((el) => io.observe(el));
         return () => io.disconnect();
     }, []);
+
+    const start = isIn ? "/" : "/register";
+    const startLabel = isIn ? "افتح التطبيق" : "ابدأ الآن";
 
     return (
         <div className="landing" ref={root}>
@@ -50,25 +91,19 @@ export default function Landing() {
             <header className="ld-nav">
                 <div className="ld-wrap ld-nav-inner">
                     <Link to="/welcome" className="ld-brand">
-                        <Mark size={30} />
+                        <Mark size={28} />
                         طمّني
                     </Link>
                     <nav className="ld-links" aria-label="أقسام الصفحة">
                         <a href="#features">المزايا</a>
-                        <a href="#how">كيف يعمل</a>
+                        <a href="#day">يوم مع طمّني</a>
                         <a href="#doctor">مع الطبيب</a>
-                        <a href="#principles">مبادئنا</a>
+                        <a href="#faq">أسئلة</a>
                     </nav>
                     <div className="ld-nav-cta">
                         <ThemeToggle />
-                        {isIn ? (
-                            <Link to="/" className="ld-btn primary sm">افتح التطبيق</Link>
-                        ) : (
-                            <>
-                                <Link to="/login" className="ld-btn ghost sm">دخول</Link>
-                                <Link to="/register" className="ld-btn primary sm">ابدأ الآن</Link>
-                            </>
-                        )}
+                        {!isIn && <Link to="/login" className="ld-btn ghost sm">دخول</Link>}
+                        <Link to={start} className="ld-btn primary sm">{isIn ? "افتح التطبيق" : "ابدأ"}</Link>
                     </div>
                 </div>
             </header>
@@ -79,180 +114,140 @@ export default function Landing() {
                     <div className="ld-wrap ld-hero-grid">
                         <div className="ld-hero-text">
                             <p className="ld-eyebrow" data-reveal>
-                                <span className="ld-eyebrow-dots" aria-hidden="true">
-                                    <i className="morning" /><i className="noon" /><i className="evening" />
-                                </span>
+                                <span className="ld-dot" aria-hidden="true" />
                                 الأدوية والمواعيد في مكان واحد
                             </p>
                             <h1 className="ld-title" data-reveal>
-                                كل جرعة بوقتها،
+                                كل جرعة
                                 <br />
-                                وبالك <span className="ld-mark">مرتاح</span>.
+                                <em>في وقتها.</em>
                             </h1>
                             <p className="ld-lead" data-reveal>
-                                طمّني يجمع أدويتك وأدوية من تتابع علاجهم ومواعيدهم في مكان واحد،
-                                يذكّرك بكل جرعة في وقتها، ويشارك الملف مع الطبيب برابط مؤقّت.
+                                طمّني ينظّم أدويتك وأدوية من تتابع علاجهم، يذكّرك بكل جرعة وكل موعد،
+                                ويشارك الملف مع الطبيب برابط ينتهي وحده.
                             </p>
                             <div className="ld-cta-row" data-reveal>
-                                <Link to={isIn ? "/" : "/register"} className="ld-btn primary lg">
-                                    {isIn ? "افتح التطبيق" : "ابدأ الآن"}
+                                <Link to={start} className="ld-btn primary lg">
+                                    {startLabel}
                                     <Arrow />
                                 </Link>
-                                <a href="#how" className="ld-btn outline lg">شاهد كيف يعمل</a>
+                                <a href="#day" className="ld-btn outline lg">شاهد يوماً معه</a>
                             </div>
-                            <ul className="ld-trust" data-reveal>
-                                <li><Check /> بالعربية بالكامل</li>
-                                <li><Check /> على الهاتف والحاسوب</li>
-                                <li><Check /> يُثبَّت كتطبيق</li>
-                            </ul>
+                            <dl className="ld-facts" data-reveal>
+                                <div><dt>٣</dt><dd>فترات ملوّنة في اليوم</dd></div>
+                                <div><dt>٢</dt><dd>تذكيران لكل موعد طبيب</dd></div>
+                                <div><dt>٣</dt><dd>مدد لرابط الطبيب، ثم ينتهي</dd></div>
+                            </dl>
                         </div>
 
-                        <div className="ld-hero-visual" aria-hidden="true">
-                            <DayDial />
-                            <span className="ld-capsule c1" />
-                            <span className="ld-capsule c2" />
-                            <span className="ld-capsule c3" />
-                            <span className="ld-capsule c4" />
-                            <PhoneDemo />
+                        <div className="ld-hero-visual" data-reveal aria-hidden="true">
+                            <WeekBox />
                         </div>
                     </div>
                 </section>
 
-                {/* ---------- الفكرة في سطر ---------- */}
-                <section className="ld-statement">
-                    <div className="ld-wrap">
-                        <p data-reveal>
-                            دواء للضغط صباحاً، وآخر للسكري مساءً، ومضاد حيوي كل ثماني ساعات —
-                            والجدول كله في رأسك.
-                            <strong> طمّني يحمله عنك: كل جرعة، لكل شخص، في وقتها.</strong>
-                        </p>
+                {/* ---------- شريط المزايا المتحرك ---------- */}
+                <div className="ld-ticker" aria-hidden="true">
+                    <div className="ld-ticker-track">
+                        {[0, 1].map((copy) => (
+                            <div className="ld-ticker-group" key={copy}>
+                                {TICKER.map((t) => (
+                                    <span key={t}><i />{t}</span>
+                                ))}
+                            </div>
+                        ))}
                     </div>
-                </section>
+                </div>
 
-                {/* ---------- المزايا ---------- */}
+                {/* ---------- المزايا: قائمة مرقّمة ---------- */}
                 <section className="ld-section" id="features">
-                    <div className="ld-wrap">
-                        <SectionHead
-                            kicker="المزايا"
-                            title="كل ما تحتاجه، ولا شيء زائد"
-                            text="لمن يتابع أدويته أو أدوية غيره يومياً، وغالباً على عجل."
-                        />
-
-                        <div className="ld-bento">
-                            <article className="ld-tile t-next" data-reveal>
-                                <div className="ld-tile-ui">
-                                    <div className="mini-next">
-                                        <div className="mini-next-top">
-                                            <span>الجرعة التالية</span>
-                                            <span className="mini-chip evening">المساء</span>
-                                        </div>
-                                        <div className="mini-next-time">8:00 <small>م</small></div>
-                                        <div className="mini-next-name">أتورفاستاتين 20 ملغ</div>
-                                        <div className="mini-next-btn">تم الأخذ</div>
-                                    </div>
-                                </div>
-                                <h3>الجرعة التالية أولاً</h3>
-                                <p>تفتح التطبيق فترى فوراً ما يجب أخذه الآن، ولمن. لمسة واحدة وتُسجَّل.</p>
-                            </article>
-
-                            <article className="ld-tile t-family" data-reveal>
-                                <div className="ld-tile-ui">
-                                    <div className="mini-family">
-                                        {[["س", "سارة", "٣ أدوية"], ["خ", "خالد", "دواءان"], ["ل", "ليلى", "دواء واحد"]].map(([i, n, c]) => (
-                                            <div className="mini-member" key={n}>
-                                                <span className="mini-avatar">{i}</span>
-                                                <span><b>{n}</b><small>{c}</small></span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                <h3>ملف لكل شخص</h3>
-                                <p>أدويته ومواعيده وأمراضه المزمنة وحساسيته، في ملف واحد واضح.</p>
-                            </article>
-
-                            <article className="ld-tile t-supply" data-reveal>
-                                <div className="ld-tile-ui center">
-                                    <span className="mini-pill danger">ينفد خلال ٣ أيام</span>
-                                    <span className="mini-pill neutral">يكفي حتى ٢٨ تشرين الثاني</span>
-                                </div>
-                                <h3>قبل أن ينفد الدواء</h3>
-                                <p>حساب تقديري لتاريخ نفاد كل علبة، فتجدّدها في وقتها.</p>
-                            </article>
-
-                            <article className="ld-tile t-notify" data-reveal>
-                                <div className="ld-tile-ui center">
-                                    <div className="mini-notif">
-                                        <Mark size={30} />
-                                        <span><b>حان وقت الجرعة</b><small>أموكسيسيلين — خالد</small></span>
-                                    </div>
-                                </div>
-                                <h3>تذكير حتى والتطبيق مغلق</h3>
-                                <p>إشعار على الهاتف في موعد كل جرعة، مع تنبيه هادئ إن تأخّرت.</p>
-                            </article>
-
-                            <article className="ld-tile t-private" data-reveal>
-                                <div className="ld-tile-ui center">
-                                    <span className="mini-lock"><Lock /></span>
-                                    <span className="mini-pill private">دواء خاص</span>
-                                </div>
-                                <h3>خصوصية لكل دواء</h3>
-                                <p>علّم أي دواء «خاصاً» فلا يظهر أبداً عند المشاركة مع الطبيب.</p>
-                            </article>
+                    <div className="ld-wrap ld-split">
+                        <div className="ld-split-head" data-reveal>
+                            <p className="ld-kicker">المزايا</p>
+                            <h2>ستة أشياء يفعلها عنك، كل يوم.</h2>
+                            <p>بلا إعدادات معقّدة ولا قوائم طويلة. ما تحتاجه فقط، في المكان الذي تتوقعه.</p>
                         </div>
-                    </div>
-                </section>
-
-                {/* ---------- كيف يعمل ---------- */}
-                <section className="ld-section ld-how" id="how">
-                    <div className="ld-wrap">
-                        <SectionHead kicker="كيف يعمل" title="ثلاث خطوات، ثم يتذكّر عنك" />
-                        <ol className="ld-steps">
-                            {[
-                                ["morning", "أضف من تتابع علاجهم", "نفسك أو أي شخص تهتم به: الاسم وتاريخ الميلاد، والأمراض المزمنة والحساسية إن وُجدت."],
-                                ["noon", "أضف أدويتهم وأوقاتها", "ابحث في كتالوغ الأدوية، واختر ساعات الجرعات وأيامها."],
-                                ["evening", "أكّد كل جرعة بلمسة", "يصلك التذكير في وقته، وتسجّل الجرعة فيمتلئ يومك."],
-                            ].map(([p, t, d], i) => (
-                                <li className="ld-step" key={p} data-reveal style={{ "--d": `${i * 120}ms` }}>
-                                    <span className={`ld-step-num ${p}`}>{["١", "٢", "٣"][i]}</span>
-                                    <h3>{t}</h3>
-                                    <p>{d}</p>
+                        <ol className="ld-numbered">
+                            {FEATURES.map(([t, d], i) => (
+                                <li key={t} data-reveal>
+                                    <span className="ld-num">{String(i + 1).padStart(2, "0")}</span>
+                                    <div>
+                                        <h3>{t}</h3>
+                                        <p>{d}</p>
+                                    </div>
                                 </li>
                             ))}
                         </ol>
                     </div>
                 </section>
 
+                {/* ---------- يوم مع طمّني ---------- */}
+                <section className="ld-section ld-day" id="day">
+                    <div className="ld-wrap">
+                        <div className="ld-head" data-reveal>
+                            <p className="ld-kicker">يوم مع طمّني</p>
+                            <h2>من الصباح حتى المساء، يتذكّر هو.</h2>
+                        </div>
+                        <ol className="ld-timeline">
+                            {DAY.map((d, i) => (
+                                <li key={d.title} className={d.period} data-reveal style={{ "--d": `${i * 110}ms` }}>
+                                    <span className="ld-time">{d.time} <small>{d.suffix}</small></span>
+                                    <span className="ld-node" aria-hidden="true" />
+                                    <div className="ld-notif">
+                                        <Mark size={26} />
+                                        <div>
+                                            <b>{d.title}</b>
+                                            <small>{d.text}</small>
+                                        </div>
+                                    </div>
+                                    <span className="ld-tag">{d.tag}</span>
+                                </li>
+                            ))}
+                        </ol>
+                    </div>
+                </section>
+
+                {/* ---------- الوضع المريح ---------- */}
+                <section className="ld-section">
+                    <div className="ld-wrap ld-easy">
+                        <div data-reveal>
+                            <p className="ld-kicker">الوضع المريح</p>
+                            <h2>بالحجم الذي يناسب عينيك.</h2>
+                            <p className="ld-easy-text">
+                                مفتاح واحد في الإعدادات يكبّر النص والأزرار ويقوّي التباين، لمن يجد الخط صغيراً
+                                أو يده غير ثابتة. يُحفظ على الجهاز نفسه، فلكل هاتف حجمه.
+                            </p>
+                        </div>
+                        <EasyDemo />
+                    </div>
+                </section>
+
                 {/* ---------- مع الطبيب ---------- */}
-                <section className="ld-section" id="doctor">
+                <section className="ld-section ld-doctor-sec" id="doctor">
                     <div className="ld-wrap ld-doctor">
-                        <div className="ld-doctor-text" data-reveal>
-                            <SectionHead
-                                kicker="مع الطبيب"
-                                title="الملف عند الطبيب، لساعات فقط"
-                                align="start"
-                            />
+                        <div data-reveal>
+                            <p className="ld-kicker">مع الطبيب</p>
+                            <h2>الملف عند الطبيب، لساعات فقط.</h2>
                             <ul className="ld-list">
                                 <li><Check /> رابط مؤقّت ورمز QR يمسحه الطبيب بكاميرا هاتفه</li>
-                                <li><Check /> بلا حساب ولا تطبيق — ولا يمكن تعديل أي شيء من خلاله</li>
+                                <li><Check /> بلا حساب ولا تطبيق، وللقراءة فقط</li>
                                 <li><Check /> الحساسية أولاً وبالأحمر، ثم الأدوية والمواعيد</li>
-                                <li><Check /> ينتهي تلقائياً بعد يوم أو ثلاثة أيام أو أسبوع</li>
+                                <li><Check /> ينتهي بعد يوم أو ثلاثة أيام أو أسبوع</li>
                             </ul>
                         </div>
 
-                        <div className="ld-doctor-visual" data-reveal aria-hidden="true">
-                            <div className="doc-mock">
-                                <div className="doc-mock-head">
-                                    <span className="mini-avatar lg">خ</span>
-                                    <span><small>ملف المريض</small><b>خالد</b><small>٥٨ سنة</small></span>
-                                </div>
-                                <div className="doc-mock-allergy">
-                                    <small>الحساسية من أدوية</small>
+                        <div className="ld-ticket" data-reveal aria-hidden="true">
+                            <div className="ld-ticket-main">
+                                <small>ملف المريض</small>
+                                <b className="ld-ticket-name">خالد</b>
+                                <div className="ld-ticket-allergy">
+                                    <small>حساسية</small>
                                     <b>بنسلين</b>
                                 </div>
-                                <div className="doc-mock-row"><i className="morning" />ميتفورمين 500 ملغ<span>8:00 ص</span></div>
-                                <div className="doc-mock-row"><i className="evening" />أتورفاستاتين 20 ملغ<span>8:00 م</span></div>
+                                <div className="ld-ticket-row"><i className="morning" />ميتفورمين 500 ملغ<span>8:00 ص</span></div>
+                                <div className="ld-ticket-row"><i className="evening" />أتورفاستاتين 20 ملغ<span>8:00 م</span></div>
                             </div>
-                            <div className="qr-mock">
+                            <div className="ld-ticket-stub">
                                 <QrArt />
                                 <span>صالح ٢٤ ساعة</span>
                             </div>
@@ -261,17 +256,15 @@ export default function Landing() {
                 </section>
 
                 {/* ---------- المبادئ ---------- */}
-                <section className="ld-principles" id="principles">
+                <section className="ld-section">
                     <div className="ld-wrap">
-                        <SectionHead kicker="مبادئنا" title="أداة تنظيمية، لا طبيب" invert />
-                        <div className="ld-principle-grid">
+                        <div className="ld-principles">
                             {[
-                                ["لا تشخيص ولا توصيات", "طمّني لا يقترح جرعات ولا بدائل ولا يشخّص. القرار دائماً للطبيب والصيدلاني."],
+                                ["أداة تنظيمية، لا طبيب", "لا تشخيص ولا توصيات ولا اقتراح جرعات. القرار دائماً للطبيب والصيدلاني."],
                                 ["بياناتك عندك", "لا يرى أحد ملفاتك إلا برابط مؤقّت تنشئه أنت، وينتهي من تلقاء نفسه."],
-                                ["وضع مريح لمن يحتاجه", "بلمسة من الإعدادات: نص أكبر وأزرار أوسع وتباين أعلى. والحركة تتوقف لمن يطلب ذلك."],
-                                ["لون له معنى", "الأصفر صباح، والمشمشي ظهر، والبنفسجي مساء. اللون في طمّني يقول «متى» فقط."],
+                                ["لون له معنى", "الأصفر صباح، والمشمشي ظهر، والبنفسجي مساء. اللون يقول «متى» فقط."],
                             ].map(([t, d], i) => (
-                                <div className="ld-principle" key={t} data-reveal style={{ "--d": `${i * 90}ms` }}>
+                                <div key={t} data-reveal style={{ "--d": `${i * 100}ms` }}>
                                     <h3>{t}</h3>
                                     <p>{d}</p>
                                 </div>
@@ -280,20 +273,19 @@ export default function Landing() {
                     </div>
                 </section>
 
-                {/* ---------- الفريق ---------- */}
-                <section className="ld-section ld-team">
-                    <div className="ld-wrap">
-                        <SectionHead
-                            kicker="الفريق"
-                            title="صُنع بعناية"
-                            text="مشروع تخرج — الجامعة الدولية الخاصة للعلوم والتكنولوجيا"
-                        />
-                        <div className="ld-team-row">
-                            {[["و", "وسيم نصر", "morning"], ["د", "دارين النجم", "noon"], ["ب", "بيسان أبو شهلا", "evening"]].map(([i, n, p], k) => (
-                                <div className="ld-person" key={n} data-reveal style={{ "--d": `${k * 110}ms` }}>
-                                    <span className={`ld-person-avatar ${p}`}>{i}</span>
-                                    <b>{n}</b>
-                                </div>
+                {/* ---------- أسئلة ---------- */}
+                <section className="ld-section" id="faq">
+                    <div className="ld-wrap ld-split">
+                        <div className="ld-split-head" data-reveal>
+                            <p className="ld-kicker">أسئلة</p>
+                            <h2>قبل أن تبدأ.</h2>
+                        </div>
+                        <div className="ld-faq">
+                            {FAQ.map(([q, a]) => (
+                                <details key={q} data-reveal>
+                                    <summary>{q}<span className="ld-plus" aria-hidden="true" /></summary>
+                                    <p>{a}</p>
+                                </details>
                             ))}
                         </div>
                     </div>
@@ -303,10 +295,9 @@ export default function Landing() {
                 <section className="ld-final">
                     <div className="ld-wrap">
                         <div className="ld-final-band" data-reveal>
-                            <Mark size={64} color="var(--on-primary)" tickColor="var(--primary)" />
-                            <h2>طمّن بالك على كل جرعة</h2>
+                            <h2>طمّن بالك على كل جرعة.</h2>
                             <p>دقيقة لإنشاء الحساب، وبعدها طمّني يتذكّر عنك.</p>
-                            <Link to={isIn ? "/" : "/register"} className="ld-btn light lg">
+                            <Link to={start} className="ld-btn light lg">
                                 {isIn ? "افتح التطبيق" : "أنشئ حسابك الآن"}
                                 <Arrow />
                             </Link>
@@ -317,9 +308,14 @@ export default function Landing() {
 
             <footer className="ld-footer">
                 <div className="ld-wrap ld-footer-inner">
-                    <span className="ld-brand"><Mark size={24} /> طمّني</span>
-                    <p>أداة تنظيمية لمتابعة الأدوية والمواعيد. لا تقدّم تشخيصاً ولا توصيات علاجية، ولا تغني عن استشارة الطبيب أو الصيدلاني.</p>
-                    <p className="ld-copy">© ٢٠٢٦ طمّني — مشروع تخرج</p>
+                    <div>
+                        <span className="ld-brand"><Mark size={24} /> طمّني</span>
+                        <p>أداة تنظيمية لمتابعة الأدوية والمواعيد. لا تقدّم تشخيصاً ولا توصيات علاجية، ولا تغني عن استشارة الطبيب أو الصيدلاني.</p>
+                    </div>
+                    <div className="ld-team">
+                        <small>مشروع تخرج — الجامعة الدولية الخاصة للعلوم والتكنولوجيا</small>
+                        <b>وسيم نصر · دارين النجم · بيسان أبو شهلا</b>
+                    </div>
                 </div>
             </footer>
         </div>
@@ -328,159 +324,103 @@ export default function Landing() {
 
 /* ================= مكوّنات الصفحة ================= */
 
-function SectionHead({ kicker, title, text, align = "center", invert = false }) {
-    return (
-        <div className={`ld-head ${align}${invert ? " invert" : ""}`} data-reveal>
-            <p className="ld-kicker">{kicker}</p>
-            <h2>{title}</h2>
-            {text && <p className="ld-head-text">{text}</p>}
-        </div>
-    );
-}
-
-// قرص اليوم: ٢٤ ساعة، منتصف الليل في الأعلى، وأقواس الفترات بألوانها
-function DayDial() {
-    const C = 300;
-    const point = (r, hour) => {
-        const a = ((hour / 24) * 360 - 90) * (Math.PI / 180);
-        return [C + r * Math.cos(a), C + r * Math.sin(a)];
-    };
-    const arc = (r, from, to) => {
-        const [x1, y1] = point(r, from);
-        const [x2, y2] = point(r, to);
-        const large = (to - from) / 24 > 0.5 ? 1 : 0;
-        return `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`;
-    };
-    return (
-        <svg className="ld-dial" viewBox="0 0 600 600">
-            <circle cx={C} cy={C} r="270" className="dial-track" />
-            <circle cx={C} cy={C} r="200" className="dial-inner" />
-            {Array.from({ length: 24 }, (_, h) => {
-                const [x1, y1] = point(h % 6 === 0 ? 236 : 246, h);
-                const [x2, y2] = point(256, h);
-                return <line key={h} x1={x1} y1={y1} x2={x2} y2={y2} className={h % 6 === 0 ? "dial-tick major" : "dial-tick"} />;
-            })}
-            <path d={arc(270, 6.3, 11.7)} className="dial-arc morning" />
-            <path d={arc(270, 12.3, 16.7)} className="dial-arc noon" />
-            <path d={arc(270, 17.3, 23.2)} className="dial-arc evening" />
-            <g className="dial-sun">
-                <circle cx={C} cy={C - 270} r="16" />
-            </g>
-        </svg>
-    );
-}
-
-// الهاتف: شاشة «اليوم» تعمل وحدها — تُضغط الجرعة، تمتلئ القطعة، تأتي التالية
-function PhoneDemo() {
+// علبة الأسبوع: الأيام الماضية ممتلئة، و«اليوم» يمتلئ أمامك — يصل إشعار
+// جرعة الظهر، يُضغط «تم الأخذ»، فتُغلق الخانة. ثم تعود الحلقة من جديد.
+function WeekBox() {
     const [reduced] = useState(reducedMotion);
-    const [step, setStep] = useState(() => (reduced ? 1 : 0)); // عدد الجرعات المؤكَّدة
-    const [pressing, setPressing] = useState(false);
+    const [step, setStep] = useState(() => (reduced ? 3 : 0)); // 0 هدوء، 1 إشعار، 2 ضغط، 3 سُجّلت
 
     useEffect(() => {
         if (reduced) return;
+        const durations = [1400, 2200, 500, 2600];
         let timer;
         const run = (s) => {
             timer = setTimeout(() => {
-                setPressing(true);
-                timer = setTimeout(() => {
-                    setPressing(false);
-                    const next = s + 1;
-                    setStep(next);
-                    if (next >= DEMO.length) {
-                        timer = setTimeout(() => { setStep(0); run(0); }, 2800);
-                    } else {
-                        run(next);
-                    }
-                }, 380);
-            }, 2000);
+                const next = (s + 1) % 4;
+                setStep(next);
+                run(next);
+            }, durations[s]);
         };
         run(0);
         return () => clearTimeout(timer);
     }, [reduced]);
 
-    const current = DEMO[step];
+    const done = (day, p) => day < TODAY || (day === TODAY && (p === 0 || (p === 1 && step === 3)));
 
     return (
-        <div className="phone">
-            <div className="phone-screen">
-                <div className="phone-notch" />
-                <div className="ph-top">
-                    <span className="ph-brand"><Mark size={16} /> طمّني</span>
-                </div>
-                <div className="ph-date">السبت ١٨ تشرين الأول</div>
-                <div className="ph-title">جرعات اليوم</div>
-
-                {current ? (
-                    <div className="ph-next" key={step}>
-                        <div className="ph-next-top">
-                            <span>الجرعة التالية</span>
-                            <span className={`ph-chip ${current.period}`}>{current.label}</span>
-                        </div>
-                        <div className="ph-next-body">
-                            <div>
-                                <div className="ph-time">{current.time} <small>{current.suffix}</small></div>
-                                <div className="ph-name">{current.name} <span>{current.strength}</span></div>
-                                <div className="ph-member">{current.member}</div>
-                            </div>
-                            <span className={`ph-btn${pressing ? " pressing" : ""}`}>تم الأخذ</span>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="ph-next done" key="done">
-                        <span className="ph-done-icon"><Check /></span>
-                        <div>
-                            <div className="ph-name">أُخذت كل جرعات اليوم</div>
-                            <div className="ph-member">اطمئن، لا شيء متبقٍّ</div>
-                        </div>
-                    </div>
-                )}
-
-                <div className="ph-progress">
-                    {DEMO.map((d, i) => (
-                        <span key={i} className={i < step ? `ph-seg ${d.period} on` : "ph-seg"} />
-                    ))}
-                    <small>{["٠", "١", "٢", "٣"][step]} من ٣</small>
-                </div>
-
-                <div className="ph-rows">
-                    {DEMO.map((d, i) => (
-                        <div className={`ph-row${i < step ? " taken" : ""}`} key={i}>
-                            <span className={`ph-marker ${d.period}`} />
-                            <div className="ph-row-text">
-                                <b>{d.name}</b>
-                                <small>{d.time} {d.suffix} · {d.member}</small>
-                            </div>
-                            {i < step
-                                ? <span className={`ph-check ${d.period}`}><Check /></span>
-                                : <span className="ph-outline">تم الأخذ</span>}
-                        </div>
-                    ))}
-                </div>
-
-                {/* شريط التبويبات — كما في التطبيق الحقيقي */}
-                <div className="ph-tabbar">
-                    {PHONE_TABS.map((icon, i) => (
-                        <span key={i} className={i === 0 ? "on" : ""}>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{icon}</svg>
-                        </span>
-                    ))}
-                </div>
-
-                {step > 0 && step <= DEMO.length && (
-                    <div className="ph-toast" key={`t${step}`}><Check /> سُجّلت الجرعة</div>
-                )}
+        <div className="wk">
+            <div className="wk-head">
+                <span className="ld-brand-sm"><Mark size={18} /> هذا الأسبوع</span>
+                <span className="wk-count">{step === 3 ? "١١" : "١٠"} من ٢١ جرعة</span>
             </div>
+            <div className="wk-grid">
+                <span />
+                {DAYS.map((d, i) => (
+                    <span key={d} className={`wk-day${i === TODAY ? " today" : ""}`}>
+                        {i === TODAY && <em>اليوم</em>}
+                        {d}
+                    </span>
+                ))}
+                {PERIODS.map((p, pi) => (
+                    <div className="wk-row" key={p.key}>
+                        <span className={`wk-label ${p.key}`}>{p.label}</span>
+                        {DAYS.map((d, di) => {
+                            const on = done(di, pi);
+                            const live = di === TODAY && pi === 1;
+                            return (
+                                <span
+                                    key={d}
+                                    className={`wk-cell ${p.key}${on ? " on" : ""}${di === TODAY ? " today" : ""}${live && step === 3 ? " pop" : ""}`}
+                                >
+                                    {on && <Check />}
+                                </span>
+                            );
+                        })}
+                    </div>
+                ))}
+            </div>
+
+            <div className={`wk-notif${step === 1 || step === 2 ? " show" : ""}`}>
+                <Mark size={30} />
+                <div>
+                    <b>حان وقت جرعة الظهر</b>
+                    <small>أموكسيسيلين 250 ملغ — خالد</small>
+                </div>
+                <span className={`wk-btn${step === 2 ? " pressing" : ""}`}>تم الأخذ</span>
+            </div>
+            <div className={`wk-toast${step === 3 ? " show" : ""}`}><Check /> سُجّلت الجرعة</div>
         </div>
     );
 }
 
-// أيقونات شريط تبويبات الهاتف: اليوم، العائلة، المواعيد، الحساب
-const PHONE_TABS = [
-    <><rect x="3" y="8" width="18" height="8" rx="4" /><path d="M12 8v8" /></>,
-    <><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5" /><path d="M16 4.8a3.5 3.5 0 0 1 0 6.4" /></>,
-    <><rect x="3.5" y="5" width="17" height="15" rx="3" /><path d="M3.5 10h17M8 3v4M16 3v4" /></>,
-    <><circle cx="12" cy="8" r="4" /><path d="M4 20.5c1.2-4 4.3-6 8-6s6.8 2 8 6" /></>,
-];
+// بطاقة الجرعة بالحجمين — الزائر يجرّب المفتاح بنفسه
+function EasyDemo() {
+    const [big, setBig] = useState(false);
+    return (
+        <div className="ez" data-reveal>
+            <button
+                type="button"
+                role="switch"
+                aria-checked={big}
+                className="ez-switch"
+                onClick={() => setBig(!big)}
+            >
+                <span>جرّب الوضع المريح</span>
+                <span className="ez-track" aria-hidden="true" />
+            </button>
+            <div className={`ez-card${big ? " big" : ""}`} aria-hidden="true">
+                <div className="ez-top">
+                    <span>الجرعة التالية</span>
+                    <span className="ez-chip">المساء</span>
+                </div>
+                <div className="ez-time">8:00 <small>م</small></div>
+                <div className="ez-name">أتورفاستاتين 20 ملغ</div>
+                <div className="ez-who">ليلى</div>
+                <span className="ez-btn">تم الأخذ</span>
+            </div>
+        </div>
+    );
+}
 
 // رمز QR زخرفي — شكل ثابت لا يحمل أي رابط
 function QrArt() {
@@ -519,15 +459,6 @@ function Arrow() {
     return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="ic">
             <path d="M19 12H5M11 6l-6 6 6 6" />
-        </svg>
-    );
-}
-
-function Lock() {
-    return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <rect x="5" y="10.5" width="14" height="10" rx="2.5" />
-            <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
         </svg>
     );
 }
