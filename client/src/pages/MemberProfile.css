@@ -10,59 +10,91 @@
 
 /* ---------- ترويسة الفرد ---------- */
 
+/* بلا صندوق ملوّن: اسم كبير بخط العرض، وتحته حقائق بخطوط فاصلة
+   (مثل حقائق البطل في الصفحة التعريفية) */
 .profile-head {
+  margin-bottom: var(--gap-lg);
+}
+
+.profile-title {
   display: flex;
   align-items: center;
   gap: var(--gap);
-  background: var(--primary);
-  color: var(--on-primary);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: var(--gap);
-}
-
-.profile-head .avatar {
-  background: var(--on-primary);
-  color: var(--primary-deep);
 }
 
 .profile-info {
   min-width: 0;
 }
 
+.profile-info .kicker {
+  margin-bottom: 2px;
+}
+
 .profile-head h1 {
   margin: 0;
-  font-size: var(--fs-2xl);
-  font-weight: 700;
-  color: var(--on-primary);
+  font-size: calc(var(--fs-2xl) + 6px);
+  font-weight: 800;
+  line-height: 1.15;
 }
 
-.profile-head .muted {
-  color: var(--on-primary-soft);
+.profile-conditions {
+  margin: 12px 0 0;
   font-size: var(--fs-base);
-  margin: 3px 0 0;
+  color: var(--text-muted);
 }
 
-/* الحساسية: أهم معلومة طبية في الملف، فتأخذ شارة واضحة.
-   خلفية فاتحة ونص أحمر — الأحمر مباشرة على الفيروزي لا يُقرأ */
+/* الحساسية: أهم معلومة طبية في الملف، فتأخذ شارة واضحة */
 .profile-head .allergy {
   display: inline-block;
-  margin-top: 8px;
+  margin-top: 10px;
   background: var(--danger-soft);
   color: var(--danger);
   font-size: var(--fs-sm);
   font-weight: 600;
-  padding: 3px 12px;
+  padding: 4px 12px;
   border-radius: var(--radius-pill);
+}
+
+.profile-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 18px 0 0;
+  border-top: 1.5px solid var(--text);
+}
+
+.profile-facts div {
+  padding: 12px 0 0;
+  padding-inline-end: 10px;
+}
+
+.profile-facts div + div {
+  padding-inline-start: 14px;
+  border-inline-start: 1px solid var(--border);
+}
+
+.profile-facts dt {
+  font-family: var(--display);
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.profile-facts dd {
+  margin: 6px 0 0;
+  font-size: var(--fs-sm);
+  color: var(--text-soft);
 }
 
 /* ---------- الإجراءات السريعة ---------- */
 
+/* صف واحد بين خطّين، لا ثلاث بطاقات: أيقونة واسم، والأول بالفيروزي */
 .quick-actions {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
   margin-bottom: var(--gap-lg);
+  border-block: 1px solid var(--border);
 }
 
 .quick-action {
@@ -71,72 +103,68 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: calc(var(--tap) + 32px);
+  min-height: calc(var(--tap) + 28px);
   padding: 12px 6px;
-  background: var(--surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
   color: var(--text);
   text-decoration: none;
   text-align: center;
   font-size: var(--fs-sm);
   font-weight: 600;
   line-height: 1.4;
-  transition: background .15s, transform .1s;
+  transition: background .15s;
+}
+
+.quick-action + .quick-action {
+  border-inline-start: 1px solid var(--border);
 }
 
 .quick-action:hover {
-  background: var(--primary-soft);
-}
-
-.quick-action:active {
-  transform: scale(.97);
+  background: var(--surface-alt);
 }
 
 .quick-action svg {
   width: 26px;
   height: 26px;
-  color: var(--primary);
+  color: var(--text-muted);
 }
 
-/* الإجراء الأكثر استخداماً — إضافة دواء — مملوء */
-.quick-action.primary {
-  background: var(--primary-soft);
-  border-color: var(--primary-soft);
+/* الإجراء الأكثر استخداماً — إضافة دواء — بالفيروزي */
+.quick-action.primary,
+.quick-action.primary svg {
+  color: var(--primary);
 }
 
 /* ---------- التبويبان ---------- */
 
+/* كلمتان بخط العرض، وتحت المفتوح منهما خط فيروزي — أسلوب المجلة */
 .tabs {
   display: flex;
-  gap: 6px;
-  padding: 5px;
-  background: var(--tabs-bg);
-  border-radius: var(--radius-pill);
+  gap: 24px;
   margin-bottom: var(--gap-lg);
+  border-bottom: 1px solid var(--border);
 }
 
 .tabs button {
-  flex: 1;
   min-height: var(--tap-sm);
+  margin-bottom: -1px;
+  padding: 0 2px;
   border: none;
-  border-radius: var(--radius-pill);
+  border-bottom: 3px solid transparent;
   background: transparent;
   color: var(--text-soft);
-  font-family: inherit;
-  font-size: var(--fs-base);
-  font-weight: 500;
+  font-family: var(--display);
+  font-size: var(--fs-lg);
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  gap: 8px;
+  transition: color .15s, border-color .15s;
 }
 
 .tabs button.active {
-  background: var(--surface);
   color: var(--text);
-  font-weight: 600;
+  border-bottom-color: var(--primary);
 }
 
 /* العدد بجانب اسم التبويب */

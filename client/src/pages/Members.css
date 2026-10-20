@@ -5,28 +5,24 @@
    الصف كله رابط إلى ملف الفرد — هدف لمس كبير وواضح.
    ============================================================ */
 
+/* قائمة بخطوط (.ruled في components.css): لا صندوق لكل فرد */
 .member-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
 }
 
 .member-item {
   display: flex;
   align-items: center;
   gap: var(--gap);
-  padding: 14px 16px;
-  background: var(--surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
+  padding: 16px 4px;
   color: var(--text);
   text-decoration: none;
-  transition: background .15s, border-color .15s;
+  transition: background .15s;
 }
 
 .member-item:hover {
   background: var(--surface-alt);
-  border-color: var(--border);
 }
 
 .member-text {
@@ -39,8 +35,9 @@
 }
 
 .member-name {
-  font-size: var(--fs-lg);
-  font-weight: 600;
+  font-family: var(--display);
+  font-size: var(--fs-xl);
+  font-weight: 700;
 }
 
 .member-meta {
@@ -105,10 +102,11 @@
   cursor: default;
 }
 
-/* على الحاسوب: الأفراد في عمودين */
+/* على الحاسوب: الأفراد في عمودين، بخط فاصل بينهما */
 @media (min-width: 1024px) {
   .member-list {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 32px;
   }
 }

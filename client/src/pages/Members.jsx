@@ -50,7 +50,7 @@ export default function Members() {
                     <Link to="/members/new">أضف أول فرد من العائلة</Link>
                 </div>
             ) : (
-                <div className="member-list">
+                <div className="member-list ruled">
                     {/* البطاقة كلها رابط واحد إلى ملف الفرد.
                         التعديل والحذف داخل الملف، بعيداً عن نقرة خاطئة. */}
                     {members.map((m) => {

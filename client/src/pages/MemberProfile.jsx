@@ -153,21 +153,28 @@ export default function MemberProfile() {
                 }
             />
 
-            {/* ترويسة الفرد: تذكّر المستخدم أنه داخل ملف شخص بعينه */}
-            <div className="profile-head">
-                <span className="avatar lg" aria-hidden="true">{initial(member.name)}</span>
-                <div className="profile-info">
-                    <h1>{member.name}</h1>
-                    <p className="muted">
-                        {[age !== null && `${age} سنة`, member.chronic_conditions]
-                            .filter(Boolean)
-                            .join(" · ") || "لا توجد أمراض مزمنة مسجّلة"}
-                    </p>
-                    {member.allergies && (
-                        <span className="allergy">حساسية: {member.allergies}</span>
-                    )}
+            {/* ترويسة الفرد بأسلوب الصفحة التعريفية: اسم كبير، ثم حقائق
+                قصيرة بخطوط فاصلة. تذكّر المستخدم أنه داخل ملف شخص بعينه */}
+            <header className="profile-head">
+                <div className="profile-title">
+                    <span className="avatar lg" aria-hidden="true">{initial(member.name)}</span>
+                    <div className="profile-info">
+                        <span className="kicker">ملف شخصي</span>
+                        <h1>{member.name}</h1>
+                    </div>
                 </div>
-            </div>
+                <p className="profile-conditions">
+                    {member.chronic_conditions || "لا توجد أمراض مزمنة مسجّلة"}
+                </p>
+                {member.allergies && (
+                    <span className="allergy">حساسية: {member.allergies}</span>
+                )}
+                <dl className="profile-facts">
+                    <div><dt>{age ?? "—"}</dt><dd>سنة</dd></div>
+                    <div><dt>{active.length}</dt><dd>{active.length === 1 ? "دواء نشط" : "أدوية نشطة"}</dd></div>
+                    <div><dt>{upcomingAppts.length}</dt><dd>{upcomingAppts.length === 1 ? "موعد قادم" : "مواعيد قادمة"}</dd></div>
+                </dl>
+            </header>
 
             {/* أدوية حالية تتعارض مع الحساسية — تظهر حتى لو أُضيفت الحساسية بعد الدواء */}
             {allergyCheck.medications.length > 0 && (
