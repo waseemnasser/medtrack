@@ -49,7 +49,7 @@ export default function InstallPrompt() {
         <div className="install-bar">
             {deferred ? (
                 <>
-                    <span>ثبّت «دوائي» على شاشتك ليصلك التذكير بالجرعات</span>
+                    <span>ثبّت «طمّني» على شاشتك ليصلك التذكير بالجرعات</span>
                     <div className="install-actions">
                         <button className="install-yes" onClick={install}>تثبيت</button>
                         <button className="install-no" onClick={dismiss}>لاحقاً</button>

@@ -15,9 +15,9 @@ const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)"
 
 // جرعات العرض التوضيحي في الهاتف — أمثلة لا بيانات حقيقية
 const DEMO = [
-    { time: "8:00", suffix: "ص", name: "ميتفورمين", strength: "500 ملغ", member: "أبي", period: "morning", label: "الصباح" },
-    { time: "1:00", suffix: "م", name: "أموكسيسيلين", strength: "250 ملغ", member: "أخي", period: "noon", label: "الظهر" },
-    { time: "8:00", suffix: "م", name: "أتورفاستاتين", strength: "20 ملغ", member: "أمي", period: "evening", label: "المساء" },
+    { time: "8:00", suffix: "ص", name: "ميتفورمين", strength: "500 ملغ", member: "سارة", period: "morning", label: "الصباح" },
+    { time: "1:00", suffix: "م", name: "أموكسيسيلين", strength: "250 ملغ", member: "خالد", period: "noon", label: "الظهر" },
+    { time: "8:00", suffix: "م", name: "أتورفاستاتين", strength: "20 ملغ", member: "ليلى", period: "evening", label: "المساء" },
 ];
 
 export default function Landing() {
@@ -82,16 +82,16 @@ export default function Landing() {
                                 <span className="ld-eyebrow-dots" aria-hidden="true">
                                     <i className="morning" /><i className="noon" /><i className="evening" />
                                 </span>
-                                متابعة أدوية العائلة
+                                الأدوية والمواعيد في مكان واحد
                             </p>
                             <h1 className="ld-title" data-reveal>
-                                دواؤهم بوقته،
+                                كل جرعة بوقتها،
                                 <br />
                                 وبالك <span className="ld-mark">مرتاح</span>.
                             </h1>
                             <p className="ld-lead" data-reveal>
-                                طمّني يجمع أدوية كل أفراد عائلتك ومواعيدهم في مكان واحد،
-                                يذكّرك بكل جرعة في وقتها، ويشارك ملف المريض مع الطبيب برابط مؤقّت.
+                                طمّني يجمع أدويتك وأدوية من تتابع علاجهم ومواعيدهم في مكان واحد،
+                                يذكّرك بكل جرعة في وقتها، ويشارك الملف مع الطبيب برابط مؤقّت.
                             </p>
                             <div className="ld-cta-row" data-reveal>
                                 <Link to={isIn ? "/" : "/register"} className="ld-btn primary lg">
@@ -122,9 +122,9 @@ export default function Landing() {
                 <section className="ld-statement">
                     <div className="ld-wrap">
                         <p data-reveal>
-                            أمّك تأخذ دواء الضغط صباحاً، وأبوك دواء السكري مساءً، وأخوك الصغير
-                            مضاداً حيوياً كل ثماني ساعات.
-                            <strong> طمّني يتذكّر عنك — كل جرعة، لكل فرد، في وقتها.</strong>
+                            دواء للضغط صباحاً، وآخر للسكري مساءً، ومضاد حيوي كل ثماني ساعات —
+                            والجدول كله في رأسك.
+                            <strong> طمّني يحمله عنك: كل جرعة، لكل شخص، في وقتها.</strong>
                         </p>
                     </div>
                 </section>
@@ -135,7 +135,7 @@ export default function Landing() {
                         <SectionHead
                             kicker="المزايا"
                             title="كل ما تحتاجه، ولا شيء زائد"
-                            text="صُمّم لمن يتابع أدوية أهله يومياً، وغالباً بيد واحدة وعلى عجل."
+                            text="لمن يتابع أدويته أو أدوية غيره يومياً، وغالباً على عجل."
                         />
 
                         <div className="ld-bento">
@@ -158,7 +158,7 @@ export default function Landing() {
                             <article className="ld-tile t-family" data-reveal>
                                 <div className="ld-tile-ui">
                                     <div className="mini-family">
-                                        {[["أب", "أبي", "٣ أدوية"], ["أم", "أمي", "دواءان"], ["أخ", "أخي", "دواء واحد"]].map(([i, n, c]) => (
+                                        {[["س", "سارة", "٣ أدوية"], ["خ", "خالد", "دواءان"], ["ل", "ليلى", "دواء واحد"]].map(([i, n, c]) => (
                                             <div className="mini-member" key={n}>
                                                 <span className="mini-avatar">{i}</span>
                                                 <span><b>{n}</b><small>{c}</small></span>
@@ -166,7 +166,7 @@ export default function Landing() {
                                         ))}
                                     </div>
                                 </div>
-                                <h3>ملف لكل فرد</h3>
+                                <h3>ملف لكل شخص</h3>
                                 <p>أدويته ومواعيده وأمراضه المزمنة وحساسيته، في ملف واحد واضح.</p>
                             </article>
 
@@ -183,7 +183,7 @@ export default function Landing() {
                                 <div className="ld-tile-ui center">
                                     <div className="mini-notif">
                                         <Mark size={30} />
-                                        <span><b>حان وقت الجرعة</b><small>أموكسيسيلين لأخي</small></span>
+                                        <span><b>حان وقت الجرعة</b><small>أموكسيسيلين — خالد</small></span>
                                     </div>
                                 </div>
                                 <h3>تذكير حتى والتطبيق مغلق</h3>
@@ -208,7 +208,7 @@ export default function Landing() {
                         <SectionHead kicker="كيف يعمل" title="ثلاث خطوات، ثم يتذكّر عنك" />
                         <ol className="ld-steps">
                             {[
-                                ["morning", "أضف أفراد العائلة", "الاسم وتاريخ الميلاد، والأمراض المزمنة والحساسية إن وُجدت."],
+                                ["morning", "أضف من تتابع علاجهم", "نفسك أو أي شخص تهتم به: الاسم وتاريخ الميلاد، والأمراض المزمنة والحساسية إن وُجدت."],
                                 ["noon", "أضف أدويتهم وأوقاتها", "ابحث في كتالوغ الأدوية، واختر ساعات الجرعات وأيامها."],
                                 ["evening", "أكّد كل جرعة بلمسة", "يصلك التذكير في وقته، وتسجّل الجرعة فيمتلئ يومك."],
                             ].map(([p, t, d], i) => (
@@ -228,7 +228,7 @@ export default function Landing() {
                         <div className="ld-doctor-text" data-reveal>
                             <SectionHead
                                 kicker="مع الطبيب"
-                                title="ملف المريض في جيب الطبيب، لساعات فقط"
+                                title="الملف عند الطبيب، لساعات فقط"
                                 align="start"
                             />
                             <ul className="ld-list">
@@ -242,8 +242,8 @@ export default function Landing() {
                         <div className="ld-doctor-visual" data-reveal aria-hidden="true">
                             <div className="doc-mock">
                                 <div className="doc-mock-head">
-                                    <span className="mini-avatar lg">أب</span>
-                                    <span><small>ملف المريض</small><b>أبي</b><small>٦٧ سنة</small></span>
+                                    <span className="mini-avatar lg">خ</span>
+                                    <span><small>ملف المريض</small><b>خالد</b><small>٥٨ سنة</small></span>
                                 </div>
                                 <div className="doc-mock-allergy">
                                     <small>الحساسية من أدوية</small>
@@ -267,8 +267,8 @@ export default function Landing() {
                         <div className="ld-principle-grid">
                             {[
                                 ["لا تشخيص ولا توصيات", "طمّني لا يقترح جرعات ولا بدائل ولا يشخّص. القرار دائماً للطبيب والصيدلاني."],
-                                ["بياناتك عندك", "لا يرى أحد ملف أهلك إلا برابط مؤقّت تنشئه أنت، وينتهي من تلقاء نفسه."],
-                                ["مصمّم لكبار السن", "خط أكبر من المعتاد، أزرار لا تقل عن ٥٢ بكسل، وحركة تتوقف لمن يطلب ذلك."],
+                                ["بياناتك عندك", "لا يرى أحد ملفاتك إلا برابط مؤقّت تنشئه أنت، وينتهي من تلقاء نفسه."],
+                                ["وضع مريح لمن يحتاجه", "بلمسة من الإعدادات: نص أكبر وأزرار أوسع وتباين أعلى. والحركة تتوقف لمن يطلب ذلك."],
                                 ["لون له معنى", "الأصفر صباح، والمشمشي ظهر، والبنفسجي مساء. اللون في طمّني يقول «متى» فقط."],
                             ].map(([t, d], i) => (
                                 <div className="ld-principle" key={t} data-reveal style={{ "--d": `${i * 90}ms` }}>
@@ -285,7 +285,7 @@ export default function Landing() {
                     <div className="ld-wrap">
                         <SectionHead
                             kicker="الفريق"
-                            title="صُنع بعناية، لعائلاتنا أولاً"
+                            title="صُنع بعناية"
                             text="مشروع تخرج — الجامعة الدولية الخاصة للعلوم والتكنولوجيا"
                         />
                         <div className="ld-team-row">
@@ -304,7 +304,7 @@ export default function Landing() {
                     <div className="ld-wrap">
                         <div className="ld-final-band" data-reveal>
                             <Mark size={64} color="var(--on-primary)" tickColor="var(--primary)" />
-                            <h2>طمّن قلبك على دواء أهلك</h2>
+                            <h2>طمّن بالك على كل جرعة</h2>
                             <p>دقيقة لإنشاء الحساب، وبعدها طمّني يتذكّر عنك.</p>
                             <Link to={isIn ? "/" : "/register"} className="ld-btn light lg">
                                 {isIn ? "افتح التطبيق" : "أنشئ حسابك الآن"}
@@ -318,7 +318,7 @@ export default function Landing() {
             <footer className="ld-footer">
                 <div className="ld-wrap ld-footer-inner">
                     <span className="ld-brand"><Mark size={24} /> طمّني</span>
-                    <p>أداة تنظيمية لمتابعة أدوية العائلة. لا تقدّم تشخيصاً ولا توصيات علاجية، ولا تغني عن استشارة الطبيب أو الصيدلاني.</p>
+                    <p>أداة تنظيمية لمتابعة الأدوية والمواعيد. لا تقدّم تشخيصاً ولا توصيات علاجية، ولا تغني عن استشارة الطبيب أو الصيدلاني.</p>
                     <p className="ld-copy">© ٢٠٢٦ طمّني — مشروع تخرج</p>
                 </div>
             </footer>

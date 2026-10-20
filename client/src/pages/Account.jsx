@@ -97,7 +97,7 @@ export default function Account() {
             <h2 className="section-title">الخصوصية</h2>
             <div className="settings-card">
                 <p>
-                    بيانات أهلك تبقى عندك. لا يراها أحد إلا برابط مؤقّت تنشئه أنت
+                    بياناتك تبقى عندك. لا يراها أحد إلا برابط مؤقّت تنشئه أنت
                     من ملف الفرد، وينتهي تلقائياً.
                 </p>
                 <p>

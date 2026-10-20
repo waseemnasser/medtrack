@@ -96,7 +96,7 @@ export default function MemberForm() {
                     name="name"
                     value={form.name}
                     onChange={change}
-                    placeholder="مثال: أبي، والدتي، أحمد"
+                    placeholder="مثال: أحمد، سارة، أنا"
                 />
 
                 <label htmlFor="birth_date">تاريخ الميلاد</label>

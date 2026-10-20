@@ -54,7 +54,7 @@ export default function AuthLayout({ tagline, children }) {
                 <div className="auth-col auth-rise d2">
                     {children}
                     <p className="auth-privacy">
-                        بيانات أهلك تبقى عندك. تُشارَك فقط برابط مؤقّت تنشئه أنت.
+                        بياناتك تبقى عندك. تُشارَك فقط برابط مؤقّت تنشئه أنت.
                     </p>
                 </div>
             </main>
