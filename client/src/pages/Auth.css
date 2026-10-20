@@ -266,7 +266,7 @@
 
 .auth-form input {
   width: 100%;
-  height: 54px;
+  height: calc(var(--tap) + 6px);
   padding: 0 16px;
   margin-bottom: 18px;
   border: 1px solid var(--border);
@@ -330,7 +330,7 @@
 /* ---------- الزر والروابط ---------- */
 
 .auth-cta {
-  height: 56px;
+  height: calc(var(--tap) + 6px);
   border: none;
   border-radius: var(--radius-pill);
   background: var(--primary);

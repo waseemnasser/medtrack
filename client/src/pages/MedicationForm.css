@@ -118,7 +118,7 @@
   font-family: inherit;
   cursor: pointer;
   color: var(--text-disabled);
-  min-height: 42px;
+  min-height: var(--tap-sm);
 }
 
 /* اليوم المختار */

@@ -576,7 +576,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  min-height: 52px;
+  min-height: var(--tap);
   color: var(--text);
   text-decoration: none;
 }
@@ -643,7 +643,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 56px;
+  min-height: calc(var(--tap) + 8px);
   color: var(--text);
   text-decoration: none;
 }

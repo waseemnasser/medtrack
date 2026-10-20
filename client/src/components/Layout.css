@@ -74,7 +74,7 @@
   font-size: var(--fs-xs);
   font-weight: 500;
   padding: 4px;
-  min-height: 52px;
+  min-height: var(--tap);
 }
 
 /* القسم المفتوح حالياً — NavLink يضيف الكلاس تلقائياً */
@@ -239,7 +239,7 @@
     flex-direction: row;
     justify-content: flex-start;
     gap: 12px;
-    min-height: 52px;
+    min-height: var(--tap);
     padding: 0 12px;
     border-radius: var(--radius-pill);
     font-size: var(--fs-md);

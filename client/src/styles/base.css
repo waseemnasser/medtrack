@@ -53,7 +53,7 @@ body {
 
 /* عنوان قسم داخل الصفحة: «المواعيد القادمة»، «أدوية متوقفة» */
 .section-title {
-  font-size: 16px;
+  font-size: var(--fs-md);
   color: var(--text-soft);
   margin: 26px 0 12px;
 }
