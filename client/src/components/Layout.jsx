@@ -1,6 +1,7 @@
 import { Outlet, NavLink, Link } from "react-router-dom";
 import InstallPrompt from "./InstallPrompt";
 import Mark from "./Mark";
+import AccountCorner from "./AccountCorner";
 import "./Layout.css";
 
 // تبويبات التطبيق الأربعة — كل صفحة أخرى تتفرّع من أحدها
@@ -57,6 +58,7 @@ export default function Layout() {
                     <Mark size={26} />
                     طمّني
                 </Link>
+                <AccountCorner />
             </header>
             <InstallPrompt />
             <main className="app-main">

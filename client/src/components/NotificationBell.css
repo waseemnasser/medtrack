@@ -1,0 +1,336 @@
+/* ============================================================
+   زاوية الحساب وجرس الإشعارات
+   ------------------------------------------------------------
+   في الشريط العلوي على الهاتف، وفي أعلى الصفحة على الحاسوب.
+   النافذة بأسلوب الصفحة التعريفية: عنوان بخط العرض، أيام
+   كعناوين صغيرة فيروزية، وصفوف بخطوط فاصلة.
+   ============================================================ */
+
+.account-corner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---------- اسم الحساب ---------- */
+
+.account-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 180px;
+  min-height: 40px;
+  padding: 4px 4px 4px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  text-decoration: none;
+  transition: background .15s;
+}
+
+.account-chip:hover {
+  background: var(--surface-alt);
+}
+
+.account-avatar {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--display);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+}
+
+.account-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+/* الهاتف الضيّق: الصورة الرمزية وحدها، والاسم في صفحة الحساب */
+@media (max-width: 380px) {
+  .account-name {
+    display: none;
+  }
+
+  .account-chip {
+    padding: 4px;
+  }
+}
+
+/* ---------- الجرس ---------- */
+
+.bell-wrap {
+  position: relative;
+}
+
+.bell {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--border-light);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.bell:hover,
+.bell.open {
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+}
+
+.bell svg {
+  width: 21px;
+  height: 21px;
+  transform-origin: 50% 10%;
+}
+
+/* عدد غير المقروء: كبسولة حمراء صغيرة على طرف الجرس */
+.bell-count {
+  position: absolute;
+  top: -3px;
+  inset-inline-end: -3px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border: 2px solid var(--bg);
+  border-radius: var(--radius-pill);
+  background: var(--danger);
+  color: var(--surface);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 15px;
+  text-align: center;
+}
+
+/* الرنين: هزّة قصيرة حين يصل إشعار — مرة واحدة، لا وميض متواصل */
+.bell.ringing svg {
+  animation: bell-ring 1.2s ease-in-out;
+}
+
+@keyframes bell-ring {
+  0%, 100% { transform: rotate(0); }
+  10% { transform: rotate(16deg); }
+  20% { transform: rotate(-14deg); }
+  30% { transform: rotate(11deg); }
+  40% { transform: rotate(-8deg); }
+  50% { transform: rotate(5deg); }
+  60% { transform: rotate(-2deg); }
+}
+
+/* ---------- النافذة ---------- */
+
+.bell-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  inset-inline-end: 0;
+  z-index: 80;
+  width: min(380px, calc(100vw - 24px));
+  max-height: min(560px, calc(100vh - 120px));
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 22px;
+  box-shadow: var(--shadow-pop);
+  overflow: hidden;
+  animation: bell-in .18s ease-out;
+}
+
+@keyframes bell-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.bell-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px 18px 12px;
+  border-bottom: 1.5px solid var(--text);
+  margin: 0 4px;
+}
+
+.bell-head h2 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+}
+
+.bell-readall {
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 0;
+}
+
+.bell-loading {
+  margin: 0;
+  padding: 24px 18px;
+  color: var(--text-soft);
+  font-size: var(--fs-sm);
+}
+
+.bell-empty {
+  padding: 32px 20px;
+}
+
+.bell-empty small {
+  font-family: var(--font);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--text-soft);
+}
+
+.bell-list {
+  overflow-y: auto;
+  padding: 0 18px 10px;
+}
+
+.bell-day {
+  margin: 14px 0 0;
+  padding-bottom: 6px;
+  font-family: var(--font);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.bell-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bell-list li + li {
+  border-top: 1px solid var(--border);
+}
+
+.bell-item {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: start;
+  gap: 10px;
+  padding: 12px 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.bell-item:hover .bell-text b {
+  color: var(--primary);
+}
+
+.bell-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--neutral);
+  color: var(--text-muted);
+}
+
+.bell-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ألوان الفترات نفسها: لكل نوع لون ثابت */
+.bell-icon.dose {
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+}
+
+.bell-icon.appointment {
+  background: var(--evening-soft);
+  color: var(--text);
+}
+
+.bell-icon.refill {
+  background: var(--noon-soft);
+  color: var(--text);
+}
+
+.bell-text {
+  min-width: 0;
+}
+
+.bell-text b {
+  display: block;
+  font-size: var(--fs-base);
+  font-weight: 500;
+}
+
+.bell-text span {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-sm);
+  line-height: 1.6;
+  color: var(--text-soft);
+}
+
+.bell-time {
+  padding-top: 2px;
+  font-size: var(--fs-xs);
+  color: var(--text-faint);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* غير المقروء: عنوان أثقل ونقطة فيروزية قبل الوقت */
+.bell-item.unread .bell-text b {
+  font-weight: 700;
+}
+
+.bell-item.unread .bell-time {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.bell-item.unread .bell-time::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-inline-end: 5px;
+  border-radius: 50%;
+  background: var(--primary);
+  vertical-align: middle;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bell.ringing svg,
+  .bell-panel {
+    animation: none;
+  }
+}

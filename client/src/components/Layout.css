@@ -197,7 +197,18 @@
    ============================================================ */
 
 @media (min-width: 1024px) {
+  /* الاسم صار في رأس الشريط الجانبي؛ الشريط العلوي يبقى للزاوية فقط
+     (اسم الحساب والجرس)، شفافاً بلا خط */
   .top-bar {
+    justify-content: flex-end;
+    padding: 16px 28px 0;
+    background: transparent;
+    backdrop-filter: none;
+    border-bottom: none;
+    position: relative;
+  }
+
+  .top-bar .brand {
     display: none;
   }
 
