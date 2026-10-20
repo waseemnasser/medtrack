@@ -6,10 +6,18 @@ import { formatDate, formatTime } from "../utils/format";
 import "./Share.css";
 
 // مدة صلاحية الرابط — الخادم يقبل أي عدد ساعات
+// الرقم كبير بخط العرض، والوحدة تحته
 const DURATIONS = [
-    { hours: 24, label: "يوم واحد" },
-    { hours: 72, label: "٣ أيام" },
-    { hours: 168, label: "أسبوع" },
+    { hours: 24, num: "١", unit: "يوم" },
+    { hours: 72, num: "٣", unit: "أيام" },
+    { hours: 168, num: "٧", unit: "أيام" },
+];
+
+// ما يراه الطبيب — قائمة مرقّمة كمزايا الصفحة التعريفية
+const SEES = [
+    ["الأدوية الحالية", "وأوقات جرعاتها، والمادة الفعّالة لكل دواء."],
+    ["الحساسية والأمراض المزمنة", "الحساسية أولاً وبالأحمر، مع شدّتها ونوع التفاعل."],
+    ["سجل الجرعات والمواعيد", "آخر الجرعات المؤكَّدة، والمواعيد القادمة."],
 ];
 
 export default function SharePage() {
@@ -78,24 +86,38 @@ export default function SharePage() {
 
             {!link ? (
                 <>
-                    <div className="share-hero">
-                        <h2>{member ? `ملف ${member.name}` : "ملف الفرد"}</h2>
+                    {/* بلا صندوق: عنوان كبير وسطر شرح — أسلوب الصفحة التعريفية */}
+                    <header className="share-intro">
+                        <span className="kicker">{member ? `ملف ${member.name}` : "ملف الفرد"}</span>
+                        <h2>رابط مؤقّت للطبيب.</h2>
                         <p>
-                            أنشئ رابطاً مؤقتاً يفتحه الطبيب على هاتفه بلا حساب ولا تطبيق.
-                            ينتهي تلقائياً، ولا يمكن تعديل أي شيء من خلاله.
+                            يفتحه الطبيب على هاتفه بلا حساب ولا تطبيق. للقراءة فقط،
+                            وينتهي وحده في الموعد الذي تختاره.
                         </p>
-                    </div>
+                    </header>
 
                     <h3 className="section-title">ماذا سيرى الطبيب؟</h3>
-                    <ul className="share-list">
-                        <li>الأدوية الحالية وأوقات جرعاتها</li>
-                        <li>الأمراض المزمنة والحساسية</li>
-                        <li>سجل تأكيد الجرعات والمواعيد القادمة</li>
-                        <li className="hidden-item">الأدوية المعلّمة «خاصة» لا تظهر أبداً</li>
-                    </ul>
+                    <ol className="share-sees">
+                        {SEES.map(([title, text], i) => (
+                            <li key={title}>
+                                <span className="share-num">{String(i + 1).padStart(2, "0")}</span>
+                                <div>
+                                    <b>{title}</b>
+                                    <span>{text}</span>
+                                </div>
+                            </li>
+                        ))}
+                        <li className="hidden-item">
+                            <span className="share-num">—</span>
+                            <div>
+                                <b>الأدوية الخاصة لا تظهر</b>
+                                <span>ما علّمته «خاصاً» يبقى عندك، في الرابط وفي سجل الجرعات.</span>
+                            </div>
+                        </li>
+                    </ol>
 
                     <h3 className="section-title">مدة صلاحية الرابط</h3>
-                    <div className="segmented" role="radiogroup" aria-label="مدة صلاحية الرابط">
+                    <div className="share-durations" role="radiogroup" aria-label="مدة صلاحية الرابط">
                         {DURATIONS.map((d) => (
                             <button
                                 key={d.hours}
@@ -105,7 +127,8 @@ export default function SharePage() {
                                 className={hours === d.hours ? "on" : ""}
                                 onClick={() => setHours(d.hours)}
                             >
-                                {d.label}
+                                <b>{d.num}</b>
+                                <span>{d.unit}</span>
                             </button>
                         ))}
                     </div>
@@ -117,32 +140,38 @@ export default function SharePage() {
                     </button>
                 </>
             ) : (
-                <div className="share-result">
-                    <div className="qr-frame">
-                        <img src={link.qr_data_url} alt="رمز QR لرابط الملف" className="qr" />
-                    </div>
-                    <p className="qr-caption">اطلب من الطبيب مسح الرمز بكاميرا هاتفه</p>
+                /* تذكرة كتذكرة الصفحة التعريفية: الرابط في الجزء الرئيسي،
+                   ورمز QR على الكعب المثقّب */
+                <div className="share-ticket">
+                    <div className="share-ticket-main">
+                        <span className="kicker">{member ? `رابط ملف ${member.name}` : "رابط الملف"}</span>
+                        <p className="share-expiry">
+                            <small>صالح حتى</small>
+                            {expiry(link.expires_at)}
+                        </p>
 
-                    <div className="link-box">{link.url}</div>
+                        <div className="link-box">{link.url}</div>
 
-                    {error && <div className="error">{error}</div>}
+                        {error && <div className="error">{error}</div>}
 
-                    <div className="share-actions">
-                        <button className="btn-primary" onClick={copy}>
-                            {copied ? "تم نسخ الرابط ✓" : "نسخ الرابط"}
+                        <div className="share-actions">
+                            <button className="btn-primary" onClick={copy}>
+                                {copied ? "تم نسخ الرابط ✓" : "نسخ الرابط"}
+                            </button>
+                            {canShare && (
+                                <button className="btn-outline" onClick={share}>إرسال…</button>
+                            )}
+                        </div>
+
+                        <button type="button" className="share-again" onClick={() => setLink(null)}>
+                            إنشاء رابط بمدة أخرى
                         </button>
-                        {canShare && (
-                            <button className="btn-outline" onClick={share}>إرسال…</button>
-                        )}
                     </div>
 
-                    <p className="expiry">
-                        <span className="chip">ينتهي في {expiry(link.expires_at)}</span>
-                    </p>
-
-                    <button type="button" className="share-again" onClick={() => setLink(null)}>
-                        إنشاء رابط بمدة أخرى
-                    </button>
+                    <div className="share-ticket-stub">
+                        <img src={link.qr_data_url} alt="رمز QR لرابط الملف" className="qr" />
+                        <p className="qr-caption">يمسحه الطبيب بكاميرا هاتفه</p>
+                    </div>
                 </div>
             )}
         </div>

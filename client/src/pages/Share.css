@@ -1,116 +1,188 @@
 /* ============================================================
    صفحة المشاركة مع الطبيب
    ------------------------------------------------------------
-   خطوتان: (١) نشرح ما سيراه الطبيب ونختار مدة الرابط،
-   (٢) نعرض رمز QR والرابط مع زر نسخ وإرسال.
+   بأسلوب الصفحة التعريفية. خطوتان:
+   (١) عنوان كبير، قائمة مرقّمة بما سيراه الطبيب، واختيار المدة،
+   (٢) تذكرة: الرابط في الجزء الرئيسي، ورمز QR على الكعب المثقّب.
    ============================================================ */
 
 /* ---------- الخطوة الأولى ---------- */
 
-.share-hero {
-  background: var(--primary-soft);
-  border-radius: var(--radius);
-  padding: 20px;
-}
-
-.share-hero h2 {
+.share-intro h2 {
   margin: 0;
-  font-size: var(--fs-xl);
-  font-weight: 600;
-  color: var(--primary-deep);
+  font-size: var(--fs-2xl);
+  font-weight: 800;
+  line-height: 1.2;
 }
 
-.share-hero p {
-  margin: 6px 0 0;
+.share-intro p {
+  margin: 12px 0 0;
+  max-width: 480px;
   font-size: var(--fs-base);
-  line-height: 1.8;
+  line-height: 1.85;
   color: var(--text-muted);
 }
 
-/* قائمة «ماذا سيرى الطبيب» بعلامات صح */
-.share-list {
+/* ما سيراه الطبيب: أرقام فيروزية وخطوط فاصلة */
+.share-sees {
   list-style: none;
   margin: 0;
-  padding: 4px 18px;
-  background: var(--surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-md);
+  padding: 0;
 }
 
-.share-list li {
-  display: flex;
-  align-items: center;
+.share-sees li {
+  display: grid;
+  grid-template-columns: 44px 1fr;
   gap: 10px;
-  padding: 11px 0;
-  font-size: var(--fs-base);
-  border-bottom: 1px solid var(--border-faint);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
 }
 
-.share-list li:last-child {
-  border-bottom: none;
-}
-
-.share-list li::before {
-  content: "✓";
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: var(--primary-soft);
+.share-num {
+  padding-top: 2px;
+  font-family: var(--display);
+  font-size: var(--fs-sm);
+  font-weight: 600;
   color: var(--primary);
-  font-size: 13px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-variant-numeric: tabular-nums;
 }
 
-/* ما لا يظهر للطبيب: علامة منع بدل الصح */
-.share-list li.hidden-item {
+.share-sees b {
+  display: block;
+  font-family: var(--display);
+  font-size: var(--fs-md);
+  font-weight: 600;
+}
+
+.share-sees span:not(.share-num) {
+  display: block;
+  margin-top: 3px;
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
+/* ما لا يظهر للطبيب: لون الخصوصية الهادئ */
+.share-sees li.hidden-item .share-num,
+.share-sees li.hidden-item b {
+  color: var(--private);
+}
+
+/* المدة: ثلاث خانات بأرقام كبيرة، مثل حقائق ترويسة الملف */
+.share-durations {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: var(--gap-lg);
+}
+
+.share-durations button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-height: calc(var(--tap) + 30px);
+  padding: 10px 6px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+
+.share-durations button:hover {
+  border-color: var(--text);
+}
+
+.share-durations b {
+  font-family: var(--display);
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.share-durations span {
+  font-size: var(--fs-sm);
   color: var(--text-soft);
 }
 
-.share-list li.hidden-item::before {
-  content: "—";
-  background: var(--private-soft);
-  color: var(--private);
+.share-durations button.on {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.share-durations button.on b {
+  color: var(--primary);
 }
 
 .share-create {
   width: 100%;
 }
 
-/* ---------- الخطوة الثانية: النتيجة ---------- */
+/* ---------- الخطوة الثانية: التذكرة ---------- */
 
-.share-result {
+/* على الهاتف: الكعب فوق والخط المثقّب أفقي. على الحاسوب: جنباً إلى جنب */
+.share-ticket {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: var(--surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius);
-  padding: 24px 20px;
+  flex-direction: column-reverse;
+  filter: drop-shadow(var(--shadow-lg));
   animation: page-in .3s ease-out;
 }
 
-/* إطار رمز QR — يمسحه الطبيب بكاميرا هاتفه */
-.qr-frame {
-  padding: 10px;
-  border-radius: var(--radius-md);
-  border: 2px solid var(--primary-soft);
+.share-ticket-main,
+.share-ticket-stub {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+}
+
+.share-ticket-main {
+  flex: 1;
+  min-width: 0;
+  padding: 22px 20px;
+  border-top: none;
+  border-radius: 0 0 24px 24px;
+}
+
+.share-ticket-stub {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 20px 18px;
+  border-bottom: 2px dashed var(--border);
+  border-radius: 24px 24px 0 0;
 }
 
 .qr {
   display: block;
-  width: 210px;
-  height: 210px;
+  width: 200px;
+  height: 200px;
+  border-radius: var(--radius-sm);
 }
 
 .qr-caption {
-  font-size: var(--fs-base);
-  color: var(--text-soft);
-  margin: 12px 0 16px;
+  margin: 10px 0 0;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--primary);
   text-align: center;
+}
+
+/* تاريخ الانتهاء بخط العرض: أهم ما في التذكرة بعد الرمز */
+.share-expiry {
+  margin: 4px 0 16px;
+  font-family: var(--display);
+  font-size: var(--fs-xl);
+  font-weight: 700;
+}
+
+.share-expiry small {
+  display: block;
+  font-family: var(--font);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--text-soft);
 }
 
 /* صندوق الرابط — اتجاهه من اليسار لليمين لأنه نص لاتيني */
@@ -123,7 +195,6 @@
   word-break: break-all;
   direction: ltr;
   text-align: left;
-  width: 100%;
   margin-bottom: var(--gap);
   user-select: all;
 }
@@ -131,7 +202,6 @@
 .share-actions {
   display: flex;
   gap: var(--gap-sm);
-  width: 100%;
 }
 
 .share-actions .btn-primary {
@@ -142,13 +212,10 @@
   min-height: var(--tap);
 }
 
-.expiry {
-  margin: 16px 0 0;
-}
-
 .share-again {
   margin-top: 10px;
   min-height: var(--tap-sm);
+  padding: 0;
   background: none;
   border: none;
   color: var(--primary);
@@ -158,8 +225,30 @@
   cursor: pointer;
 }
 
+@media (min-width: 640px) {
+  .share-ticket {
+    flex-direction: row;
+  }
+
+  /* في RTL الجزء الرئيسي على اليمين، والكعب على اليسار */
+  .share-ticket-main {
+    border-top: 1px solid var(--border-light);
+    border-inline-end: none;
+    border-radius: 0 24px 24px 0;
+  }
+
+  .share-ticket-stub {
+    justify-content: center;
+    width: 250px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--border-light);
+    border-inline-start: 2px dashed var(--border);
+    border-radius: 24px 0 0 24px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .share-result {
+  .share-ticket {
     animation: none;
   }
 }
