@@ -1,4 +1,4 @@
-// اختبارات فحص الحساسية — تشغيلها: npm test (من مجلد server)
+// اختبارات فحص الحساسية وتقرير الالتزام — تشغيلها: npm test (من مجلد server)
 // ----------------------------------------------------------------
 // أزواج معروفة (حساسية ← دواء ← النتيجة المتوقعة) تُفحص على قاعدة
 // البيانات الحقيقية والكتالوغ الحقيقي. أي تعديل يكسر حالة منها يظهر هنا
@@ -10,6 +10,7 @@ const pool = require("../db");
 const migrate = require("../migrate");
 const { canonical, parseIngredients } = require("../ingredients");
 const { replaceAllergies, checkIngredients, memberConflicts } = require("../allergy");
+const { adherence } = require("../adherence");
 
 // ---------- توحيد أسماء المواد (بلا قاعدة بيانات) ----------
 
@@ -117,6 +118,46 @@ describe("allergy check against the real catalog", () => {
         await replaceAllergies(pool, memberId, [{ note: "غبار" }, { ingredient_id: ing.IBUPROFEN }]);
         const { unchecked } = await checkIngredients(pool, memberId, ids("PARACETAMOL"));
         assert.deepEqual(unchecked, ["غبار"]);
+    });
+
+    // ---------- تقرير الالتزام ----------
+    // دواء مرة يومياً ٨:٠٠، من ثلاثة أيام حتى أمس: ٣ جرعات مستحقة كلها في الماضي
+    test("adherence counts due, taken and on-time doses", async () => {
+        const med = await pool.query(
+            `INSERT INTO medications (member_id, name, start_date, end_date)
+             VALUES ($1, 'اختبار الالتزام', CURRENT_DATE - 3, CURRENT_DATE - 1) RETURNING id`,
+            [memberId]
+        );
+        const id = med.rows[0].id;
+        await pool.query("INSERT INTO dose_schedules (medication_id, time_of_day, days_of_week) VALUES ($1, '08:00', '1234567')", [id]);
+        // قبل ثلاثة أيام: في وقتها. قبل يومين: متأخرة ثلاث ساعات. أمس: لم تُؤخذ
+        await pool.query(
+            `INSERT INTO dose_logs (medication_id, scheduled_at, confirmed_at, status) VALUES
+             ($1, (CURRENT_DATE - 3) + time '08:00', (CURRENT_DATE - 3) + time '08:10', 'taken'),
+             ($1, (CURRENT_DATE - 2) + time '08:00', (CURRENT_DATE - 2) + time '11:00', 'taken')`,
+            [id]
+        );
+        const r = await adherence(pool, memberId, 7);
+        const m = r.medications.find((x) => x.id === id);
+        assert.deepEqual([m.scheduled, m.taken, m.percent], [3, 2, 67]);
+        assert.equal(r.on_time, 1);
+        // أيام خارج فترة الدواء لا جرعات فيها؛ الشريط يضم كل أيام الفترة
+        assert.equal(r.daily.length, 7);
+        await pool.query("DELETE FROM medications WHERE id = $1", [id]);
+    });
+
+    test("private medicines are left out for the doctor", async () => {
+        const med = await pool.query(
+            `INSERT INTO medications (member_id, name, start_date, end_date, is_private)
+             VALUES ($1, 'دواء خاص', CURRENT_DATE - 2, CURRENT_DATE - 1, TRUE) RETURNING id`,
+            [memberId]
+        );
+        await pool.query("INSERT INTO dose_schedules (medication_id, time_of_day, days_of_week) VALUES ($1, '08:00', '1234567')", [med.rows[0].id]);
+        const owner = await adherence(pool, memberId, 7);
+        const doctor = await adherence(pool, memberId, 7, { includePrivate: false });
+        assert.ok(owner.medications.some((x) => x.id === med.rows[0].id));
+        assert.ok(!doctor.medications.some((x) => x.id === med.rows[0].id));
+        await pool.query("DELETE FROM medications WHERE id = $1", [med.rows[0].id]);
     });
 
     test("an allergy added later flags medicines already taken", async () => {
