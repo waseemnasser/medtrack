@@ -4,6 +4,7 @@ const QRCode = require("qrcode");
 const pool = require("../db");
 const { listAllergies } = require("../allergy");
 const { shareLimiter } = require("../security");
+const { adherence } = require("../adherence");
 const auth = require("../middleware/auth");
 
 const router = express.Router();
@@ -119,6 +120,8 @@ router.get("/:token", shareLimiter, async (req, res) => {
         res.json({
             member: member.rows[0],
             allergies,
+            // الالتزام آخر ٣٠ يوماً، بلا الأدوية الخاصة
+            adherence: await adherence(pool, memberId, 30, { includePrivate: false }),
             medications: meds.rows,
             upcoming_appointments: appts.rows,
             self_reported_confirmations: logs.rows,

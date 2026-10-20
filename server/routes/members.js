@@ -2,6 +2,7 @@ const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
 const { listAllergies, replaceAllergies, memberConflicts } = require("../allergy");
+const { adherence } = require("../adherence");
 
 const router = express.Router();
 router.use(auth);
@@ -70,6 +71,17 @@ router.put("/:id/allergies", async (req, res) => {
             allergies: await listAllergies(pool, member.id),
             conflicts: await memberConflicts(pool, member.id, member.name),
         });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// تقرير الالتزام بالجرعات: آخر ٧ أو ٣٠ يوماً (adherence.js)
+router.get("/:id/adherence", async (req, res) => {
+    try {
+        const member = await ownedMember(req.params.id, req.userId);
+        if (!member) return res.status(404).json({ error: "الفرد غير موجود" });
+        res.json(await adherence(pool, member.id, req.query.days));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
