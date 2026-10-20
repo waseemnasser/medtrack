@@ -127,7 +127,7 @@ export default function Today() {
             )}
             <div className="page-head">
                 <div>
-                    <p className="today-date">{formatDate(date)}</p>
+                    <p className="kicker today-date">{formatDate(date)}</p>
                     <h1>جرعات اليوم</h1>
                 </div>
             </div>
@@ -212,6 +212,11 @@ export default function Today() {
                                                 key={d.schedule_id}
                                                 style={{ "--i": i }}
                                             >
+                                                {/* الوقت أولاً وبخط كبير — أول ما تبحث عنه العين */}
+                                                <span className="dose-clock">
+                                                    {timeParts(d.time_of_day).clock}
+                                                    <small>{timeParts(d.time_of_day).suffix}</small>
+                                                </span>
                                                 <span className={`dose-marker ${period.key}`} aria-hidden="true" />
                                                 <div className="dose-info">
                                                     <h3>
@@ -220,8 +225,6 @@ export default function Today() {
                                                         {late && <span className="badge-late">متأخرة</span>}
                                                     </h3>
                                                     <p className="muted">
-                                                        <span className="dose-time">{formatTime(d.time_of_day)}</span>
-                                                        {" · "}
                                                         <Link to={`/members/${d.member_id}`} className="member-link">{d.member_name}</Link>
                                                         {d.instructions && ` · ${d.instructions}`}
                                                     </p>

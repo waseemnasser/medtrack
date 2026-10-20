@@ -11,11 +11,9 @@
    والأحمر (تأخّرت). كل شيء آخر حبر على ورق.
    ============================================================ */
 
-/* التاريخ فوق العنوان */
+/* التاريخ فوق العنوان — بأسلوب «الكيكر» (base.css) */
 .today-date {
-  margin: 0 0 2px;
-  color: var(--text-soft);
-  font-size: var(--fs-sm);
+  margin-bottom: 4px;
 }
 
 /* ---------- بطاقة الجرعة التالية ---------- */
@@ -68,6 +66,7 @@
 
 /* الوقت — يُقرأ من بعيد، فهو أول ما تبحث عنه العين */
 .next-time {
+  font-family: var(--display);
   font-size: var(--fs-hero);
   font-weight: 700;
   line-height: 1;
@@ -79,6 +78,7 @@
 }
 
 .next-dose h3 {
+  font-family: var(--font);
   margin: 10px 0 0;
   font-size: var(--fs-lg);
   font-weight: 600;
@@ -197,18 +197,22 @@
   gap: 4px;
 }
 
+/* قطعة لكل جرعة بشكل كبسولة، مثل خانات علبة الأسبوع */
 .seg {
   flex: 1;
-  height: 8px;
+  height: 10px;
   border-radius: var(--radius-pill);
   background: var(--border-light);
   transition: background .3s;
 }
 
 .day-progress-label {
+  font-family: var(--display);
   font-size: var(--fs-sm);
-  color: var(--text-soft);
+  font-weight: 600;
+  color: var(--text-muted);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- ألوان الفترات ---------- */
@@ -240,22 +244,33 @@
   margin-top: var(--gap-lg);
 }
 
-/* «الصباح» «الظهر» «المساء» مع كبسولة لونها */
+/* «الصباح» «الظهر» «المساء»: عنوان بخط العرض، وتحته خط داكن،
+   وبجانبه حبّة دواء مائلة بلونين — كبسولات الصفحة التعريفية */
 .period-title {
   display: flex;
   align-items: center;
-  gap: var(--gap-sm);
-  font-size: var(--fs-base);
-  font-weight: 600;
+  gap: 10px;
+  font-size: var(--fs-lg);
+  font-weight: 700;
   color: var(--text);
-  margin: 0 0 4px;
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 1.5px solid var(--text);
 }
 
 .period-swatch {
-  width: 18px;
-  height: 8px;
+  width: 26px;
+  height: 12px;
   border-radius: var(--radius-pill);
   flex-shrink: 0;
+  border: 1px solid var(--border);
+  transform: rotate(-20deg);
+}
+
+/* نصف الحبّة فاتح، والنصف الآخر بلون الفترة. محدِّد أقوى من قواعد
+   الألوان أعلاه، لأن «background» هناك يمسح الصورة */
+.period-title .period-swatch {
+  background-image: linear-gradient(90deg, var(--surface-alt) 50%, transparent 50%);
 }
 
 /* ---------- صف الجرعة ---------- */
@@ -264,8 +279,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border-light);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
 }
 
 /* الخط الملوّن على طرف الصف: الفترة بلمحة */
@@ -277,13 +292,43 @@
   flex-shrink: 0;
 }
 
+/* عمود الوقت: أرقام بخط العرض بعرض ثابت، فتصطف الأوقات تحت بعضها */
+.dose-clock {
+  flex-shrink: 0;
+  min-width: 3.6em;
+  font-family: var(--display);
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.dose-clock small {
+  display: block;
+  font-family: var(--font);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--text-soft);
+}
+
+.dose-row.late .dose-clock {
+  color: var(--danger);
+}
+
+.dose-row.taken .dose-clock {
+  color: var(--text-faint);
+}
+
 .dose-info {
   flex: 1;
   min-width: 0;
 }
 
+/* اسم الدواء بخط النص: الوقت وحده بخط العرض حتى يبرز */
 .dose-row h3 {
   margin: 0;
+  font-family: var(--font);
   font-size: var(--fs-lg);
   font-weight: 600;
 }
