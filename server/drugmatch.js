@@ -60,7 +60,7 @@ let catalog = null; // يُحمَّل مرة واحدة عند أول بحث ع�
 async function loadCatalog() {
     if (catalog) return catalog;
     const rows = (await pool.query(
-        "SELECT id, brand_name, active_ingredient, strength, form FROM medicines_catalog"
+        "SELECT id, brand_name, name_ar, active_ingredient, strength, form FROM medicines_catalog"
     )).rows;
     catalog = rows.map((r) => ({
         row: r,

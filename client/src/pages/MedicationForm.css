@@ -63,6 +63,14 @@
   background: var(--primary-soft);
 }
 
+/* الاسم الإنجليزي بجانب العربي، أصغر وأهدأ — هو الاسم المكتوب على العلبة */
+.search-results .result-latin {
+  margin-inline-start: 8px;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--text-soft);
+}
+
 /* المادة الفعّالة والعيار تحت الاسم التجاري */
 .search-results li span {
   font-size: var(--fs-sm);

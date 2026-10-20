@@ -262,7 +262,10 @@ export default function MedicationForm() {
                         <ul className="search-results">
                             {results.map((r) => (
                                 <li key={r.id} onClick={() => pickFromCatalog(r)}>
-                                    <strong>{r.brand_name}</strong>
+                                    <strong>
+                                        {r.name_ar || r.brand_name}
+                                        {r.name_ar && <bdi dir="ltr" className="result-latin">{r.brand_name}</bdi>}
+                                    </strong>
                                     <span>{r.active_ingredient} {r.strength && `— ${r.strength}`}</span>
                                 </li>
                             ))}
