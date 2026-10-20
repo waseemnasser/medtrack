@@ -1,261 +1,161 @@
 /* ============================================================
-   صفحتا تسجيل الدخول وإنشاء الحساب
+   صفحتا الدخول وإنشاء الحساب
    ------------------------------------------------------------
-   الهاتف: ترويسة فيروزية بالعلامة والاسم، والنموذج تحتها.
-   الحاسوب (من 900px): لوحة الهوية على اليمين والنموذج على اليسار.
-
-   هاتان الصفحتان خارج هيكل التطبيق: لا شريط علوي ولا سفلي.
-   الهيكل نفسه في components/AuthLayout.jsx
+   بأسلوب الصفحة التعريفية: ورق كريمي، عنوان كبير بخط Alexandria،
+   مزايا مرقّمة بخطوط فاصلة، والنموذج بطاقة بجانبه.
+   على الهاتف: العنوان ثم النموذج، والمزايا مخفية لتقصير الطريق.
    ============================================================ */
 
 .auth-shell {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: var(--bg);
   color: var(--text);
-  display: flex;
-  flex-direction: column;
 }
 
-/* ---------- لوحة الهوية ---------- */
+/* ---------- الشريط العلوي ---------- */
 
-.auth-panel {
-  position: relative;
-  overflow: hidden;
-  background: var(--primary);
-  color: var(--on-primary);
-  border-radius: 0 0 32px 32px;
-  padding: 28px 24px 36px;
+.auth-bar {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-}
-
-/* ---------- الشريط أعلى اللوحة: رجوع ومظهر ---------- */
-
-.auth-top {
-  align-self: stretch;
-  display: flex;
   justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 14px 20px;
+}
+
+.auth-brand {
+  display: inline-flex;
   align-items: center;
-  margin-bottom: 4px;
+  gap: 9px;
+  font-family: var(--display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.auth-bar-end {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .auth-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-height: 44px;
-  padding: 0 14px 0 10px;
+  padding: 8px 14px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, .14);
-  color: var(--on-primary);
-  font-size: var(--fs-base);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
   font-weight: 600;
   text-decoration: none;
-  transition: background .15s;
 }
 
 .auth-back:hover {
-  background: rgba(255, 255, 255, .24);
+  background: var(--surface-alt);
+  color: var(--text);
 }
 
-.auth-back svg {
-  width: 20px;
-  height: 20px;
+/* ---------- العنوان ---------- */
+
+.auth-grid {
+  flex: 1;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 16px 20px 40px;
+  display: grid;
+  gap: 28px;
+  align-content: start;
 }
 
-/* زر المظهر فوق الفيروزي */
-.theme-toggle.on-panel {
-  border-color: transparent;
-  background: rgba(255, 255, 255, .14);
-  color: var(--on-primary);
+.auth-kicker {
+  margin: 0 0 10px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--primary);
 }
 
-.theme-toggle.on-panel:hover {
-  background: rgba(255, 255, 255, .24);
-  color: var(--on-primary);
+.auth-headline {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(36px, 8vw, 64px);
+  font-weight: 800;
+  line-height: 1.2;
+  text-wrap: balance;
 }
 
-/* ---------- العلامة والموجة ---------- */
-
-.auth-mark {
-  position: relative;
-  border-radius: 50%;
-  width: 150px;
-  height: 150px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.auth-lead {
+  margin: 22px 0 0;
+  max-width: 420px;
+  font-size: var(--fs-md);
+  line-height: 1.8;
+  color: var(--text-muted);
 }
 
-.auth-mark svg {
-  position: relative;
-  width: 92px;
-  height: 92px;
-}
+/* ---------- المزايا المرقّمة (الحاسوب فقط) ---------- */
 
-/* الموجة: الاطمئنان ينتشر. ثلاث حلقات متتابعة،
-   دورة كل خمس ثوانٍ — بطيئة بما يكفي لتكون مهدّئة */
-.auth-ring {
-  position: absolute;
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, .55);
-  opacity: 0;
-  animation: auth-spread 5s cubic-bezier(.2, .6, .3, 1) infinite;
-}
-
-.auth-ring.b {
-  animation-delay: 1.65s;
-}
-
-.auth-ring.c {
-  animation-delay: 3.3s;
-}
-
-@keyframes auth-spread {
-  0% {
-    transform: scale(.52);
-    opacity: 0;
-  }
-
-  12% {
-    opacity: .6;
-  }
-
-  100% {
-    transform: scale(2.05);
-    opacity: 0;
-  }
-}
-
-/* الفقاعة تتنفّس مع الموجة */
-.auth-bubble {
-  animation: auth-breathe 5s ease-in-out infinite;
-  transform-origin: center;
-}
-
-@keyframes auth-breathe {
-
-  0%,
-  100% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.035);
-  }
-}
-
-/* علامة الصح ترتسم مرة واحدة عند فتح الصفحة */
-.auth-tick {
-  stroke-dasharray: 60;
-  stroke-dashoffset: 60;
-  animation: auth-draw .65s ease-out .45s forwards;
-}
-
-@keyframes auth-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* ---------- الاسم والشعار ---------- */
-
-.auth-name {
-  margin: 4px 0 0;
-  font-size: 44px;
-  font-weight: 700;
-  line-height: 1.1;
-  color: var(--on-primary);
-}
-
-.auth-tagline {
-  margin: 8px 0 0;
-  font-size: var(--fs-lg);
-  font-weight: 500;
-  color: var(--on-primary-soft);
-}
-
-/* ثلاث مزايا — تظهر على الحاسوب فقط، الهاتف يحتاج النموذج أولاً */
-.auth-features {
+.auth-points {
   display: none;
   list-style: none;
   margin: 36px 0 0;
   padding: 0;
-  text-align: start;
+  max-width: 440px;
+  border-top: 1.5px solid var(--text);
 }
 
-.auth-features li {
-  display: flex;
-  align-items: center;
+.auth-points li {
+  display: grid;
+  grid-template-columns: 48px 1fr;
   gap: 12px;
-  padding: 9px 0;
-  font-size: var(--fs-md);
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
 }
 
-.auth-dot {
-  width: 22px;
-  height: 10px;
-  flex-shrink: 0;
-  border-radius: var(--radius-pill);
+.auth-num {
+  padding-top: 2px;
+  font-family: var(--display);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
 }
 
-.auth-dot.morning {
-  background: var(--morning);
+.auth-points b {
+  display: block;
+  font-family: var(--display);
+  font-size: var(--fs-lg);
+  font-weight: 600;
 }
 
-.auth-dot.noon {
-  background: var(--noon);
+.auth-points span:not(.auth-num) {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+  color: var(--text-muted);
 }
 
-.auth-dot.evening {
-  background: var(--evening);
-}
-
-/* ---------- عمود النموذج ---------- */
+/* ---------- النموذج ---------- */
 
 .auth-main {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  padding: 0 16px 40px;
-}
-
-.auth-col {
-  width: 100%;
-  max-width: 420px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* البطاقة تصعد قليلاً فوق الترويسة على الهاتف */
 .auth-form {
   width: 100%;
-  margin-top: -20px;
-  position: relative;
+  max-width: 440px;
   padding: 26px 22px 24px;
   background: var(--surface);
   border: 1px solid var(--border-light);
-  border-radius: var(--radius);
+  border-radius: 24px;
   box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
-}
-
-.auth-title {
-  margin: 0;
-  font-size: var(--fs-xl);
-  font-weight: 700;
-}
-
-.auth-sub {
-  margin: 4px 0 22px;
-  font-size: var(--fs-base);
-  color: var(--text-soft);
 }
 
 .auth-form label {
@@ -417,74 +317,35 @@
 /* ---------- الحاسوب: عمودان ---------- */
 
 @media (min-width: 900px) {
-  .auth-shell {
-    flex-direction: row;
-    padding: 16px;
-    gap: 16px;
+  .auth-grid {
+    grid-template-columns: 1.1fr 1fr;
+    gap: 64px;
+    align-content: center;
+    align-items: center;
+    padding-top: 24px;
   }
 
-  .auth-top {
-    position: absolute;
-    top: 24px;
-    inset-inline: 24px;
-  }
-
-  .auth-panel {
-    flex: 0 0 44%;
-    max-width: 560px;
-    border-radius: 32px;
-    justify-content: center;
-    padding: 48px;
-  }
-
-  .auth-mark {
-    width: 200px;
-    height: 200px;
-  }
-
-  .auth-mark svg {
-    width: 120px;
-    height: 120px;
-  }
-
-  .auth-ring {
-    width: 124px;
-    height: 124px;
-  }
-
-  .auth-name {
-    font-size: 56px;
-  }
-
-  .auth-features {
+  .auth-points {
     display: block;
   }
 
   .auth-main {
-    align-items: center;
-    padding: 32px;
+    align-items: stretch;
   }
 
   .auth-form {
-    margin-top: 0;
-    padding: 34px 32px 30px;
-    box-shadow: none;
+    padding: 32px 30px 28px;
   }
 }
 
-/* ---------- دخول العناصر ---------- */
+/* ---------- ظهور هادئ عند الفتح ---------- */
 
 .auth-rise {
-  opacity: 0;
-  animation: auth-rise .7s ease-out forwards;
-}
-
-.auth-rise.d1 {
-  animation-delay: .55s;
+  animation: auth-rise .5s cubic-bezier(.2, .8, .2, 1) both;
 }
 
 .auth-rise.d2 {
-  animation-delay: .7s;
+  animation-delay: .08s;
 }
 
 @keyframes auth-rise {
@@ -492,44 +353,10 @@
     opacity: 0;
     transform: translateY(14px);
   }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
-/* ---------- احترام تفضيل تقليل الحركة ---------- */
-
-/* بعض المستخدمين يعطّلون الحركة في نظامهم لأسباب صحية.
-   نحترم ذلك ونعرض الشكل النهائي ساكناً. */
 @media (prefers-reduced-motion: reduce) {
-  .auth-ring {
-    animation: none;
-    opacity: .26;
-  }
-
-  .auth-ring.b {
-    transform: scale(1.5);
-    opacity: .16;
-  }
-
-  .auth-ring.c {
-    transform: scale(1.95);
-    opacity: .09;
-  }
-
-  .auth-bubble {
-    animation: none;
-  }
-
-  .auth-tick {
-    animation: none;
-    stroke-dashoffset: 0;
-  }
-
   .auth-rise {
     animation: none;
-    opacity: 1;
   }
 }

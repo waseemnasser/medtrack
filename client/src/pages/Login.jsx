@@ -29,10 +29,8 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout tagline="دواؤهم بوقته، وبالك مرتاح">
+    <AuthLayout kicker="تسجيل الدخول" headline="أهلاً بعودتك." lead="سجّل دخولك لمتابعة جرعات اليوم.">
       <form className="auth-form" onSubmit={handleSubmit}>
-        <h2 className="auth-title">أهلاً بعودتك</h2>
-        <p className="auth-sub">سجّل دخولك لمتابعة جرعات اليوم</p>
 
         <label htmlFor="email">البريد الإلكتروني</label>
         <input

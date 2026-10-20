@@ -33,10 +33,8 @@ export default function Register() {
   };
 
   return (
-    <AuthLayout tagline="حساب واحد يكفي العائلة كلها">
+    <AuthLayout kicker="حساب جديد" headline="كل جرعة، في وقتها." lead="دقيقة واحدة، ثم أضف أول شخص تتابع أدويته.">
       <form className="auth-form" onSubmit={handleSubmit}>
-        <h2 className="auth-title">إنشاء حساب</h2>
-        <p className="auth-sub">دقيقة واحدة، ثم أضف أول فرد من العائلة</p>
 
         <label htmlFor="name">الاسم</label>
         <input

@@ -3,61 +3,63 @@ import Mark from "./Mark";
 import ThemeToggle from "./ThemeToggle";
 import "../pages/Auth.css";
 
-// ما يقدّمه التطبيق في ثلاثة أسطر — كل سطر بلون إحدى فترات اليوم
-const FEATURES = [
-    { key: "morning", text: "تذكير بكل جرعة في وقتها" },
-    { key: "noon", text: "ملف مستقل لكل فرد من العائلة" },
-    { key: "evening", text: "مشاركة آمنة ومؤقّتة مع الطبيب" },
+// ما يقدّمه التطبيق، مرقّماً كقائمة المزايا في الصفحة التعريفية
+const POINTS = [
+    ["تذكير بكل جرعة", "إشعار في موعد كل جرعة، حتى والتطبيق مغلق."],
+    ["ملف لكل شخص", "أدويته ومواعيده وحساسيته في صفحة واحدة."],
+    ["مشاركة مؤقّتة مع الطبيب", "رابط يراه الطبيب للقراءة فقط، وينتهي وحده."],
 ];
 
 /**
- * هيكل صفحتي الدخول وإنشاء الحساب.
- * على الحاسوب: لوحة الهوية الفيروزية بجانب النموذج.
- * على الهاتف: اللوحة تصير ترويسة أعلى الشاشة والنموذج تحتها.
+ * هيكل صفحتي الدخول وإنشاء الحساب، بأسلوب الصفحة التعريفية:
+ * عنوان كبير بخط العرض، والنموذج بجانبه.
+ * على الحاسوب: المزايا المرقّمة تحت العنوان. على الهاتف: العنوان ثم النموذج.
+ *
+ * kicker: سطر فيروزي صغير فوق العنوان
+ * headline: العنوان الكبير
+ * lead: سطر شرح تحته
  */
-export default function AuthLayout({ tagline, children }) {
+export default function AuthLayout({ kicker, headline, lead, children }) {
     return (
         <div className="auth-shell">
-            <aside className="auth-panel">
-                {/* بلا هذا الشريط يعلق الزائر في صفحة الدخول: لا رجوع للصفحة التعريفية */}
-                <div className="auth-top">
-                    <Link to="/welcome" className="auth-back">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                            <path d="M9 5l7 7-7 7" />
-                        </svg>
-                        الرئيسية
-                    </Link>
-                    <ThemeToggle className="on-panel" />
-                </div>
-
-                <Link to="/welcome" className="auth-mark" aria-label="طمّني — الصفحة الرئيسية">
-                    <div className="auth-ring" />
-                    <div className="auth-ring b" />
-                    <div className="auth-ring c" />
-                    <Mark animated color="var(--on-primary)" tickColor="var(--primary)" />
+            {/* بلا هذا الشريط يعلق الزائر في صفحة الدخول: لا رجوع للصفحة التعريفية */}
+            <header className="auth-bar">
+                <Link to="/welcome" className="auth-brand" aria-label="طمّني — الصفحة الرئيسية">
+                    <Mark size={28} />
+                    طمّني
                 </Link>
+                <div className="auth-bar-end">
+                    <Link to="/welcome" className="auth-back">الرئيسية</Link>
+                    <ThemeToggle />
+                </div>
+            </header>
 
-                <h1 className="auth-name auth-rise d1">طمّني</h1>
-                <p className="auth-tagline auth-rise d1">{tagline}</p>
+            <div className="auth-grid">
+                <section className="auth-intro auth-rise">
+                    <p className="auth-kicker">{kicker}</p>
+                    <h1 className="auth-headline">{headline}</h1>
+                    {lead && <p className="auth-lead">{lead}</p>}
 
-                <ul className="auth-features auth-rise d2">
-                    {FEATURES.map((f) => (
-                        <li key={f.key}>
-                            <span className={`auth-dot ${f.key}`} aria-hidden="true" />
-                            {f.text}
-                        </li>
-                    ))}
-                </ul>
-            </aside>
+                    <ol className="auth-points">
+                        {POINTS.map(([title, text], i) => (
+                            <li key={title}>
+                                <span className="auth-num">{String(i + 1).padStart(2, "0")}</span>
+                                <div>
+                                    <b>{title}</b>
+                                    <span>{text}</span>
+                                </div>
+                            </li>
+                        ))}
+                    </ol>
+                </section>
 
-            <main className="auth-main">
-                <div className="auth-col auth-rise d2">
+                <main className="auth-main auth-rise d2">
                     {children}
                     <p className="auth-privacy">
                         بياناتك تبقى عندك. تُشارَك فقط برابط مؤقّت تنشئه أنت.
                     </p>
-                </div>
-            </main>
+                </main>
+            </div>
         </div>
     );
 }
