@@ -3,9 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
 import PageHeader from "../components/PageHeader";
 import AllergenSearch from "../components/AllergenSearch";
+import Field, { FormError } from "../components/Field";
 import { useFeedback } from "../feedback/context";
-import { formatDate } from "../utils/format";
-import "./MedicationForm.css";
+import { formatDate, periodOf } from "../utils/format";
+import { Pill, Activity, Clock, Package, Lock, Save, Plus, Trash2, X, Search, AlertTriangle } from "lucide-react";
 
 const DAY_LABELS = [
     { n: "1", label: "ح" }, { n: "2", label: "ن" }, { n: "3", label: "ث" },
@@ -299,208 +300,251 @@ export default function MedicationForm() {
         }
     };
 
+    const sectionTitle = "text-lg font-bold text-forest-950 flex items-center gap-2";
+    const chip = (on) => `px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${on
+        ? "bg-forest-600 text-white border-forest-600"
+        : "bg-white text-forest-700 border-sage-200 hover:border-forest-300"}`;
+
     return (
-        <div className="page">
-            <PageHeader title={isEdit ? "تعديل الدواء" : "إضافة دواء"} back={parent} />
+        <div className="max-w-3xl">
+            <PageHeader title={isEdit ? "تعديل الدواء" : "إضافة دواء"} subtitle={member?.name} back={parent} />
 
             {member?.allergies && (
-                <div className="allergy-note" role="note">
-                    <strong>حساسية {member.name}:</strong> {member.allergies}
+                <div className="card p-4 mb-6 !border-red-200 dark:!border-red-900/60 bg-red-50 flex items-start gap-3" role="note">
+                    <AlertTriangle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-forest-950"><strong>حساسية {member.name}:</strong> {member.allergies}</p>
                 </div>
             )}
 
-            <form className="form-card" onSubmit={submit}>
+            <form className="space-y-6" onSubmit={submit}>
                 {/* ── بيانات الدواء ── */}
-                <h3 className="form-section">بيانات الدواء</h3>
+                <section className="card p-6 space-y-4">
+                    <h2 className={sectionTitle}><Pill className="w-5 h-5 text-forest-600" /> بيانات الدواء</h2>
 
-                <label>اسم الدواء</label>
-                <div className="search-wrap">
-                    <input
-                        name="name"
-                        value={form.name}
-                        onChange={onNameChange}
-                        placeholder="مثال: باراسيتامول أو PARACETAMOL"
-                        autoComplete="off"
-                    />
-                    {showResults && (
-                        <ul className="search-results">
-                            {results.map((r) => (
-                                <li key={r.id} onClick={() => pickFromCatalog(r)}>
-                                    <strong>
-                                        {r.name_ar || r.brand_name}
-                                        {r.name_ar && <bdi dir="ltr" className="result-latin">{r.brand_name}</bdi>}
-                                    </strong>
-                                    <span>{r.active_ingredient} {r.strength && `— ${r.strength}`}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
-                <span className="hint">
-                    {searching ? "جارٍ البحث..." : "ابحث بالعربية أو الإنجليزية. لم تجده؟ اكتب اسمه كما هو وتابع."}
-                </span>
-                {check?.conflicts?.length > 0 && (
-                    <div className="allergy-warning" role="alert">
-                        <strong>تحذير حساسية</strong>
-                        <ul className="conflict-list">
-                            {check.conflicts.map((c) => (
-                                <li key={`${c.allergy_id}-${c.ingredient}`} className={c.level}>
-                                    <span className="conflict-level">{LEVEL_LABEL[c.level]}:</span>
-                                    {c.message}
-                                    {c.reaction && <> التفاعل المسجّل: {c.reaction}.</>}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-
-                <label htmlFor="ingredient-search">المادة الفعّالة</label>
-                {fromCatalog ? (
-                    <>
-                        <input value={form.active_ingredient} readOnly dir="ltr" />
-                        <span className="hint">من الكتالوغ — تُفحص مع الحساسية تلقائياً</span>
-                    </>
-                ) : (
-                    <>
-                        <AllergenSearch
-                            id="ingredient-search"
-                            types={["ingredient", "brand"]}
-                            onPick={addIngredients}
-                            placeholder="ابحث عن المادة أو اسم العلبة: IBUPROFEN، بروفين..."
-                        />
-                        {ingredients.length > 0 && (
-                            <div className="ingredient-chips">
-                                {ingredients.map((i) => (
-                                    <span key={i.id}>
-                                        {i.name_ar || i.name}
-                                        <button type="button" onClick={() => removeIngredient(i.id)} aria-label={`إزالة ${i.name}`}>×</button>
-                                    </span>
-                                ))}
-                            </div>
-                        )}
-                        <span className="hint">
-                            {check?.needs_ingredients
-                                ? `مطلوبة: بدونها لا يمكن فحص الدواء مع حساسية ${member?.name || "الفرد"}.`
-                                : "لم تجد الدواء في الكتالوغ؟ اختر مادته الفعّالة ليُفحص مع الحساسية."}
-                            {!ingredients.length && form.active_ingredient && ` (المكتوب سابقاً: ${form.active_ingredient})`}
-                        </span>
-                    </>
-                )}
-                {check?.unchecked?.length > 0 && (
-                    <span className="hint">
-                        حساسية مكتوبة نصاً لا تُفحص تلقائياً: {check.unchecked.join("، ")}. راجعها بنفسك.
-                    </span>
-                )}
-
-                <label>العيار</label>
-                <input name="strength" value={form.strength} onChange={change} placeholder="مثال: 5 ملغ" />
-
-                <label>الشكل</label>
-                <select name="form" value={form.form} onChange={change}>
-                    {FORMS.map((f) => <option key={f} value={f}>{f}</option>)}
-                </select>
-
-                <label>تعليمات الاستخدام</label>
-                <input name="instructions" value={form.instructions} onChange={change} placeholder="مثال: بعد الفطور" />
-
-                <label>تاريخ البدء</label>
-                <input type="date" name="start_date" value={form.start_date} onChange={change} />
-
-                <label>مدة الاستخدام</label>
-                <div className="segmented course-kind" role="radiogroup" aria-label="مدة الاستخدام">
-                    <button type="button" role="radio" aria-checked={!isCourse}
-                        className={!isCourse ? "on" : ""} onClick={() => setIsCourse(false)}>
-                        مستمر
-                    </button>
-                    <button type="button" role="radio" aria-checked={isCourse}
-                        className={isCourse ? "on" : ""} onClick={() => setIsCourse(true)}>
-                        كورس بمدة محددة
-                    </button>
-                </div>
-
-                {isCourse ? (
-                    <>
-                        <label htmlFor="course_days">عدد أيام الكورس</label>
-                        <div className="course-days">
-                            {COURSE_PRESETS.map((n) => (
-                                <button type="button" key={n}
-                                    className={courseDays === n ? "on" : ""}
-                                    onClick={() => setForm((f) => ({ ...f, course_days: String(n) }))}>
-                                    {n}
-                                </button>
-                            ))}
-                            <input id="course_days" name="course_days" type="number" inputMode="numeric"
-                                min="1" max="365" value={form.course_days} onChange={change} placeholder="أيام" />
-                        </div>
-                        <span className="hint">
-                            {courseDays >= 1 && form.start_date
-                                ? `آخر يوم: ${formatDate(addDays(form.start_date, courseDays - 1))}. `
-                                : "كما كتبها الطبيب على الوصفة. "}
-                            يتابع نبض التقدّم يوماً بيوم، وينبّه إن تُركت الجرعات قبل نهاية الكورس.
-                        </span>
-                    </>
-                ) : (
-                    <span className="hint">دواء مزمن أو بلا مدة محددة — يستمر حتى توقفه.</span>
-                )}
-
-                {/* ── مواعيد الجرعات ── */}
-                <h3 className="form-section">مواعيد الجرعات</h3>
-
-                {times.map((t, i) => (
-                    <div className="time-row" key={i}>
-                        <div className="time-top">
+                    <Field label="اسم الدواء" htmlFor="med-name" required
+                        hint={searching ? "جارٍ البحث..." : "ابحث بالعربية أو الإنجليزية. لم تجده؟ اكتب اسمه كما هو وتابع."}>
+                        <div className="relative">
+                            <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-sage-400 pointer-events-none" />
                             <input
-                                type="time"
-                                value={t.time_of_day.slice(0, 5)}
-                                onChange={(e) => setTimeValue(i, e.target.value)}
+                                id="med-name"
+                                name="name"
+                                value={form.name}
+                                onChange={onNameChange}
+                                placeholder="مثال: باراسيتامول أو PARACETAMOL"
+                                autoComplete="off"
+                                className="input-field !pr-11"
                             />
-                            {times.length > 1 && (
-                                <button type="button" className="remove-time" onClick={() => removeTime(i)}>
-                                    حذف
-                                </button>
+                            {showResults && (
+                                <ul className="absolute z-30 inset-x-0 mt-2 card !shadow-xl max-h-80 overflow-y-auto scrollbar-thin divide-y divide-sage-100 dark:divide-forest-800/60">
+                                    {results.map((r) => (
+                                        <li key={r.id}>
+                                            <button type="button" onClick={() => pickFromCatalog(r)}
+                                                className="w-full text-right px-4 py-3 hover:bg-sage-50 dark:hover:bg-forest-800/60 flex flex-col items-start gap-0.5 transition-colors">
+                                                <strong className="text-forest-950">
+                                                    {r.name_ar || r.brand_name}
+                                                    {r.name_ar && <bdi dir="ltr" className="ms-2 text-sm font-medium text-forest-700/60">{r.brand_name}</bdi>}
+                                                </strong>
+                                                <span className="text-xs text-forest-700/60" dir="ltr">{r.active_ingredient} {r.strength && `— ${r.strength}`}</span>
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
                             )}
                         </div>
-                        <div className="days">
-                            {DAY_LABELS.map((d) => (
-                                <button
-                                    type="button"
-                                    key={d.n}
-                                    className={t.days_of_week.includes(d.n) ? "day on" : "day"}
-                                    onClick={() => toggleDay(i, d.n)}
-                                >
-                                    {d.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                ))}
+                    </Field>
 
-                <button type="button" className="add-time" onClick={addTime}>
-                    + إضافة موعد جرعة
-                </button>
+                    {check?.conflicts?.length > 0 && (
+                        <div className="rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50 p-4 text-forest-950" role="alert">
+                            <p className="font-bold text-red-700 dark:text-red-300 flex items-center gap-2">
+                                <AlertTriangle className="w-5 h-5" /> تحذير حساسية
+                            </p>
+                            <ul className="space-y-1.5 mt-2">
+                                {check.conflicts.map((c) => (
+                                    <li key={`${c.allergy_id}-${c.ingredient}`}
+                                        className={`ps-3 border-s-[3px] text-sm leading-relaxed ${c.level === "cross" ? "border-amber-400" : "border-red-500"}`}>
+                                        <span className="font-bold me-1.5">{LEVEL_LABEL[c.level]}:</span>
+                                        {c.message}
+                                        {c.reaction && <> التفاعل المسجّل: {c.reaction}.</>}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {fromCatalog ? (
+                        <Field label="المادة الفعّالة" htmlFor="ingredient" hint="من الكتالوغ — تُفحص مع الحساسية تلقائياً">
+                            <input id="ingredient" value={form.active_ingredient} readOnly dir="ltr"
+                                className="input-field bg-sage-50 dark:bg-forest-800/40 text-right" />
+                        </Field>
+                    ) : (
+                        <Field label="المادة الفعّالة" htmlFor="ingredient-search"
+                            hint={<>
+                                {check?.needs_ingredients
+                                    ? `مطلوبة: بدونها لا يمكن فحص الدواء مع حساسية ${member?.name || "الفرد"}.`
+                                    : "لم تجد الدواء في الكتالوغ؟ اختر مادته الفعّالة ليُفحص مع الحساسية."}
+                                {!ingredients.length && form.active_ingredient && ` (المكتوب سابقاً: ${form.active_ingredient})`}
+                            </>}>
+                            <AllergenSearch
+                                id="ingredient-search"
+                                types={["ingredient", "brand"]}
+                                onPick={addIngredients}
+                                placeholder="ابحث عن المادة أو اسم العلبة: IBUPROFEN، بروفين..."
+                            />
+                            {ingredients.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                    {ingredients.map((i) => (
+                                        <span key={i.id} className="badge badge-success !pe-1.5">
+                                            {i.name_ar || i.name}
+                                            <button type="button" onClick={() => removeIngredient(i.id)} aria-label={`إزالة ${i.name}`}
+                                                className="p-0.5 rounded-full hover:bg-forest-200/60">
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </Field>
+                    )}
+                    {check?.unchecked?.length > 0 && (
+                        <p className="text-xs text-amber-700 dark:text-amber-300">
+                            حساسية مكتوبة نصاً لا تُفحص تلقائياً: {check.unchecked.join("، ")}. راجعها بنفسك.
+                        </p>
+                    )}
+
+                    <div className="grid sm:grid-cols-2 gap-4">
+                        <Field label="العيار" htmlFor="strength">
+                            <input id="strength" name="strength" value={form.strength} onChange={change} placeholder="مثال: 5 ملغ" className="input-field" />
+                        </Field>
+                        <Field label="الشكل" htmlFor="form">
+                            <select id="form" name="form" value={form.form} onChange={change} className="input-field">
+                                {FORMS.map((f) => <option key={f} value={f}>{f}</option>)}
+                            </select>
+                        </Field>
+                        <Field label="تعليمات الاستخدام" htmlFor="instructions">
+                            <input id="instructions" name="instructions" value={form.instructions} onChange={change} placeholder="مثال: بعد الفطور" className="input-field" />
+                        </Field>
+                        <Field label="تاريخ البدء" htmlFor="start_date">
+                            <input id="start_date" type="date" name="start_date" value={form.start_date} onChange={change} className="input-field" />
+                        </Field>
+                    </div>
+                </section>
+
+                {/* ── المدة ── */}
+                <section className="card p-6 space-y-4">
+                    <h2 className={sectionTitle}><Activity className="w-5 h-5 text-blue-500" /> مدة الاستخدام</h2>
+                    <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="مدة الاستخدام">
+                        {[
+                            { on: !isCourse, set: false, title: "مستمر", sub: "دواء مزمن أو بلا مدة محددة" },
+                            { on: isCourse, set: true, title: "كورس بمدة محددة", sub: "مضاد حيوي مثلاً" },
+                        ].map((o) => (
+                            <button key={o.title} type="button" role="radio" aria-checked={o.on} onClick={() => setIsCourse(o.set)}
+                                className={`rounded-xl border-2 p-4 text-right transition-all ${o.on
+                                    ? "border-forest-500 bg-mint-50"
+                                    : "border-sage-200 hover:border-forest-300"}`}>
+                                <span className="block font-bold text-forest-950">{o.title}</span>
+                                <span className="block text-xs text-forest-700/60 mt-0.5">{o.sub}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    {isCourse ? (
+                        <Field label="عدد أيام الكورس" htmlFor="course_days"
+                            hint={<>
+                                {courseDays >= 1 && form.start_date
+                                    ? `آخر يوم: ${formatDate(addDays(form.start_date, courseDays - 1))}. `
+                                    : "كما كتبها الطبيب على الوصفة. "}
+                                يتابع نبض التقدّم يوماً بيوم، وينبّه إن تُركت الجرعات قبل نهاية الكورس.
+                            </>}>
+                            <div className="flex flex-wrap gap-2">
+                                {COURSE_PRESETS.map((n) => (
+                                    <button type="button" key={n} className={chip(courseDays === n)}
+                                        onClick={() => setForm((f) => ({ ...f, course_days: String(n) }))}>
+                                        {n}
+                                    </button>
+                                ))}
+                                <input id="course_days" name="course_days" type="number" inputMode="numeric"
+                                    min="1" max="365" value={form.course_days} onChange={change} placeholder="أيام"
+                                    className="input-field !w-24 !py-2" />
+                            </div>
+                        </Field>
+                    ) : (
+                        <p className="text-sm text-forest-700/60">يستمر حتى توقفه من ملف الفرد.</p>
+                    )}
+                </section>
+
+                {/* ── مواعيد الجرعات ── */}
+                <section className="card p-6 space-y-4">
+                    <h2 className={sectionTitle}><Clock className="w-5 h-5 text-purple-500" /> مواعيد الجرعات</h2>
+
+                    {times.map((t, i) => (
+                        <div className="bg-sage-50 dark:bg-forest-800/40 rounded-xl p-4 space-y-3" key={i}>
+                            <div className="flex items-center gap-3">
+                                <input
+                                    type="time"
+                                    value={t.time_of_day.slice(0, 5)}
+                                    onChange={(e) => setTimeValue(i, e.target.value)}
+                                    aria-label={`وقت الجرعة ${i + 1}`}
+                                    className="input-field !w-40 !py-2 font-bold text-lg"
+                                />
+                                <span className={`badge ${periodOf(t.time_of_day).chip}`}>{periodOf(t.time_of_day).label}</span>
+                                {times.length > 1 && (
+                                    <button type="button" onClick={() => removeTime(i)} aria-label="حذف هذا الموعد"
+                                        className="ms-auto p-2 text-red-500 hover:bg-red-50 rounded-lg">
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
+                            <div className="flex gap-1.5" role="group" aria-label="أيام الأسبوع">
+                                {DAY_LABELS.map((d) => (
+                                    <button
+                                        type="button"
+                                        key={d.n}
+                                        aria-pressed={t.days_of_week.includes(d.n)}
+                                        onClick={() => toggleDay(i, d.n)}
+                                        className={`w-10 h-10 rounded-xl text-sm font-bold border transition-all ${t.days_of_week.includes(d.n)
+                                            ? "bg-forest-600 text-white border-forest-600"
+                                            : "bg-white text-forest-700 border-sage-200 hover:border-forest-300"}`}
+                                    >
+                                        {d.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+
+                    <button type="button" onClick={addTime}
+                        className="w-full border-2 border-dashed border-sage-300 rounded-xl py-3 text-sm font-semibold text-forest-600 hover:border-forest-400 hover:bg-mint-50 flex items-center justify-center gap-2 transition-colors">
+                        <Plus className="w-4 h-4" /> إضافة موعد جرعة
+                    </button>
+                </section>
 
                 {/* ── الكمية ── */}
-                <h3 className="form-section">الكمية المتوفرة</h3>
+                <section className="card p-6 space-y-4">
+                    <h2 className={sectionTitle}><Package className="w-5 h-5 text-amber-500" /> الكمية المتوفرة</h2>
+                    <div className="grid sm:grid-cols-2 gap-4">
+                        <Field label="عدد الوحدات في العلبة" htmlFor="units_total">
+                            <input id="units_total" type="number" name="units_total" value={form.units_total} onChange={change} min="0" className="input-field" />
+                        </Field>
+                        <Field label="عدد الوحدات في الجرعة الواحدة" htmlFor="units_per_dose" hint="نستخدمها لتنبيهك قبل نفاد الدواء">
+                            <input id="units_per_dose" type="number" name="units_per_dose" value={form.units_per_dose} onChange={change} min="0" step="0.5" className="input-field" />
+                        </Field>
+                    </div>
 
-                <label>عدد الوحدات في العلبة</label>
-                <input type="number" name="units_total" value={form.units_total} onChange={change} min="0" />
+                    <label className="flex items-center gap-3 bg-sage-50 dark:bg-forest-800/40 rounded-xl p-4 cursor-pointer">
+                        <input type="checkbox" name="is_private" checked={form.is_private} onChange={change}
+                            className="w-5 h-5 rounded accent-forest-600" />
+                        <Lock className="w-4 h-4 text-forest-700/60" />
+                        <span className="text-sm font-medium text-forest-950">دواء خاص — لا يظهر عند المشاركة مع الطبيب</span>
+                    </label>
+                </section>
 
-                <label>عدد الوحدات في الجرعة الواحدة</label>
-                <input type="number" name="units_per_dose" value={form.units_per_dose} onChange={change} min="0" step="0.5" />
-                <span className="hint">نستخدمها لتنبيهك قبل نفاد الدواء</span>
+                <FormError>{error}</FormError>
 
-                <label className="checkbox-line">
-                    <input type="checkbox" name="is_private" checked={form.is_private} onChange={change} />
-                    <span>دواء خاص — لا يظهر عند المشاركة مع الطبيب</span>
-                </label>
-
-                {error && <div className="error">{error}</div>}
-
-                <div className="form-actions">
-                    <button type="submit" className="btn-primary" disabled={saving}>
-                        {saving ? "جارٍ الحفظ..." : "حفظ"}
+                <div className="flex gap-3">
+                    <button type="submit" className="btn-primary flex items-center gap-2" disabled={saving}>
+                        <Save className="w-5 h-5" /> {saving ? "جارٍ الحفظ..." : "حفظ"}
                     </button>
-                    <button type="button" onClick={() => navigate(parent)}>
+                    <button type="button" className="btn-secondary" onClick={() => navigate(parent)}>
                         إلغاء
                     </button>
                 </div>
