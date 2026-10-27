@@ -1,6 +1,7 @@
 const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
+const { courses } = require("../course");
 
 const router = express.Router();
 router.use(auth);
@@ -39,6 +40,14 @@ router.get("/today", async (req, res) => {
        ORDER BY ds.time_of_day, mem.name`,
             [date, req.userId, dayOfWeek]
         );
+
+        // يوم الكورس على كل جرعة: «اليوم ٤ من ٧»، و«آخر يوم»
+        const ids = [...new Set(result.rows.map((d) => d.medication_id))];
+        const progress = ids.length ? await courses(pool, { medicationIds: ids }) : new Map();
+        for (const d of result.rows) {
+            const c = progress.get(d.medication_id)?.course;
+            d.course = c ? { day: c.day, total_days: c.total_days, final_day: c.final_day } : null;
+        }
 
         res.json({ date, doses: result.rows });
     } catch (err) {

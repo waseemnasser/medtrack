@@ -2,6 +2,7 @@ const webpush = require("web-push");
 const cron = require("node-cron");
 const pool = require("./db");
 const { findRefills } = require("./supply");
+const { courses } = require("./course");
 
 webpush.setVapidDetails(
     process.env.VAPID_SUBJECT || "mailto:admin@example.com",
@@ -11,7 +12,7 @@ webpush.setVapidDetails(
 
 // إشعار لمستخدم: يُحفظ في سجل الإشعارات (نافذة الجرس) أولاً، ثم يُرسل
 // لكل أجهزته. السجل يُحفظ حتى لو لم يكن له جهاز مفعّل — يراه داخل التطبيق.
-// kind: dose | appointment | refill | test — يحدد أيقونة الإشعار ولونه
+// kind: dose | appointment | refill | course | test — يحدد أيقونة الإشعار ولونه
 // يُرجع عدد ما وصل وما فشل
 async function sendToUser(userId, payload, kind = "other") {
     const saved = await pool.query(
@@ -115,7 +116,10 @@ function startScheduler() {
     // إشعار واحد لكل حساب، مهما كان عدد الأدوية — لا نغرق المستخدم.
     cron.schedule("0 10 * * *", sendRefillReminders);
 
-    console.log("[push] المجدول يعمل — الجرعات والمواعيد كل دقيقة، والأدوية التي تنفد يومياً ١٠:٠٠");
+    // ومعها: كورسات في خطر التوقف (فاتت آخر جرعتين) أو في يومها الأخير
+    cron.schedule("0 10 * * *", sendCourseReminders);
+
+    console.log("[push] المجدول يعمل — الجرعات والمواعيد كل دقيقة، والأدوية التي تنفد والكورسات يومياً ١٠:٠٠");
 }
 
 // ساعة التذكير بالمواعيد في المساء السابق
@@ -209,4 +213,57 @@ async function sendRefillReminders() {
     }
 }
 
-module.exports = { sendToUser, startScheduler, sendRefillReminders };
+// «يوم واحد» / «يومان» / «٣ أيام» — المتبقي من الكورس بعد اليوم
+function leftText(n) {
+    if (n === 1) return "يوم واحد";
+    if (n === 2) return "يومان";
+    return `${n} أيام`;
+}
+
+// المريض الذي يوقف الكورس مبكراً يتوقف غالباً بصمت: يتخطّى جرعة ثم أخرى.
+// هنا نلتقط ذلك مبكراً، ونذكّر بآخر يوم حتى لا يُترك ناقصاً
+async function sendCourseReminders() {
+    try {
+        const all = await courses(pool);
+        const byUser = new Map();
+        for (const c of all.values()) {
+            if (!c.course.at_risk && !c.course.final_day) continue;
+            if (!byUser.has(c.user_id)) byUser.set(c.user_id, []);
+            byUser.get(c.user_id).push(c);
+        }
+
+        for (const [userId, list] of byUser) {
+            const first = list[0];
+            const c = first.course;
+            let payload;
+            if (list.length > 1) {
+                payload = {
+                    title: `${list.length} كورسات تحتاج انتباهك`,
+                    body: list.slice(0, 3).map((x) => `${x.name} لـ${x.member_name}`).join("، ")
+                        + (list.length > 3 ? "، وغيرها" : "") + " — أكملها حتى نهايتها.",
+                    url: "/",
+                };
+            } else if (c.at_risk) {
+                payload = {
+                    title: "كورس لم يكتمل",
+                    body: `آخر جرعتين من ${first.name} لـ${first.member_name} لم تُسجَّلا، `
+                        + (c.final_day ? "واليوم آخر يوم في الكورس." : `وباقي ${leftText(c.days_left)} من الكورس.`)
+                        + " لا يُوقف قبل نهايته إلا بقرار الطبيب.",
+                    url: `/members/${first.member_id}`,
+                };
+            } else {
+                payload = {
+                    title: "آخر يوم في الكورس",
+                    body: `اليوم آخر يوم من ${first.name} لـ${first.member_name} — أكمل جرعاته كلها.`,
+                    url: "/",
+                };
+            }
+            console.log(`[push] تنبيه كورس للمستخدم ${userId}: ${list.length}`);
+            await sendToUser(userId, payload, "course");
+        }
+    } catch (err) {
+        console.error("[push] courses:", err.message);
+    }
+}
+
+module.exports = { sendToUser, startScheduler, sendRefillReminders, sendCourseReminders };

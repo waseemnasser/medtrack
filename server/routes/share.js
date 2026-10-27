@@ -5,6 +5,8 @@ const pool = require("../db");
 const { listAllergies } = require("../allergy");
 const { shareLimiter } = require("../security");
 const { adherence } = require("../adherence");
+const { courses, daysBetween } = require("../course");
+const { todayStr } = require("../supply");
 const auth = require("../middleware/auth");
 
 const router = express.Router();
@@ -117,12 +119,21 @@ router.get("/:token", shareLimiter, async (req, res) => {
             reaction: x.reaction,
         }));
 
+        // الكورسات (بلا الخاصة): تقدّم الجارية، والتي أُوقفت قبل نهايتها آخر ٣٠ يوماً
+        const progress = await courses(pool, { memberId, includePrivate: false });
+        for (const m of meds.rows) m.course = progress.get(m.id)?.course || null;
+        const stoppedEarly = [...progress.values()]
+            .filter(({ course: c }) => c.status === "stopped_early"
+                && daysBetween(c.stopped_on, todayStr()) <= 30)
+            .map(({ medication_id, name, strength, course }) => ({ id: medication_id, name, strength, course }));
+
         res.json({
             member: member.rows[0],
             allergies,
             // الالتزام آخر ٣٠ يوماً، بلا الأدوية الخاصة
             adherence: await adherence(pool, memberId, 30, { includePrivate: false }),
             medications: meds.rows,
+            stopped_courses: stoppedEarly,
             upcoming_appointments: appts.rows,
             self_reported_confirmations: logs.rows,
             note: "هذه البيانات مُدخلة من قبل المستخدم نفسه (سجل تأكيد ذاتي) وليست سجلاً طبياً موثقاً.",

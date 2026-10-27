@@ -7,6 +7,7 @@ const {
     describeConflict, listAllergies,
 } = require("../allergy");
 const { ingredientsByExactName } = require("../ingredients");
+const { courses, STOP_REASONS } = require("../course");
 
 const router = express.Router();
 router.use(auth);
@@ -123,7 +124,31 @@ router.get("/member/:memberId", async (req, res) => {
         )).rows;
     }
 
+    // تقدّم الكورس للأدوية محددة المدة؛ الدواء المستمر course = null
+    const progress = await courses(pool, { memberId: Number(req.params.memberId) });
+    for (const med of meds.rows) med.course = progress.get(med.id)?.course || null;
+
     res.json(meds.rows);
+});
+
+// كورسات المستخدم الجارية والمكتملة حديثاً — لبطاقة صفحة اليوم
+router.get("/courses", async (req, res) => {
+    try {
+        const all = await courses(pool, { userId: req.userId });
+        const list = [...all.values()]
+            .filter(({ course: c }) => c.status === "active"
+                // المكتمل يبقى يومين ليرى المستخدم أنه أنهاه
+                || (c.status === "completed" && c.days_since_end <= 2))
+            .map(({ user_id, ...rest }) => rest)
+            // في خطر أولاً، ثم آخر يوم، ثم الأقرب إلى النهاية
+            .sort((a, b) => (b.course.at_risk - a.course.at_risk)
+                || (b.course.final_day - a.course.final_day)
+                || (a.course.status === "completed") - (b.course.status === "completed")
+                || a.course.days_left - b.course.days_left);
+        res.json(list);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // إضافة دواء مع أوقاته
@@ -259,16 +284,23 @@ router.put("/:id", async (req, res) => {
     }
 });
 
-// إيقاف دواء بدل حذفه
+// إيقاف دواء بدل حذفه. end_date يبقى النهاية المخطّطة، ويوم الإيقاف وسببه
+// في stopped_on و stop_reason — فيظهر للطبيب إن أُوقف كورس قبل نهايته
 router.patch("/:id/stop", async (req, res) => {
+    const reason = req.body?.reason || null;
+    if (reason && !STOP_REASONS[reason])
+        return res.status(400).json({ error: "سبب الإيقاف غير معروف" });
+
     const r = await pool.query(
-        `UPDATE medications SET is_active = FALSE, end_date = COALESCE(end_date, CURRENT_DATE)
+        `UPDATE medications SET is_active = FALSE, stopped_on = CURRENT_DATE, stop_reason = $3
      WHERE id = $1 AND member_id IN (SELECT id FROM members WHERE user_id = $2)
      RETURNING *`,
-        [req.params.id, req.userId]
+        [req.params.id, req.userId, reason]
     );
     if (!r.rows.length) return res.status(404).json({ error: "الدواء غير موجود" });
-    res.json(r.rows[0]);
+    const med = r.rows[0];
+    med.course = (await courses(pool, { medicationIds: [med.id] })).get(med.id)?.course || null;
+    res.json(med);
 });
 // الأدوية التي تنفد قريباً لكل أفراد المستخدم — لقائمة صفحة اليوم
 router.get("/refills", async (req, res) => {

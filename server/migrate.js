@@ -27,6 +27,9 @@ const MIGRATIONS = [
         read_at TIMESTAMP
     )`,
     "CREATE INDEX IF NOT EXISTS notifications_user_time ON notifications (user_id, created_at DESC)",
+    // الكورس (course.js): end_date = النهاية المخطّطة، وهذان = متى أُوقف فعلاً ولماذا
+    "ALTER TABLE medications ADD COLUMN IF NOT EXISTS stopped_on DATE",
+    "ALTER TABLE medications ADD COLUMN IF NOT EXISTS stop_reason TEXT",
 ];
 
 async function migrate() {

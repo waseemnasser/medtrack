@@ -26,7 +26,8 @@ async function adherence(pool, memberId, days = 30, { includePrivate = true } = 
             JOIN dose_schedules ds ON ds.medication_id = m.id
             CROSS JOIN LATERAL generate_series(
                 GREATEST(CURRENT_DATE - ($2::int - 1), m.start_date),
-                LEAST(CURRENT_DATE, COALESCE(m.end_date, CURRENT_DATE)),
+                -- حتى اليوم، أو نهاية الكورس، أو يوم الإيقاف — أيّها أسبق
+                LEAST(CURRENT_DATE, COALESCE(m.end_date, CURRENT_DATE), COALESCE(m.stopped_on, CURRENT_DATE)),
                 interval '1 day'
             ) AS day
             WHERE m.member_id = $1
