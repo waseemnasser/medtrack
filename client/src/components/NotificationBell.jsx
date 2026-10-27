@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../api";
+import { Bell, Pill, Calendar, Package, Activity, Check } from "lucide-react";
 import { formatDate, formatTime } from "../utils/format";
-import "./NotificationBell.css";
 
-// لون أيقونة كل نوع: الجرعة فيروزية، الموعد بنفسجي، النفاد مشمشي، الكورس أحمر هادئ
+// لون أيقونة كل نوع: الجرعة فيروزية، الموعد بنفسجي، النفاد كهرماني، الكورس أزرق
 const KINDS = {
-    dose: { label: "جرعة", icon: <><rect x="3" y="8" width="18" height="8" rx="4" /><path d="M12 8v8" /></> },
-    appointment: { label: "موعد", icon: <><rect x="3.5" y="5" width="17" height="15" rx="3" /><path d="M3.5 10h17M8 3v4M16 3v4" /></> },
-    refill: { label: "نفاد", icon: <><path d="M7 3h10v4H7z" /><path d="M6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z" /><path d="M10 13h4M12 11v4" /></> },
-    course: { label: "كورس", icon: <><rect x="3.5" y="9" width="17" height="7" rx="3.5" /><path d="M12 9v7" /><path d="M7 4.5h10" /></> },
-    test: { label: "تجربة", icon: <><path d="M5 12.5l4.5 4.5L19 7.5" /></> },
+    dose: { label: "جرعة", icon: Pill, color: "bg-forest-100 text-forest-600" },
+    appointment: { label: "موعد", icon: Calendar, color: "bg-purple-100 text-purple-600" },
+    refill: { label: "نفاد", icon: Package, color: "bg-amber-100 text-amber-600" },
+    course: { label: "كورس", icon: Activity, color: "bg-blue-100 text-blue-600" },
+    test: { label: "تجربة", icon: Check, color: "bg-sage-100 text-forest-700" },
 };
 
 const POLL_MS = 60000;
@@ -138,67 +138,74 @@ export default function NotificationBell() {
     const label = unread ? `الإشعارات، ${unread} غير مقروء` : "الإشعارات";
 
     return (
-        <div className="bell-wrap" ref={wrap}>
+        <div className="relative" ref={wrap}>
             <button
                 type="button"
-                className={`bell${ringing ? " ringing" : ""}${open ? " open" : ""}`}
                 onClick={toggle}
                 aria-label={label}
                 aria-expanded={open}
                 aria-haspopup="dialog"
+                className={`relative w-10 h-10 flex items-center justify-center rounded-xl transition-colors ${open
+                    ? "bg-forest-600 text-white"
+                    : "text-forest-900 hover:bg-mint-50 dark:hover:bg-forest-800/60"} ${ringing ? "animate-bounce" : ""}`}
             >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6.5 2 6.5H4S6 14 6 9z" />
-                    <path d="M10 19.5a2.2 2.2 0 0 0 4 0" />
-                </svg>
-                {unread > 0 && <span className="bell-count" aria-hidden="true">{unread > 9 ? "+9" : unread}</span>}
+                <Bell className="w-5 h-5" />
+                {unread > 0 && (
+                    <span aria-hidden="true"
+                        className="absolute -top-0.5 -left-0.5 min-w-[1.25rem] h-5 px-1 rounded-full bg-red-500 text-white text-[11px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-forest-950">
+                        {unread > 9 ? "+9" : unread}
+                    </span>
+                )}
             </button>
 
             {open && (
-                <div className="bell-panel" role="dialog" aria-label="الإشعارات">
-                    <div className="bell-head">
-                        <h2>الإشعارات</h2>
+                <div role="dialog" aria-label="الإشعارات"
+                    className="absolute left-0 top-12 z-50 w-[22rem] max-w-[calc(100vw-2rem)] card !shadow-2xl overflow-hidden animate-scale-in origin-top-left">
+                    <div className="flex items-center justify-between px-5 py-4 border-b border-sage-100 dark:border-forest-800/60">
+                        <h2 className="font-bold text-forest-950">الإشعارات</h2>
                         {unread > 0 && (
-                            <button type="button" className="bell-readall" onClick={readAll}>
+                            <button type="button" onClick={readAll} className="text-xs font-semibold text-forest-600 hover:text-forest-700">
                                 تحديد الكل كمقروء
                             </button>
                         )}
                     </div>
 
                     {items === null ? (
-                        <p className="bell-loading">جارٍ التحميل...</p>
+                        <p className="p-6 text-center text-sm text-forest-700/60">جارٍ التحميل...</p>
                     ) : items.length === 0 ? (
-                        <div className="empty bell-empty">
-                            لا إشعارات بعد.
-                            <br />
-                            <small>تذكيرات الجرعات والمواعيد تظهر هنا.</small>
+                        <div className="p-8 text-center">
+                            <div className="w-14 h-14 bg-sage-100 dark:bg-forest-800/60 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <Bell className="w-7 h-7 text-sage-400 dark:text-forest-600" />
+                            </div>
+                            <p className="font-semibold text-forest-950">لا إشعارات بعد</p>
+                            <p className="text-sm text-forest-700/60">تذكيرات الجرعات والمواعيد تظهر هنا.</p>
                         </div>
                     ) : (
-                        <div className="bell-list">
+                        <div className="max-h-[26rem] overflow-y-auto scrollbar-thin p-2">
                             {groups.map((g) => (
                                 <section key={g.key}>
-                                    <h3 className="bell-day">{dayLabel(g.key)}</h3>
+                                    <h3 className="px-3 pt-3 pb-1 text-xs font-bold text-forest-700/60">{dayLabel(g.key)}</h3>
                                     <ul>
                                         {g.items.map((n) => {
                                             const kind = KINDS[n.kind] || KINDS.test;
                                             const d = parseDT(n.created_at);
                                             return (
                                                 <li key={n.id}>
-                                                    <button
-                                                        type="button"
-                                                        className={`bell-item${n.read_at ? "" : " unread"}`}
-                                                        onClick={() => openItem(n)}
-                                                    >
-                                                        <span className={`bell-icon ${n.kind}`} aria-hidden="true">
-                                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{kind.icon}</svg>
+                                                    <button type="button" onClick={() => openItem(n)}
+                                                        className={`w-full flex items-start gap-3 p-3 rounded-xl text-right transition-colors hover:bg-sage-50 dark:hover:bg-forest-800/40 ${n.read_at ? "" : "bg-mint-50"}`}>
+                                                        <span className={`w-9 h-9 ${kind.color} rounded-lg flex items-center justify-center flex-shrink-0`} aria-hidden="true">
+                                                            <kind.icon className="w-4 h-4" />
                                                         </span>
-                                                        <span className="bell-text">
-                                                            <b>{n.title}</b>
-                                                            {n.body && <span>{n.body}</span>}
+                                                        <span className="flex-1 min-w-0">
+                                                            <b className={`block text-sm text-forest-950 ${n.read_at ? "font-medium" : "font-bold"}`}>{n.title}</b>
+                                                            {n.body && <span className="block text-xs text-forest-700/60 mt-0.5">{n.body}</span>}
                                                         </span>
-                                                        <time className="bell-time" dateTime={d.toISOString()}>
-                                                            {formatTime(`${pad(d.getHours())}:${pad(d.getMinutes())}`)}
-                                                        </time>
+                                                        <span className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                                                            <time className="text-[11px] text-forest-700/60" dateTime={d.toISOString()}>
+                                                                {formatTime(`${pad(d.getHours())}:${pad(d.getMinutes())}`)}
+                                                            </time>
+                                                            {!n.read_at && <span className="w-2 h-2 rounded-full bg-forest-500" aria-label="غير مقروء" />}
+                                                        </span>
                                                     </button>
                                                 </li>
                                             );
