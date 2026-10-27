@@ -205,97 +205,97 @@
 
 @media (prefers-color-scheme: dark) {
    :root:not([data-theme="light"]) {
-      --primary: #34B8B2;
+      --primary: #45CEC7;
       --primary-deep: #5BCFCA;
-      --primary-soft: #123C3B;
-      --primary-muted: #2A5553;
+      --primary-soft: #15484A;
+      --primary-muted: #4E8F8B;
 
       --morning-soft: #3A3216;
       --noon-soft: #3B2A1C;
       --evening-soft: #252A4A;
       --accent: #2EC4C0;
 
-      --danger: #FF8A80;
+      --danger: #FFA198;
       --danger-soft: #3D1C1A;
       --danger-deep: #FFB3AC;
       --private: #A9BDBF;
-      --private-soft: #1D3634;
-      --notice-bg: #142B2C;
-      --notice-border: #24413F;
+      --private-soft: #1F4A4D;
+      --notice-bg: #173A3D;
+      --notice-border: #2A5254;
       --notice-text: #B9CFCF;
 
-      --bg: #0B1A1C;
-      --surface: #122426;
-      --surface-alt: #18302F;
-      --neutral: #1D3634;
-      --tabs-bg: #1D3634;
+      --bg: #0E2A2D;
+      --surface: #143639;
+      --surface-alt: #1A4044;
+      --neutral: #1F4A4D;
+      --tabs-bg: #1F4A4D;
 
       --text: #E3F1F0;
       --text-muted: #B4C8C8;
-      --text-soft: #9BB2B2;
-      --text-faint: #83999A;
-      --text-disabled: #83999A;
+      --text-soft: #A8C4C3;
+      --text-faint: #9DBAB9;
+      --text-disabled: #9DBAB9;
       --on-primary: #04201F;
       --on-primary-soft: #0F3B39;
 
-      --border: #2A4442;
-      --border-light: #213937;
-      --border-faint: #1A302F;
-      --focus-ring: 0 0 0 3px rgba(52, 184, 178, .35);
+      --border: #2E5658;
+      --border-light: #25494B;
+      --border-faint: #1D3F41;
+      --focus-ring: 0 0 0 3px rgba(69, 206, 199, .35);
 
       --shadow-lg: 0 8px 24px rgba(0, 0, 0, .45);
       --shadow-pop: 0 10px 30px rgba(0, 0, 0, .55);
 
-      --topbar-bg: rgba(11, 26, 28, .9);
-      --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239BB2B2' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      --topbar-bg: rgba(14, 42, 45, .9);
+      --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23A8C4C3' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
       color-scheme: dark;
    }
 }
 
 :root[data-theme="dark"] {
-   --primary: #34B8B2;
+   --primary: #45CEC7;
    --primary-deep: #5BCFCA;
-   --primary-soft: #123C3B;
-   --primary-muted: #2A5553;
+   --primary-soft: #15484A;
+   --primary-muted: #4E8F8B;
 
    --morning-soft: #3A3216;
    --noon-soft: #3B2A1C;
    --evening-soft: #252A4A;
    --accent: #2EC4C0;
 
-   --danger: #FF8A80;
+   --danger: #FFA198;
    --danger-soft: #3D1C1A;
    --danger-deep: #FFB3AC;
    --private: #A9BDBF;
-   --private-soft: #1D3634;
-   --notice-bg: #142B2C;
-   --notice-border: #24413F;
+   --private-soft: #1F4A4D;
+   --notice-bg: #173A3D;
+   --notice-border: #2A5254;
    --notice-text: #B9CFCF;
 
-   --bg: #0B1A1C;
-   --surface: #122426;
-   --surface-alt: #18302F;
-   --neutral: #1D3634;
-   --tabs-bg: #1D3634;
+   --bg: #0E2A2D;
+   --surface: #143639;
+   --surface-alt: #1A4044;
+   --neutral: #1F4A4D;
+   --tabs-bg: #1F4A4D;
 
    --text: #E3F1F0;
    --text-muted: #B4C8C8;
-   --text-soft: #9BB2B2;
-   --text-faint: #83999A;
-   --text-disabled: #83999A;
+   --text-soft: #A8C4C3;
+   --text-faint: #9DBAB9;
+   --text-disabled: #9DBAB9;
    --on-primary: #04201F;
    --on-primary-soft: #0F3B39;
 
-   --border: #2A4442;
-   --border-light: #213937;
-   --border-faint: #1A302F;
-   --focus-ring: 0 0 0 3px rgba(52, 184, 178, .35);
+   --border: #2E5658;
+   --border-light: #25494B;
+   --border-faint: #1D3F41;
+   --focus-ring: 0 0 0 3px rgba(69, 206, 199, .35);
 
    --shadow-lg: 0 8px 24px rgba(0, 0, 0, .45);
    --shadow-pop: 0 10px 30px rgba(0, 0, 0, .55);
 
-   --topbar-bg: rgba(11, 26, 28, .9);
-   --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239BB2B2' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+   --topbar-bg: rgba(14, 42, 45, .9);
+   --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23A8C4C3' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
    color-scheme: dark;
 }
 
