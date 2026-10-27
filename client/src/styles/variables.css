@@ -42,6 +42,16 @@
    /* لون الهوية = الفيروزي اللامع: الموجة في شاشة الدخول */
    --accent: #2EC4C0;
 
+   /* ---------- النيون ---------- */
+
+   /* ضوء فقط: هالات وحواف حول الأزرار والبطاقات، وتوهّجات الخلفية.
+     لا تستعمليه لونَ نص ولا خلفية زر — على الكريمي لا يُقرأ.
+     --glow أخفّ هنا وأقوى في الوضع الداكن حيث يلمع النيون */
+   --neon: #00F0DC;
+   --neon-mint: #5CFFC8;
+   --glow: color-mix(in srgb, var(--neon) 45%, transparent);
+   --glow-soft: color-mix(in srgb, var(--neon) 22%, transparent);
+
    /* ---------- ألوان الحالات ---------- */
 
    /* الخطر: الحذف، الجرعة المتأخرة، تنبيه الحساسية */
@@ -205,6 +215,9 @@
 
 @media (prefers-color-scheme: dark) {
    :root:not([data-theme="light"]) {
+      --glow: color-mix(in srgb, var(--neon) 70%, transparent);
+      --glow-soft: color-mix(in srgb, var(--neon) 35%, transparent);
+
       --primary: #45CEC7;
       --primary-deep: #5BCFCA;
       --primary-soft: #15484A;
@@ -253,6 +266,9 @@
 }
 
 :root[data-theme="dark"] {
+   --glow: color-mix(in srgb, var(--neon) 70%, transparent);
+   --glow-soft: color-mix(in srgb, var(--neon) 35%, transparent);
+
    --primary: #45CEC7;
    --primary-deep: #5BCFCA;
    --primary-soft: #15484A;

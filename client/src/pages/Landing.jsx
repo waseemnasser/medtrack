@@ -6,9 +6,10 @@ import "./Landing.css";
 
 /*
   الصفحة التعريفية — أول ما يراه الزائر قبل التسجيل.
-  الفكرة المحورية: «علبة الأسبوع». علبة الأدوية الأسبوعية التي يعرفها
-  الجميع، بخاناتها الملوّنة حسب الفترة، تمتلئ جرعة بعد جرعة. وبعدها
-  صفحة بأسلوب المجلات: عناوين كبيرة، أرقام، وخطوط فاصلة.
+  الفكرة المحورية: هاتف طافٍ يعرض «نبض» نفسه. داخله الجرعة التالية
+  و«علبة الأسبوع» — علبة الأدوية الأسبوعية التي يعرفها الجميع، بخاناتها
+  الملوّنة حسب الفترة — تمتلئ جرعة بعد جرعة. وبعدها صفحة بأسلوب
+  المجلات: عناوين كبيرة، أرقام، وخطوط فاصلة.
 */
 
 const loggedIn = () => Boolean(localStorage.getItem("token"));
@@ -121,7 +122,7 @@ export default function Landing() {
                             <h1 className="ld-title" data-reveal>
                                 كل جرعة
                                 <br />
-                                <em>في وقتها.</em>
+                                <em>في وقتها</em>
                             </h1>
                             <p className="ld-lead" data-reveal>
                                 نبض ينظّم أدويتك وأدوية من تتابع علاجهم، يذكّرك بكل جرعة وكل موعد،
@@ -142,7 +143,7 @@ export default function Landing() {
                         </div>
 
                         <div className="ld-hero-visual" data-reveal aria-hidden="true">
-                            <WeekBox />
+                            <PhoneDemo />
                         </div>
                     </div>
                 </section>
@@ -208,7 +209,7 @@ export default function Landing() {
                 </section>
 
                 {/* ---------- الوضع المريح ---------- */}
-                <section className="ld-section">
+                <section className="ld-section ld-easy-sec">
                     <div className="ld-wrap ld-easy">
                         <div data-reveal>
                             <p className="ld-kicker">الوضع المريح</p>
@@ -256,7 +257,7 @@ export default function Landing() {
                 </section>
 
                 {/* ---------- المبادئ ---------- */}
-                <section className="ld-section">
+                <section className="ld-section ld-principles-sec">
                     <div className="ld-wrap">
                         <div className="ld-principles">
                             {[
@@ -324,9 +325,11 @@ export default function Landing() {
 
 /* ================= مكوّنات الصفحة ================= */
 
-// علبة الأسبوع: الأيام الماضية ممتلئة، و«اليوم» يمتلئ أمامك — يصل إشعار
-// جرعة الظهر، يُضغط «تم الأخذ»، فتُغلق الخانة. ثم تعود الحلقة من جديد.
-function WeekBox() {
+// هاتف طافٍ يعرض شاشة «اليوم» مصغّرة. الأيام الماضية في علبة الأسبوع
+// ممتلئة، و«اليوم» يمتلئ أمامك — ينزل إشعار جرعة الظهر من أعلى الشاشة،
+// يُضغط «تم الأخذ»، فتُغلق الخانة وتنتقل البطاقة إلى جرعة المساء.
+// ثم تعود الحلقة من جديد.
+function PhoneDemo() {
     const [reduced] = useState(reducedMotion);
     const [step, setStep] = useState(() => (reduced ? 3 : 0)); // 0 هدوء، 1 إشعار، 2 ضغط، 3 سُجّلت
 
@@ -346,49 +349,104 @@ function WeekBox() {
     }, [reduced]);
 
     const done = (day, p) => day < TODAY || (day === TODAY && (p === 0 || (p === 1 && step === 3)));
+    const logged = step === 3;
 
     return (
-        <div className="wk">
-            <div className="wk-head">
-                <span className="ld-brand-sm"><Mark size={18} /> هذا الأسبوع</span>
-                <span className="wk-count">{step === 3 ? "١١" : "١٠"} من ٢١ جرعة</span>
-            </div>
-            <div className="wk-grid">
-                <span />
-                {DAYS.map((d, i) => (
-                    <span key={d} className={`wk-day${i === TODAY ? " today" : ""}`}>
-                        {i === TODAY && <em>اليوم</em>}
-                        {d}
-                    </span>
-                ))}
-                {PERIODS.map((p, pi) => (
-                    <div className="wk-row" key={p.key}>
-                        <span className={`wk-label ${p.key}`}>{p.label}</span>
-                        {DAYS.map((d, di) => {
-                            const on = done(di, pi);
-                            const live = di === TODAY && pi === 1;
-                            return (
-                                <span
-                                    key={d}
-                                    className={`wk-cell ${p.key}${on ? " on" : ""}${di === TODAY ? " today" : ""}${live && step === 3 ? " pop" : ""}`}
-                                >
-                                    {on && <Check />}
-                                </span>
-                            );
-                        })}
-                    </div>
-                ))}
-            </div>
+        <div className="phone-stage">
+            {/* كبسولات تطفو خلف الهاتف بألوان الفترات */}
+            <span className="ph-cap morning" />
+            <span className="ph-cap noon" />
+            <span className="ph-cap evening" />
 
-            <div className={`wk-notif${step === 1 || step === 2 ? " show" : ""}`}>
-                <Mark size={30} />
-                <div>
-                    <b>حان وقت جرعة الظهر</b>
-                    <small>أموكسيسيلين 250 ملغ — خالد</small>
+            <div className="phone">
+                <div className="ph-screen">
+                    <div className="ph-status">
+                        <span>١:٢٠</span>
+                        <span className="ph-island" />
+                        <span className="ph-battery" />
+                    </div>
+
+                    <div className="ph-app">
+                        <div className="ph-top">
+                            <span className="ld-brand-sm"><Mark size={16} /> نبض</span>
+                            <span className="ph-avatar">س</span>
+                        </div>
+
+                        <span className="ph-kicker">الثلاثاء</span>
+                        <b className="ph-title">جرعات اليوم</b>
+
+                        {/* الجرعة التالية: الظهر، ثم المساء بعد التسجيل */}
+                        <div className={`ph-next${logged ? " moved" : ""}`}>
+                            <div className="ph-next-top">
+                                <span>الجرعة التالية</span>
+                                <span className={`ph-chip ${logged ? "evening" : "noon"}`}>{logged ? "المساء" : "الظهر"}</span>
+                            </div>
+                            <b className="ph-time">{logged ? "٨:٠٠" : "١:٢٠"} <small>م</small></b>
+                            <span className="ph-med">{logged ? "أتورفاستاتين 20 ملغ — ليلى" : "أموكسيسيلين 250 ملغ — خالد"}</span>
+                        </div>
+
+                        <div className="wk">
+                            <div className="wk-head">
+                                <span className="ld-brand-sm">هذا الأسبوع</span>
+                                <span className="wk-count">{logged ? "١١" : "١٠"} من ٢١</span>
+                            </div>
+                            <div className="wk-grid">
+                                <span />
+                                {DAYS.map((d, i) => (
+                                    <span key={d} className={`wk-day${i === TODAY ? " today" : ""}`}>
+                                        {i === TODAY && <em>اليوم</em>}
+                                        {d}
+                                    </span>
+                                ))}
+                                {PERIODS.map((p, pi) => (
+                                    <div className="wk-row" key={p.key}>
+                                        <span className={`wk-label ${p.key}`}>{p.label}</span>
+                                        {DAYS.map((d, di) => {
+                                            const on = done(di, pi);
+                                            const live = di === TODAY && pi === 1;
+                                            return (
+                                                <span
+                                                    key={d}
+                                                    className={`wk-cell ${p.key}${on ? " on" : ""}${di === TODAY ? " today" : ""}${live && step === 3 ? " pop" : ""}`}
+                                                >
+                                                    {on && <Check />}
+                                                </span>
+                                            );
+                                        })}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* جرعات اليوم حتى الآن — صفوف كصفحة «اليوم»، والظهر يُعلَّم مع العلبة */}
+                        <span className="ph-section">اليوم</span>
+                        <div className="ph-row taken">
+                            <span className="ph-mark morning" />
+                            <b>٨:٠٠</b>
+                            <span>ميتفورمين 500 ملغ<small>سارة</small></span>
+                            <i className="ph-done on"><Check /></i>
+                        </div>
+                        <div className={`ph-row${logged ? " taken" : ""}`}>
+                            <span className="ph-mark noon" />
+                            <b>١:٢٠</b>
+                            <span>أموكسيسيلين 250 ملغ<small>خالد</small></span>
+                            <i className={`ph-done${logged ? " on" : ""}`}>{logged && <Check />}</i>
+                        </div>
+                    </div>
+
+                    {/* الإشعار ينزل من أعلى الشاشة كإشعار الهاتف الحقيقي */}
+                    <div className={`wk-notif${step === 1 || step === 2 ? " show" : ""}`}>
+                        <Mark size={26} />
+                        <div>
+                            <b>حان وقت جرعة الظهر</b>
+                            <small>أموكسيسيلين 250 ملغ — خالد</small>
+                        </div>
+                        <span className={`wk-btn${step === 2 ? " pressing" : ""}`}>تم الأخذ</span>
+                    </div>
+                    <div className={`wk-toast${logged ? " show" : ""}`}><Check /> سُجّلت الجرعة</div>
+                    <span className="ph-home" />
                 </div>
-                <span className={`wk-btn${step === 2 ? " pressing" : ""}`}>تم الأخذ</span>
             </div>
-            <div className={`wk-toast${step === 3 ? " show" : ""}`}><Check /> سُجّلت الجرعة</div>
         </div>
     );
 }

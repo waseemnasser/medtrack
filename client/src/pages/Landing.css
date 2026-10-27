@@ -223,7 +223,7 @@ html:has(.landing) {
 
 .ld-title {
   margin: 0;
-  font-size: clamp(48px, 9vw, 96px);
+  font-size: clamp(48px, 9vw, 77px);
   font-weight: 800;
   line-height: 1.22;
   letter-spacing: -.01em;
@@ -282,30 +282,241 @@ html:has(.landing) {
   color: var(--text-soft);
 }
 
-/* ---------- علبة الأسبوع ---------- */
+/* ---------- الهاتف الطافي ---------- */
 
+/* المسرح: يحجز مكان الهاتف ويحمل الكبسولات والظل تحته */
 .ld-hero-visual {
   position: relative;
-  padding-bottom: 56px;
 }
 
-.wk {
+.phone-stage {
   position: relative;
-  max-width: 520px;
-  margin: 0 auto;
-  padding: 20px;
+  display: flex;
+  justify-content: center;
+  padding: 24px 0 48px;
+}
+
+/* ظل بيضاوي على «الأرض» يصغر حين يرتفع الهاتف */
+.phone-stage::after {
+  content: "";
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  width: 220px;
+  height: 22px;
+  margin-left: -110px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(15, 42, 46, .28), transparent);
+  animation: ph-shadow 6s ease-in-out infinite;
+}
+
+/* الإطار: داكن في الوضعين، بحافة رفيعة فاتحة كمعدن الهاتف */
+.phone {
+  position: relative;
+  z-index: 1;
+  width: 300px;
+  padding: 11px;
+  border-radius: 48px;
+  background: #0F2A2E;
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255, 255, 255, .14),
+    0 0 0 1px rgba(15, 42, 46, .08),
+    var(--shadow-pop),
+    0 40px 80px -30px rgba(15, 42, 46, .45);
+  transform: rotate(-4deg);
+  animation: ph-float 6s ease-in-out infinite;
+}
+
+/* أزرار الجانب */
+.phone::before,
+.phone::after {
+  content: "";
+  position: absolute;
+  inset-inline-end: -3px;
+  width: 3px;
+  border-radius: 2px;
+  background: #0F2A2E;
+}
+
+.phone::before {
+  top: 120px;
+  height: 56px;
+}
+
+.phone::after {
+  top: 190px;
+  height: 36px;
+}
+
+@keyframes ph-float {
+  0%, 100% { transform: rotate(-4deg) translateY(0); }
+  50% { transform: rotate(-2.5deg) translateY(-14px); }
+}
+
+@keyframes ph-shadow {
+  0%, 100% { transform: scaleX(1); opacity: 1; }
+  50% { transform: scaleX(.82); opacity: .6; }
+}
+
+/* الشاشة: خلفية التطبيق نفسها، فتتبع الوضع الداكن */
+.ph-screen {
+  position: relative;
+  overflow: hidden;
+  border-radius: 38px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* شريط الحالة: الوقت، الجزيرة، البطارية */
+.ph-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  padding: 0 24px;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ph-island {
+  width: 86px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: #0F2A2E;
+}
+
+.ph-battery {
+  width: 22px;
+  height: 11px;
+  border-radius: 3px;
+  border: 1.5px solid currentColor;
+  background: linear-gradient(90deg, currentColor 70%, transparent 70%) content-box;
+  padding: 1px;
+  opacity: .8;
+}
+
+.ph-app {
+  padding: 8px 14px 46px;
+}
+
+.ph-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.ph-top .ld-brand-sm {
+  color: var(--primary);
+  font-family: var(--display);
+  font-size: 15px;
+}
+
+.ph-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ph-kicker {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.ph-title {
+  display: block;
+  margin: 2px 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1.5px solid var(--text);
+  font-family: var(--display);
+  font-size: 21px;
+  font-weight: 700;
+}
+
+/* بطاقة الجرعة التالية — مثل بطاقة صفحة «اليوم» */
+.ph-next {
+  padding: 13px 15px 14px;
+  border-radius: 18px;
+  background: var(--primary);
+  color: var(--on-primary);
+  transition: background .4s;
+}
+
+.ph-next.moved {
+  animation: ph-swap .5s ease;
+}
+
+@keyframes ph-swap {
+  0% { opacity: .2; transform: translateY(6px); }
+}
+
+.ph-next-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--on-primary-soft);
+}
+
+.ph-chip {
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  color: var(--on-period);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ph-chip.noon { background: var(--noon); }
+.ph-chip.evening { background: var(--evening); }
+
+.ph-time {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--display);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ph-time small {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.ph-med {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--on-primary-soft);
+}
+
+/* ---------- علبة الأسبوع (داخل الهاتف) ---------- */
+
+.wk {
+  margin-top: 12px;
+  padding: 12px;
   background: var(--surface);
   border: 1px solid var(--border-light);
-  border-radius: 28px;
-  box-shadow: var(--shadow-pop);
+  border-radius: 18px;
 }
 
 .wk-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  font-size: 13px;
+  margin-bottom: 18px;
+  font-size: 11.5px;
 }
 
 .ld-brand-sm {
@@ -323,8 +534,8 @@ html:has(.landing) {
 
 .wk-grid {
   display: grid;
-  grid-template-columns: 44px repeat(7, minmax(0, 1fr));
-  gap: 7px;
+  grid-template-columns: 34px repeat(7, minmax(0, 1fr));
+  gap: 4px;
 }
 
 .wk-row {
@@ -334,10 +545,9 @@ html:has(.landing) {
 .wk-day {
   position: relative;
   text-align: center;
-  font-size: 13px;
+  font-size: 10.5px;
   font-weight: 600;
   color: var(--text-soft);
-  padding-bottom: 2px;
 }
 
 .wk-day.today {
@@ -346,14 +556,14 @@ html:has(.landing) {
 
 .wk-day em {
   position: absolute;
-  bottom: calc(100% + 2px);
+  bottom: calc(100% + 1px);
   left: 50%;
   transform: translateX(-50%);
   font-style: normal;
-  font-size: 10px;
+  font-size: 8.5px;
   font-weight: 600;
   white-space: nowrap;
-  padding: 1px 7px;
+  padding: 0 5px;
   border-radius: var(--radius-pill);
   background: var(--primary);
   color: var(--on-primary);
@@ -362,16 +572,16 @@ html:has(.landing) {
 .wk-label {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 4px;
+  font-size: 10px;
   font-weight: 500;
   color: var(--text-soft);
 }
 
 .wk-label::before {
   content: "";
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -386,9 +596,9 @@ html:has(.landing) {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
+  border-radius: 7px;
   background: var(--surface-alt);
-  border: 1.5px dashed var(--border);
+  border: 1px dashed var(--border);
   color: var(--on-period);
   transition: background .3s, border-color .3s;
 }
@@ -408,8 +618,8 @@ html:has(.landing) {
 .wk-cell.evening.on { background: var(--evening); }
 
 .wk-cell .ic {
-  width: 55%;
-  height: 55%;
+  width: 60%;
+  height: 60%;
 }
 
 .wk-cell.pop {
@@ -420,22 +630,98 @@ html:has(.landing) {
   from { transform: scale(.6); }
 }
 
-/* الإشعار الذي يصل فوق العلبة */
-.wk-notif {
-  position: absolute;
-  inset-inline: 18px;
-  bottom: -40px;
+/* باقي اليوم: صفوف بخط فاصل وعلامة بلون الفترة */
+.ph-section {
+  display: block;
+  margin: 14px 0 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.ph-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 9px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.ph-row b {
+  min-width: 2.6em;
+  font-family: var(--display);
+  font-variant-numeric: tabular-nums;
+}
+
+.ph-row span:nth-of-type(2) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+}
+
+/* دائرة الحالة: فارغة، ثم ممتلئة بعلامة صح عند الأخذ */
+.ph-done {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  color: var(--on-primary);
+  transition: background .3s, border-color .3s;
+}
+
+.ph-done.on {
+  background: var(--primary);
+  border-color: var(--primary);
+  animation: wk-pop .45s cubic-bezier(.3, 1.6, .5, 1);
+}
+
+.ph-done .ic {
+  width: 12px;
+  height: 12px;
+}
+
+.ph-row.taken span:nth-of-type(2) {
+  color: var(--text-soft);
+}
+
+.ph-row small {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--text-soft);
+}
+
+.ph-mark {
+  width: 4px;
+  height: 26px;
+  border-radius: var(--radius-pill);
+}
+
+.ph-mark.morning { background: var(--morning); }
+.ph-mark.noon { background: var(--noon); }
+
+/* الإشعار: ينزل من أعلى الشاشة تحت الجزيرة، كإشعار الهاتف الحقيقي */
+.wk-notif {
+  position: absolute;
+  z-index: 2;
+  top: 46px;
+  inset-inline: 9px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 11px;
   background: var(--surface);
   border: 1px solid var(--border-light);
-  border-radius: 18px;
+  border-radius: 20px;
   box-shadow: var(--shadow-pop);
   opacity: 0;
-  transform: translateY(16px) scale(.97);
-  transition: opacity .35s, transform .35s cubic-bezier(.2, .9, .3, 1.2);
+  transform: translateY(-140%);
+  transition: opacity .35s, transform .45s cubic-bezier(.2, .9, .3, 1.15);
 }
 
 .wk-notif.show {
@@ -450,42 +736,47 @@ html:has(.landing) {
 
 .wk-notif b {
   display: block;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .wk-notif small {
   display: block;
-  font-size: 12px;
+  font-size: 10.5px;
   color: var(--text-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .wk-btn {
   flex-shrink: 0;
-  padding: 8px 14px;
+  padding: 6px 10px;
   border-radius: var(--radius-pill);
   background: var(--primary);
   color: var(--on-primary);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
   transition: transform .15s;
 }
 
 .wk-btn.pressing {
-  transform: scale(.9);
+  transform: scale(.88);
 }
 
+/* «سُجّلت الجرعة» فوق خط الرجوع للرئيسية */
 .wk-toast {
   position: absolute;
+  z-index: 2;
   left: 50%;
-  bottom: -26px;
+  bottom: 30px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 7px 14px;
   border-radius: var(--radius-pill);
   background: var(--text);
   color: var(--bg);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
   opacity: 0;
@@ -499,8 +790,76 @@ html:has(.landing) {
 }
 
 .wk-toast .ic {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
+}
+
+/* خط الرجوع للرئيسية أسفل الشاشة */
+.ph-home {
+  position: absolute;
+  bottom: 9px;
+  left: 50%;
+  width: 104px;
+  height: 4px;
+  margin-left: -52px;
+  border-radius: var(--radius-pill);
+  background: var(--text);
+  opacity: .35;
+}
+
+/* ---------- كبسولات تطفو خلف الهاتف ---------- */
+
+/* حبّات بلونين بألوان الفترات — توقيع الصفحة — كل واحدة بإيقاعها */
+.ph-cap {
+  position: absolute;
+  width: 58px;
+  height: 26px;
+  border-radius: var(--radius-pill);
+  background-image: linear-gradient(90deg, var(--surface) 50%, transparent 50%);
+  box-shadow: var(--shadow-lg);
+  animation: ph-cap 7s ease-in-out infinite;
+}
+
+.ph-cap.morning {
+  background-color: var(--morning);
+  top: 70px;
+  inset-inline-start: calc(50% + 140px);
+  --r: -25deg;
+}
+
+.ph-cap.noon {
+  background-color: var(--noon);
+  bottom: 120px;
+  inset-inline-end: calc(50% + 150px);
+  --r: 30deg;
+  animation-delay: -2.5s;
+}
+
+.ph-cap.evening {
+  background-color: var(--evening);
+  bottom: 40px;
+  inset-inline-start: calc(50% + 110px);
+  width: 46px;
+  height: 21px;
+  --r: 15deg;
+  animation-delay: -4.5s;
+}
+
+@keyframes ph-cap {
+  0%, 100% { transform: rotate(var(--r)) translateY(0); }
+  50% { transform: rotate(calc(var(--r) + 12deg)) translateY(-12px); }
+}
+
+/* على الهاتف الصغير: الكبسولات الجانبية تخرج من الشاشة، فنخفيها */
+@media (max-width: 560px) {
+  .ph-cap {
+    display: none;
+  }
+
+  .phone {
+    width: 280px;
+  }
+
 }
 
 /* ---------- كبسولات المزايا ---------- */
@@ -1245,7 +1604,6 @@ html:has(.landing) {
 /* ---------- التذييل ---------- */
 
 .ld-footer {
-  border-top: 1px solid var(--border-light);
   padding: 36px 0 44px;
 }
 
@@ -1286,6 +1644,213 @@ html:has(.landing) {
   }
 }
 
+/* ============================================================
+   الخلفيات — من رموز نبض نفسها
+   ------------------------------------------------------------
+   لا صور ولا ألوان جديدة: نقاط بخانات علبة الدواء، خط النبض
+   من الشعار، كبسولات بلونين، وتوهّجات بألوان فترات اليوم.
+   كل شيء مبني على المتغيّرات، فيتبع الوضع الداكن تلقائياً.
+   كل طبقة خلف المحتوى (z-index: -1 داخل isolation) ولا تلتقط النقر.
+   ============================================================ */
+
+.ld-hero,
+.ld-section,
+.ld-pills,
+.ld-footer {
+  position: relative;
+  isolation: isolate;
+}
+
+/* خط النبض: يُرسم كقناع، فلونه يأتي من background-color */
+.landing {
+  --pulse: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 80'%3E%3Cpath d='M0 40H210l14-0 10-22 14 44 16-60 16 70 12-32h18l8-10 8 10H600' fill='none' stroke='black' stroke-width='2.4' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E");
+  --caps: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160'%3E%3Cg fill='none' stroke='black' stroke-width='2'%3E%3Crect x='18' y='26' width='44' height='18' rx='9' transform='rotate(-25 40 35)'/%3E%3Cpath d='M40 26v18' transform='rotate(-25 40 35)'/%3E%3Crect x='96' y='96' width='44' height='18' rx='9' transform='rotate(30 118 105)'/%3E%3Cpath d='M118 96v18' transform='rotate(30 118 105)'/%3E%3C/g%3E%3Ccircle cx='120' cy='34' r='4' fill='black'/%3E%3Ccircle cx='36' cy='122' r='3' fill='black'/%3E%3C/svg%3E");
+  --dots: radial-gradient(circle, color-mix(in srgb, var(--text) 16%, transparent) 1.3px, transparent 1.8px);
+}
+
+/* ---------- البطل ---------- */
+
+/* الطبقة الأولى: توهّجات نيون فاتحة — فيروزي خلف الهاتف وفي الزاوية،
+   ونعناعي أسفل. الطبقة الثانية: شبكة نقاط تتلاشى من المنتصف */
+.ld-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 46% at 22% 38%, color-mix(in srgb, var(--neon) 20%, transparent), transparent 70%),
+    radial-gradient(34% 42% at 90% 6%, color-mix(in srgb, var(--neon) 16%, transparent), transparent 70%),
+    radial-gradient(36% 40% at 6% 96%, color-mix(in srgb, var(--neon-mint) 18%, transparent), transparent 70%),
+    radial-gradient(28% 32% at 60% 100%, color-mix(in srgb, var(--neon) 10%, transparent), transparent 70%);
+}
+
+.ld-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--dots);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(70% 80% at 40% 50%, #000 20%, transparent 75%);
+  mask-image: radial-gradient(70% 80% at 40% 50%, #000 20%, transparent 75%);
+}
+
+/* خط النبض خلف الهاتف فقط — يتحرّك ببطء كشاشة مراقبة القلب،
+   ويتلاشى قبل أن يصل إلى النص */
+.ld-hero-visual::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset-inline-start: 0;
+  inset-inline-end: -40vw;
+  top: 50%;
+  height: 120px;
+  margin-top: -60px;
+  pointer-events: none;
+  background: linear-gradient(to right, color-mix(in srgb, var(--primary) 26%, transparent) 75%, transparent);
+  -webkit-mask: var(--pulse) 0 50% / 720px 120px repeat-x;
+  mask: var(--pulse) 0 50% / 720px 120px repeat-x;
+  animation: ld-monitor 24s linear infinite;
+}
+
+@keyframes ld-monitor {
+  to {
+    -webkit-mask-position: -720px 50%;
+    mask-position: -720px 50%;
+  }
+}
+
+/* ---------- شريط الكبسولات ---------- */
+
+/* نمط حبّات مائلة باهت جداً على خلفية الشريط */
+.ld-pills::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  -webkit-mask: var(--caps) 0 0 / 160px 160px repeat;
+  mask: var(--caps) 0 0 / 160px 160px repeat;
+}
+
+/* ---------- المزايا ---------- */
+
+/* نقاط في الزاوية خلف العنوان الثابت، وتوهّج فيروزي هادئ */
+#features::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    var(--dots) 0 0 / 22px 22px,
+    radial-gradient(36% 50% at 92% 20%, color-mix(in srgb, var(--neon) 12%, transparent), transparent 70%);
+  -webkit-mask-image: linear-gradient(to left, #000, transparent 55%);
+  mask-image: linear-gradient(to left, #000, transparent 55%);
+}
+
+/* ---------- يوم مع نبض ---------- */
+
+/* اليوم يمرّ من اليمين لليسار: صباح أصفر، ظهر مشمشي، مساء بنفسجي —
+   نفس ترتيب الخط الزمني فوقها */
+.ld-day::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to left,
+      color-mix(in srgb, var(--morning) 10%, transparent),
+      color-mix(in srgb, var(--noon) 7%, transparent) 50%,
+      color-mix(in srgb, var(--evening) 11%, transparent));
+}
+
+/* خط نبض رفيع أسفل القسم */
+.ld-day::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset-inline: 0;
+  bottom: 24px;
+  height: 60px;
+  pointer-events: none;
+  background-color: color-mix(in srgb, var(--primary) 14%, transparent);
+  -webkit-mask: var(--pulse) 0 50% / 480px 60px repeat-x;
+  mask: var(--pulse) 0 50% / 480px 60px repeat-x;
+}
+
+/* ---------- الوضع المريح ---------- */
+
+/* توهّج نعناعي خلف بطاقة التجربة */
+.ld-easy-sec::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(34% 50% at 18% 50%, color-mix(in srgb, var(--neon-mint) 14%, transparent), transparent 70%);
+}
+
+/* ---------- مع الطبيب ---------- */
+
+/* نقاط من جهة التذكرة، كورق القسيمة */
+.ld-doctor-sec::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    var(--dots) 0 0 / 22px 22px,
+    radial-gradient(34% 46% at 25% 50%, color-mix(in srgb, var(--neon) 12%, transparent), transparent 70%);
+  -webkit-mask-image: linear-gradient(to right, #000, transparent 60%);
+  mask-image: linear-gradient(to right, #000, transparent 60%);
+}
+
+/* ---------- المبادئ ---------- */
+
+.ld-principles-sec::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: color-mix(in srgb, var(--primary) 6%, transparent);
+  -webkit-mask: var(--caps) 0 0 / 200px 200px repeat;
+  mask: var(--caps) 0 0 / 200px 200px repeat;
+}
+
+/* ---------- الأسئلة ---------- */
+
+#faq::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(40% 50% at 85% 30%, color-mix(in srgb, var(--neon) 12%, transparent), transparent 70%);
+}
+
+/* ---------- التذييل ---------- */
+
+/* خط النبض فوق التذييل بدل الخط المستقيم */
+.ld-footer::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: -30px;
+  height: 60px;
+  z-index: -1;
+  pointer-events: none;
+  background-color: color-mix(in srgb, var(--primary) 30%, transparent);
+  -webkit-mask: var(--pulse) 50% 50% / 600px 60px repeat-x;
+  mask: var(--pulse) 50% 50% / 600px 60px repeat-x;
+}
+
 /* ---------- الظهور أثناء التمرير ---------- */
 
 [data-reveal] {
@@ -1306,6 +1871,7 @@ html:has(.landing) {
   .wk-notif,
   .wk-toast,
   .wk-cell,
+  .ph-next,
   .ez-card,
   .ld-btn {
     transition: none;
@@ -1316,7 +1882,13 @@ html:has(.landing) {
     transform: none;
   }
 
-  .wk-cell.pop {
+  .wk-cell.pop,
+  .ph-next.moved,
+  .ph-done.on,
+  .phone,
+  .phone-stage::after,
+  .ph-cap,
+  .ld-hero-visual::before {
     animation: none;
   }
 }
