@@ -65,7 +65,7 @@ export default function DoctorView() {
                     <h1>{error.expired ? "انتهت صلاحية هذا الرابط" : "لا يمكن فتح هذا الرابط"}</h1>
                     <p>
                         {error.expired
-                            ? "روابط المشاركة مؤقّتة لحماية خصوصية المريض. اطلب منه إنشاء رابط جديد من تطبيق طمّني."
+                            ? "روابط المشاركة مؤقّتة لحماية خصوصية المريض. اطلب منه إنشاء رابط جديد من تطبيق نبض."
                             : `${error.message}. تأكّد من الرابط أو اطلب من المريض إرساله مجدداً.`}
                     </p>
                 </div>
@@ -245,7 +245,7 @@ export default function DoctorView() {
             <p className="doc-disclaimer">{data.note}</p>
 
             <footer className="doc-footer">
-                عُرض عبر <Link to="/welcome">طمّني</Link> — أداة تنظيمية لمتابعة أدوية العائلة، لا تقدّم تشخيصاً ولا توصيات علاجية.
+                عُرض عبر <Link to="/welcome">نبض</Link> — أداة تنظيمية لمتابعة أدوية العائلة، لا تقدّم تشخيصاً ولا توصيات علاجية.
             </footer>
         </div>
     );
@@ -255,7 +255,7 @@ function DocBrand() {
     return (
         <span className="doc-brand">
             <Mark size={28} />
-            طمّني
+            نبض
         </span>
     );
 }

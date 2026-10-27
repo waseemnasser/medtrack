@@ -105,11 +105,11 @@ export default function Account() {
                 </p>
             </div>
 
-            <h2 className="section-title">عن طمّني</h2>
+            <h2 className="section-title">عن نبض</h2>
             <div className="settings-card about">
                 <Mark size={44} />
                 <div>
-                    <strong>طمّني — متابعة أدوية العائلة</strong>
+                    <strong>نبض — متابعة أدوية العائلة</strong>
                     <p>
                         أداة تنظيمية فقط: لا تقدّم تشخيصاً ولا توصيات علاجية،
                         ولا تقترح جرعات أو بدائل. استشر طبيبك أو الصيدلاني دائماً.

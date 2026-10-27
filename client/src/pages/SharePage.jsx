@@ -64,7 +64,7 @@ export default function SharePage() {
     const share = async () => {
         try {
             await navigator.share({
-                title: `ملف ${member?.name || "المريض"} — طمّني`,
+                title: `ملف ${member?.name || "المريض"} — نبض`,
                 text: "رابط مؤقت لملف الأدوية والمواعيد",
                 url: link.url,
             });

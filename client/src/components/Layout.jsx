@@ -56,7 +56,7 @@ export default function Layout() {
             <header className="top-bar">
                 <Link to="/" className="brand">
                     <Mark size={26} />
-                    طمّني
+                    نبض
                 </Link>
                 <AccountCorner />
             </header>
@@ -69,7 +69,7 @@ export default function Layout() {
             <nav className="bottom-nav" aria-label="التنقل الرئيسي">
                 <Link to="/" className="brand nav-brand">
                     <Mark size={30} />
-                    طمّني
+                    نبض
                 </Link>
                 {TABS.map((t) => (
                     <NavLink key={t.to} to={t.to} end={t.to === "/"}>

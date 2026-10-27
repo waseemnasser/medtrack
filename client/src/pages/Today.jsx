@@ -80,7 +80,7 @@ export default function Today() {
     const handleAlarm = (dose) => {
         playBeep();
         setAlarm(dose);
-        if (document.hidden) document.title = "⏰ حان وقت الجرعة — طمّني";
+        if (document.hidden) document.title = "⏰ حان وقت الجرعة — نبض";
     };
 
     useDoseAlarm(date, doses, handleAlarm);
@@ -112,13 +112,13 @@ export default function Today() {
                     <div className="alarm-actions">
                         <button
                             className="alarm-confirm"
-                            onClick={() => { confirm(alarm); setAlarm(null); document.title = "طمّني"; }}
+                            onClick={() => { confirm(alarm); setAlarm(null); document.title = "نبض"; }}
                         >
                             تم الأخذ
                         </button>
                         <button
                             className="alarm-close"
-                            onClick={() => { setAlarm(null); document.title = "طمّني"; }}
+                            onClick={() => { setAlarm(null); document.title = "نبض"; }}
                         >
                             إغلاق
                         </button>

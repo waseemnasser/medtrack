@@ -24,9 +24,9 @@ export default function AuthLayout({ kicker, headline, lead, children }) {
         <div className="auth-shell">
             {/* بلا هذا الشريط يعلق الزائر في صفحة الدخول: لا رجوع للصفحة التعريفية */}
             <header className="auth-bar">
-                <Link to="/welcome" className="auth-brand" aria-label="طمّني — الصفحة الرئيسية">
+                <Link to="/welcome" className="auth-brand" aria-label="نبض — الصفحة الرئيسية">
                     <Mark size={28} />
-                    طمّني
+                    نبض
                 </Link>
                 <div className="auth-bar-end">
                     <Link to="/welcome" className="auth-back">الرئيسية</Link>
