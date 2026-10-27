@@ -144,14 +144,14 @@ function LandingNavbar({ isIn, start }) {
 function FloatCard({ className, icon: Icon, iconBox, label, value }) {
     return (
         <div className={`absolute z-0 hidden sm:block ${className}`}>
-            <div className="card p-4 shadow-xl shadow-forest-900/10 w-48">
+            <div className="card p-4 shadow-xl shadow-forest-900/10 w-max">
                 <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 ${iconBox} rounded-lg flex items-center justify-center flex-shrink-0`}>
                         <Icon className="w-5 h-5" />
                     </div>
                     <div className="min-w-0">
                         <p className="text-xs text-forest-600 dark:text-forest-400 font-medium">{label}</p>
-                        <p className="text-sm font-bold text-forest-950 dark:text-forest-50 truncate">{value}</p>
+                        <p className="text-sm font-bold text-forest-950 dark:text-forest-50 whitespace-nowrap">{value}</p>
                     </div>
                 </div>
             </div>
