@@ -4,8 +4,9 @@ import api from "../api";
 import PageHeader from "../components/PageHeader";
 import Skeleton from "../components/Skeleton";
 import AdherenceReport from "../components/AdherenceReport";
+import CourseProgress from "../components/CourseProgress";
 import { useFeedback } from "../feedback/context";
-import { periodOf, formatTime, formatDate, calcAge, initial } from "../utils/format";
+import { periodOf, formatTime, formatDate, calcAge, initial, daysText } from "../utils/format";
 import "../components/AllergenSearch.css";
 import "./MemberProfile.css";
 
@@ -51,6 +52,7 @@ export default function MemberProfile() {
     const [meds, setMeds] = useState([]);
     const [supply, setSupply] = useState({}); // medication_id → تقدير النفاد
     const [refilling, setRefilling] = useState(null); // الدواء المفتوح نموذج تجديده
+    const [stopping, setStopping] = useState(null);   // كورس جارٍ مفتوح تحذير إيقافه
     const [appts, setAppts] = useState([]);
     // الفحص المعاكس: أدوية حالية تتعارض مع الحساسية، وأدوية موادها غير معروفة
     const [allergyCheck, setAllergyCheck] = useState({ medications: [], unknown_ingredients: [] });
@@ -106,17 +108,24 @@ export default function MemberProfile() {
 
     const setTab = (t) => setSearchParams(t === "appts" ? { tab: "appts" } : {}, { replace: true });
 
-    const stopMedication = async (med) => {
+    // كورس لم ينتهِ: تحذير داخل البطاقة مع سؤال «لماذا؟» بدل التأكيد العادي —
+    // التوقف قبل نهاية الكورس أكثر مشكلة يراها الصيادلة
+    const askStop = async (med) => {
+        if (med.course?.status === "active") return setStopping(med.id);
         const ok = await confirm({
             title: `إيقاف ${med.name}؟`,
             message: "ستتوقف تذكيرات هذا الدواء، ويبقى في السجل ضمن «أدوية متوقفة».",
             confirmLabel: "إيقاف الدواء",
             danger: true,
         });
-        if (!ok) return;
+        if (ok) stopMedication(med);
+    };
+
+    const stopMedication = async (med, reason = null) => {
         try {
-            await api.patch(`/medications/${med.id}/stop`);
-            setMeds((prev) => prev.map((m) => (m.id === med.id ? { ...m, is_active: false } : m)));
+            const res = await api.patch(`/medications/${med.id}/stop`, { reason });
+            setStopping(null);
+            setMeds((prev) => prev.map((m) => (m.id === med.id ? { ...m, ...res.data } : m)));
             // دواء متوقّف لا يُفحص: يخرج من تنبيه الحساسية
             setAllergyCheck((c) => ({
                 medications: c.medications.filter((m) => m.id !== med.id),
@@ -139,7 +148,10 @@ export default function MemberProfile() {
         );
     }
 
-    const active = meds.filter((m) => m.is_active !== false);
+    // الكورس الذي انتهت مدته يخرج من «الحالية» إلى «كورسات مكتملة»
+    const finished = (m) => m.course?.status === "completed";
+    const active = meds.filter((m) => m.is_active !== false && !finished(m));
+    const completed = meds.filter((m) => m.is_active !== false && finished(m));
     const stopped = meds.filter((m) => m.is_active === false);
     const age = calcAge(member.birth_date);
 
@@ -285,6 +297,16 @@ export default function MemberProfile() {
                                             </div>
                                         )}
 
+                                        <CourseProgress course={m.course} startDate={m.start_date} />
+
+                                        {stopping === m.id && (
+                                            <StopCourse
+                                                med={m}
+                                                onKeep={() => setStopping(null)}
+                                                onStop={(reason) => stopMedication(m, reason)}
+                                            />
+                                        )}
+
                                         {refilling === m.id && (
                                             <RefillForm
                                                 med={m}
@@ -309,13 +331,35 @@ export default function MemberProfile() {
                                         <button onClick={() => navigate(`/members/${id}/medications/${m.id}/edit`)}>
                                             تعديل
                                         </button>
-                                        <button className="danger" onClick={() => stopMedication(m)}>
-                                            إيقاف الدواء
-                                        </button>
+                                        {stopping !== m.id && (
+                                            <button className="danger" onClick={() => askStop(m)}>
+                                                إيقاف الدواء
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))}
                         </div>
+                    )}
+
+                    {completed.length > 0 && (
+                        <>
+                            <h3 className="section-title">كورسات مكتملة</h3>
+                            <div className="cards">
+                                {completed.map((m) => (
+                                    <div className="card dim" key={m.id}>
+                                        <div className="card-body no-click">
+                                            <div className="med-title">
+                                                <h2>{m.name}</h2>
+                                                <span className="chip">اكتمل</span>
+                                            </div>
+                                            {m.strength && <p className="muted">{m.strength}</p>}
+                                            <CourseProgress course={m.course} startDate={m.start_date} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </>
                     )}
 
                     {stopped.length > 0 && (
@@ -327,9 +371,14 @@ export default function MemberProfile() {
                                         <div className="card-body no-click">
                                             <div className="med-title">
                                                 <h2>{m.name}</h2>
-                                                <span className="chip neutral">متوقّف</span>
+                                                <span className={`chip ${m.course?.status === "stopped_early" ? "danger" : "neutral"}`}>
+                                                    {m.course?.status === "stopped_early" ? "أُوقف قبل نهاية الكورس" : "متوقّف"}
+                                                </span>
                                             </div>
                                             {m.strength && <p className="muted">{m.strength}</p>}
+                                            {m.course?.status === "stopped_early" && (
+                                                <CourseProgress course={m.course} startDate={m.start_date} />
+                                            )}
                                         </div>
                                     </div>
                                 ))}
@@ -384,6 +433,52 @@ function ApptCard({ a, dim, onEdit }) {
                     <button onClick={onEdit}>تعديل</button>
                 </div>
             )}
+        </div>
+    );
+}
+
+// أسباب الإيقاف — نفس المفاتيح في الخادم (course.js)، وتظهر للطبيب
+const STOP_REASONS = [
+    { key: "doctor", label: "بقرار الطبيب" },
+    { key: "side_effects", label: "أعراض جانبية" },
+    { key: "felt_better", label: "شعر بتحسّن" },
+    { key: "other", label: "سبب آخر" },
+];
+
+// إيقاف كورس قبل نهايته: ما بقي منه، وسؤال «لماذا؟». الزر الأبرز «أكمل الكورس»،
+// والإيقاف ممكن دائماً — القرار للطبيب، والتطبيق يذكّر فقط
+function StopCourse({ med, onKeep, onStop }) {
+    const c = med.course;
+    const [reason, setReason] = useState("");
+    const [saving, setSaving] = useState(false);
+
+    return (
+        <div className="stop-course" role="group" aria-label={`إيقاف ${med.name}`}>
+            <b>الكورس لم ينتهِ بعد</b>
+            <p>
+                اليوم {c.day} من {c.total_days}
+                {c.days_left > 0 ? ` — باقي ${daysText(c.days_left)} بعد اليوم` : " — اليوم آخر يوم"}.
+                {" "}إيقاف الكورس قبل نهايته يكون بقرار من الطبيب أو الصيدلاني.
+            </p>
+            <span className="stop-q">لماذا يُوقف؟</span>
+            <div className="stop-reasons" role="radiogroup" aria-label="سبب الإيقاف">
+                {STOP_REASONS.map((r) => (
+                    <button key={r.key} type="button" role="radio" aria-checked={reason === r.key}
+                        className={reason === r.key ? "on" : ""} onClick={() => setReason(r.key)}>
+                        {r.label}
+                    </button>
+                ))}
+            </div>
+            {reason === "felt_better" && (
+                <p className="stop-tip">التحسّن لا يعني أن العلاج اكتمل. راجع الطبيب أو الصيدلاني قبل الإيقاف.</p>
+            )}
+            <div className="stop-actions">
+                <button type="button" className="btn-primary" onClick={onKeep}>أكمل الكورس</button>
+                <button type="button" className="btn-danger" disabled={!reason || saving}
+                    onClick={() => { setSaving(true); onStop(reason); }}>
+                    {saving ? "..." : "إيقاف رغم ذلك"}
+                </button>
+            </div>
         </div>
     );
 }

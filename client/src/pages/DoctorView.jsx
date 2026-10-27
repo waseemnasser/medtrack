@@ -4,6 +4,7 @@ import api from "../api";
 import Mark from "../components/Mark";
 import { periodOf, formatTime, formatDate, calcAge, initial } from "../utils/format";
 import AdherenceReport from "../components/AdherenceReport";
+import CourseProgress from "../components/CourseProgress";
 import "./DoctorView.css";
 
 const DAYS = { 1: "الأحد", 2: "الإثنين", 3: "الثلاثاء", 4: "الأربعاء", 5: "الخميس", 6: "الجمعة", 7: "السبت" };
@@ -176,9 +177,34 @@ export default function DoctorView() {
                                         ))}
                                 </div>
                             )}
+                            {/* كورس محدد المدة: أين وصل، وكم جرعة أُخذت */}
+                            <CourseProgress course={med.course} startDate={med.start_date} forDoctor />
                         </article>
                     ))}
                 </div>
+            )}
+
+            {/* كورسات أُوقفت قبل نهايتها آخر ٣٠ يوماً — مع اليوم والسبب */}
+            {data.stopped_courses?.length > 0 && (
+                <>
+                    <h2 className="doc-section">
+                        كورسات أُوقفت قبل نهايتها <span className="doc-count">{data.stopped_courses.length}</span>
+                    </h2>
+                    <div className="doc-list">
+                        {data.stopped_courses.map((med) => (
+                            <article className="doc-med doc-stopped" key={med.id}>
+                                <div className="doc-med-head">
+                                    <h3>
+                                        {med.name}
+                                        {med.strength && <span className="doc-strength"> {med.strength}</span>}
+                                    </h3>
+                                    <span className="chip danger">أُوقف {formatDate(med.course.stopped_on, false)}</span>
+                                </div>
+                                <CourseProgress course={med.course} forDoctor />
+                            </article>
+                        ))}
+                    </div>
+                </>
             )}
 
             {/* ---------- المواعيد ---------- */}

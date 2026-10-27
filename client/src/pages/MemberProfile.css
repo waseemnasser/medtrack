@@ -315,3 +315,75 @@
   font-weight: 600;
 }
 
+
+/* ---------- إيقاف كورس قبل نهايته ---------- */
+
+.stop-course {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent);
+  border-radius: var(--radius-sm);
+  background: var(--danger-soft);
+  display: flex;
+  flex-direction: column;
+}
+
+.stop-course b {
+  color: var(--danger);
+  font-size: var(--fs-base);
+}
+
+.stop-course p {
+  margin: 6px 0 0;
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
+.stop-q {
+  margin-top: 12px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.stop-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.stop-reasons button {
+  min-height: var(--tap-sm);
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.stop-reasons button.on {
+  border-color: var(--text);
+  background: var(--text);
+  color: var(--bg);
+}
+
+.stop-course .stop-tip {
+  font-weight: 600;
+  color: var(--danger);
+}
+
+.stop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-sm);
+  margin-top: 14px;
+}
+
+.stop-actions .btn-primary {
+  flex: 1;
+}

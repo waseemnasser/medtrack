@@ -4,11 +4,12 @@ import api from "../api";
 import { formatDate, formatTime } from "../utils/format";
 import "./NotificationBell.css";
 
-// لون أيقونة كل نوع: الجرعة فيروزية، الموعد بنفسجي، النفاد مشمشي
+// لون أيقونة كل نوع: الجرعة فيروزية، الموعد بنفسجي، النفاد مشمشي، الكورس أحمر هادئ
 const KINDS = {
     dose: { label: "جرعة", icon: <><rect x="3" y="8" width="18" height="8" rx="4" /><path d="M12 8v8" /></> },
     appointment: { label: "موعد", icon: <><rect x="3.5" y="5" width="17" height="15" rx="3" /><path d="M3.5 10h17M8 3v4M16 3v4" /></> },
     refill: { label: "نفاد", icon: <><path d="M7 3h10v4H7z" /><path d="M6 7h12v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z" /><path d="M10 13h4M12 11v4" /></> },
+    course: { label: "كورس", icon: <><rect x="3.5" y="9" width="17" height="7" rx="3.5" /><path d="M12 9v7" /><path d="M7 4.5h10" /></> },
     test: { label: "تجربة", icon: <><path d="M5 12.5l4.5 4.5L19 7.5" /></> },
 };
 

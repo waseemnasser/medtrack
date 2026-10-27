@@ -281,6 +281,11 @@
   color: var(--text);
 }
 
+.bell-icon.course {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
 .bell-text {
   min-width: 0;
 }

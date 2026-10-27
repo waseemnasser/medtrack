@@ -55,3 +55,19 @@ export function calcAge(birthDate) {
 export function initial(name) {
     return (name || "?").trim().charAt(0);
 }
+
+// «يوم واحد» / «يومان» / «٣ أيام» / «١١ يوماً» — مدة الكورس وما بقي منه
+export function daysText(n) {
+    if (n === 1) return "يوم واحد";
+    if (n === 2) return "يومان";
+    if (n >= 3 && n <= 10) return `${n} أيام`;
+    return `${n} يوماً`;
+}
+
+// «جرعة واحدة» / «جرعتان» / «٣ جرعات» / «١٢ جرعة»
+export function dosesText(n) {
+    if (n === 1) return "جرعة واحدة";
+    if (n === 2) return "جرعتان";
+    if (n >= 3 && n <= 10) return `${n} جرعات`;
+    return `${n} جرعة`;
+}

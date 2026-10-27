@@ -204,3 +204,49 @@
 .allergy-warning+label {
   margin-top: 18px;
 }
+
+/* ---------- مدة الاستخدام ---------- */
+
+/* الاختيار بين «مستمر» و«كورس» — المسافة تحته تأتي من الحقل التالي */
+.form-card .course-kind {
+  margin-bottom: 0;
+}
+
+/* مدد جاهزة كأزرار صغيرة، وحقل لأي عدد آخر */
+.course-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.course-days button {
+  min-width: var(--tap-sm);
+  min-height: var(--tap-sm);
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+
+.course-days button.on {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+
+.form-card .course-days input {
+  flex: 1;
+  min-width: 90px;
+}
+
+.form-card .course-kind + label,
+.form-card .course-kind + .hint {
+  margin-top: 14px;
+}

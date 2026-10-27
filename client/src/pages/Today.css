@@ -696,3 +696,104 @@
 .soon-appts .chip {
   flex-shrink: 0;
 }
+
+/* ---------- الكورسات ---------- */
+
+/* نفس شكل «مواعيد قريبة»، ويصير أحمر الحافة إن كان كورس في خطر */
+.course-box {
+  margin-bottom: 18px;
+  padding: 14px 16px 6px;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-inline-start: 4px solid var(--primary);
+  border-radius: var(--radius-md);
+}
+
+.course-box.risky {
+  border-inline-start-color: var(--danger);
+}
+
+.course-box h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  color: var(--primary-deep);
+}
+
+.course-box h2 svg {
+  width: 20px;
+  height: 20px;
+}
+
+.course-box ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.course-box li+li {
+  border-top: 1px solid var(--border-faint);
+}
+
+.course-box a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: calc(var(--tap) + 14px);
+  padding: 6px 0;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.course-box .refill-text {
+  flex: 1;
+}
+
+.course-box .chip {
+  flex-shrink: 0;
+}
+
+/* شريط صغير: كم أُخذ من جرعات الكورس كله */
+.course-mini {
+  display: block;
+  height: 5px;
+  margin-top: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--border-light);
+  overflow: hidden;
+}
+
+.course-mini i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+}
+
+/* «يوم ٤ من ٧» بجانب اسم الفرد في صف الجرعة */
+.course-day {
+  display: inline-block;
+  margin-inline-start: 8px;
+  padding: 1px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.course-day.last {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+/* داخل بطاقة الجرعة التالية: على الخلفية الفيروزية */
+.next-dose .course-day {
+  background: rgba(255, 255, 255, .18);
+  color: var(--on-primary);
+}

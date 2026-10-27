@@ -4,6 +4,7 @@ import api from "../api";
 import PageHeader from "../components/PageHeader";
 import AllergenSearch from "../components/AllergenSearch";
 import { useFeedback } from "../feedback/context";
+import { formatDate } from "../utils/format";
 import "./MedicationForm.css";
 
 const DAY_LABELS = [
@@ -14,6 +15,13 @@ const DAY_LABELS = [
 
 // تاريخ اليوم بصيغة حقل التاريخ «2026-10-18»
 const todayISO = () => new Date().toISOString().slice(0, 10);
+
+// حساب التواريخ بالأيام، بلا أثر للتوقيت الصيفي
+const dayNum = (iso) => Date.UTC(...iso.split("-").map((n, i) => Number(n) - (i === 1 ? 1 : 0))) / 86400000;
+const addDays = (iso, n) => new Date((dayNum(iso) + n) * 86400000).toISOString().slice(0, 10);
+
+// مدد شائعة للكورس — المضادات الحيوية غالباً ٥ أو ٧ أو ١٠ أيام
+const COURSE_PRESETS = [3, 5, 7, 10, 14];
 
 // مستوى التعارض بكلمات بسيطة (allergy.js في الخادم)
 const LEVEL_LABEL = {
@@ -43,11 +51,17 @@ export default function MedicationForm() {
         form: "أقراص",
         instructions: "",
         start_date: todayISO(),
-        end_date: "",
+        // الكورس: عدد أيام محدد، ومنه تاريخ الانتهاء. فارغ = دواء مستمر
+        course_days: "",
         units_total: "",
         units_per_dose: "1",
         is_private: false,
     });
+
+    // مستمر أم كورس — اختيار صريح، لأن إيقاف الكورس قبل نهايته
+    // أكثر مشكلة يراها الصيادلة (course.js في الخادم)
+    const [isCourse, setIsCourse] = useState(false);
+    const courseDays = Number(form.course_days);
 
     const [times, setTimes] = useState([
         { time_of_day: "08:00", days_of_week: "1234567" },
@@ -111,11 +125,14 @@ export default function MedicationForm() {
                     form: m.form || "أقراص",
                     instructions: m.instructions || "",
                     start_date: m.start_date ? String(m.start_date).slice(0, 10) : todayISO(),
-                    end_date: m.end_date ? String(m.end_date).slice(0, 10) : "",
+                    course_days: m.end_date && m.start_date
+                        ? String(dayNum(String(m.end_date).slice(0, 10)) - dayNum(String(m.start_date).slice(0, 10)) + 1)
+                        : "",
                     units_total: m.units_total ?? "",
                     units_per_dose: m.units_per_dose ?? "1",
                     is_private: Boolean(m.is_private),
                 });
+                setIsCourse(Boolean(m.end_date));
                 if (!m.catalog_id) setIngredients(m.ingredients || []);
                 if (m.schedules?.length) {
                     setTimes(m.schedules.map((s) => ({
@@ -204,6 +221,8 @@ export default function MedicationForm() {
         setError("");
 
         if (!form.name.trim()) return setError("الرجاء إدخال اسم الدواء");
+        if (isCourse && !(Number.isInteger(courseDays) && courseDays >= 1 && courseDays <= 365))
+            return setError("أدخل عدد أيام الكورس (من ١ إلى ٣٦٥)");
         if (times.length === 0) return setError("أضف موعد جرعة واحداً على الأقل");
         if (times.some((t) => !t.days_of_week))
             return setError("اختر يوماً واحداً على الأقل لكل موعد");
@@ -221,7 +240,7 @@ export default function MedicationForm() {
                 form: form.form || null,
                 instructions: form.instructions || null,
                 start_date: form.start_date,
-                end_date: form.end_date || null,
+                end_date: isCourse ? addDays(form.start_date, courseDays - 1) : null,
                 units_total: form.units_total ? Number(form.units_total) : null,
                 units_per_dose: form.units_per_dose ? Number(form.units_per_dose) : 1,
                 is_private: form.is_private,
@@ -387,9 +406,42 @@ export default function MedicationForm() {
                 <label>تاريخ البدء</label>
                 <input type="date" name="start_date" value={form.start_date} onChange={change} />
 
-                <label>تاريخ الانتهاء</label>
-                <input type="date" name="end_date" value={form.end_date} onChange={change} />
-                <span className="hint">اتركه فارغاً إذا كان الدواء مستمراً</span>
+                <label>مدة الاستخدام</label>
+                <div className="segmented course-kind" role="radiogroup" aria-label="مدة الاستخدام">
+                    <button type="button" role="radio" aria-checked={!isCourse}
+                        className={!isCourse ? "on" : ""} onClick={() => setIsCourse(false)}>
+                        مستمر
+                    </button>
+                    <button type="button" role="radio" aria-checked={isCourse}
+                        className={isCourse ? "on" : ""} onClick={() => setIsCourse(true)}>
+                        كورس بمدة محددة
+                    </button>
+                </div>
+
+                {isCourse ? (
+                    <>
+                        <label htmlFor="course_days">عدد أيام الكورس</label>
+                        <div className="course-days">
+                            {COURSE_PRESETS.map((n) => (
+                                <button type="button" key={n}
+                                    className={courseDays === n ? "on" : ""}
+                                    onClick={() => setForm((f) => ({ ...f, course_days: String(n) }))}>
+                                    {n}
+                                </button>
+                            ))}
+                            <input id="course_days" name="course_days" type="number" inputMode="numeric"
+                                min="1" max="365" value={form.course_days} onChange={change} placeholder="أيام" />
+                        </div>
+                        <span className="hint">
+                            {courseDays >= 1 && form.start_date
+                                ? `آخر يوم: ${formatDate(addDays(form.start_date, courseDays - 1))}. `
+                                : "كما كتبها الطبيب على الوصفة. "}
+                            يتابع نبض التقدّم يوماً بيوم، وينبّه إن تُركت الجرعات قبل نهاية الكورس.
+                        </span>
+                    </>
+                ) : (
+                    <span className="hint">دواء مزمن أو بلا مدة محددة — يستمر حتى توقفه.</span>
+                )}
 
                 {/* ── مواعيد الجرعات ── */}
                 <h3 className="form-section">مواعيد الجرعات</h3>

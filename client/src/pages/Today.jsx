@@ -6,7 +6,7 @@ import { playBeep } from "../beep";
 import PushToggle from "../components/PushToggle";
 import Skeleton from "../components/Skeleton";
 import { useFeedback } from "../feedback/context";
-import { PERIODS, periodOf, timeParts, formatTime, formatDate } from "../utils/format";
+import { PERIODS, periodOf, timeParts, formatTime, formatDate, daysText as courseDaysText } from "../utils/format";
 import "./Today.css";
 
 function CheckIcon() {
@@ -26,6 +26,7 @@ export default function Today() {
     const [alarm, setAlarm] = useState(null);
     const [refills, setRefills] = useState([]); // أدوية تنفد خلال ٣ أيام
     const [appts, setAppts] = useState([]);     // مواعيد اليوم والغد
+    const [courses, setCourses] = useState([]); // كورسات جارية ومكتملة حديثاً
     const { toast } = useFeedback();
 
     useEffect(() => {
@@ -48,12 +49,21 @@ export default function Today() {
             .then((res) => setRefills(res.data))
             .catch(() => {});
 
+        loadCourses();
+
         // مواعيد اليوم والغد — تذكير هادئ بجانب الجرعات
         api.get("/appointments?upcoming=true")
             .then((res) => setAppts(res.data.filter((a) => dayOffset(a.scheduled_at) <= 1)))
             .catch(() => {});
     }, []);
 
+
+    // الكورسات — تُعاد بعد كل تأكيد، فيختفي تنبيه «فاتت جرعتان» فور الأخذ
+    function loadCourses() {
+        api.get("/medications/courses")
+            .then((res) => setCourses(res.data))
+            .catch(() => {});
+    }
 
     const confirm = async (dose) => {
         setSaving(dose.schedule_id);
@@ -70,6 +80,7 @@ export default function Today() {
                         : d
                 )
             );
+            if (dose.course) loadCourses();
         } catch {
             toast("تعذّر تسجيل الجرعة، حاول مجدداً", "error");
         } finally {
@@ -187,6 +198,8 @@ export default function Today() {
 
                     {appts.length > 0 && <SoonAppointments items={appts} />}
 
+                    {courses.length > 0 && <CourseList items={courses} />}
+
                     {refills.length > 0 && <RefillList items={refills} />}
 
                     <PushToggle hideWhenOn />
@@ -227,6 +240,7 @@ export default function Today() {
                                                     <p className="muted">
                                                         <Link to={`/members/${d.member_id}`} className="member-link">{d.member_name}</Link>
                                                         {d.instructions && ` · ${d.instructions}`}
+                                                        <CourseDay course={d.course} />
                                                     </p>
                                                 </div>
 
@@ -282,6 +296,7 @@ function NextDose({ dose, late, saving, onConfirm }) {
                     <p>
                         <Link to={`/members/${dose.member_id}`} className="member-link">{dose.member_name}</Link>
                         {dose.instructions && ` · ${dose.instructions}`}
+                        <CourseDay course={dose.course} />
                     </p>
                 </div>
                 <button className="next-confirm" onClick={onConfirm} disabled={saving}>
@@ -298,6 +313,58 @@ function daysText(n) {
     if (n === 1) return "يكفي يوماً واحداً";
     if (n === 2) return "يكفي يومين";
     return `يكفي ${n} أيام`;
+}
+
+// يوم الكورس بجانب الجرعة: «يوم ٤ من ٧» أو «آخر يوم»
+function CourseDay({ course }) {
+    if (!course) return null;
+    return (
+        <span className={`course-day${course.final_day ? " last" : ""}`}>
+            {course.final_day ? "آخر يوم في الكورس" : `يوم ${course.day} من ${course.total_days}`}
+        </span>
+    );
+}
+
+// الكورسات الجارية: في خطر أولاً (فاتت آخر جرعتين)، ثم آخر يوم، ثم الباقي.
+// والمكتمل يبقى يومين — إنهاء الكورس يستحق أن يُرى
+function CourseList({ items }) {
+    const risky = items.some((c) => c.course.at_risk);
+    const chipFor = (c) => {
+        if (c.status === "completed") return <span className="chip">اكتمل</span>;
+        if (c.at_risk) return <span className="chip danger">فاتت جرعتان</span>;
+        if (c.final_day) return <span className="chip">آخر يوم</span>;
+        return <span className="chip neutral">باقي {courseDaysText(c.days_left)}</span>;
+    };
+    return (
+        <section className={`course-box${risky ? " risky" : ""}`} aria-labelledby="course-title">
+            <h2 id="course-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="3.5" y="9" width="17" height="7" rx="3.5" />
+                    <path d="M12 9v7" />
+                    <path d="M7 4.5h10" />
+                </svg>
+                الكورسات
+            </h2>
+            <ul>
+                {items.map(({ medication_id, name, member_id, member_name, course: c }) => (
+                    <li key={medication_id}>
+                        <Link to={`/members/${member_id}`}>
+                            <span className="refill-text">
+                                <b>{name}</b>
+                                <small>
+                                    {member_name} · {c.status === "completed" ? `${c.taken} من ${c.planned} جرعة` : `اليوم ${c.day} من ${c.total_days}`}
+                                </small>
+                                <span className="course-mini" aria-hidden="true">
+                                    <i style={{ width: `${c.percent}%` }} />
+                                </span>
+                            </span>
+                            {chipFor(c)}
+                        </Link>
+                    </li>
+                ))}
+            </ul>
+        </section>
+    );
 }
 
 // الأدوية التي تنفد قريباً — كل سطر يفتح ملف صاحبه حيث زر «جدّدت العلبة»
