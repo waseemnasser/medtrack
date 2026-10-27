@@ -58,11 +58,14 @@ async function addMember(userId, m) {
 /**
  * يضيف دواءً من الكتالوغ مع أوقاته، ثم سجل جرعاته من يوم بدئه حتى الآن.
  * adherence: احتمال أخذ كل جرعة (0.9 = تسع جرعات من عشر)
+ * courseDays: كورس بمدة محددة. stoppedAfter + stopReason: أُوقف في ذلك اليوم من الكورس
+ * missLast: آخر N جرعات مرّ وقتها لم تُؤخذ — كورس «في خطر» (course.js)
  */
 async function addMedication(memberId, med) {
     const row = await catalogRow(med.ingredient, med.strength);
     const start = daysAgo(med.startedDaysAgo);
     const end = med.courseDays ? daysAgo(med.startedDaysAgo - med.courseDays + 1) : null;
+    const stopped = med.stoppedAfter ? daysAgo(med.startedDaysAgo - med.stoppedAfter + 1) : null;
 
     const { rows } = await pool.query(
         `INSERT INTO medications (member_id, catalog_id, name, active_ingredient, strength, form, instructions,
@@ -79,22 +82,35 @@ async function addMedication(memberId, med) {
     for (const t of med.times) {
         await pool.query("INSERT INTO dose_schedules (medication_id, time_of_day, days_of_week) VALUES ($1, $2, '1234567')", [id, `${t}:00`]);
     }
+    if (stopped) {
+        await pool.query(
+            "UPDATE medications SET is_active = FALSE, stopped_on = $2, stop_reason = $3 WHERE id = $1",
+            [id, dateStr(stopped), med.stopReason || null]
+        );
+    }
 
-    // سجل الجرعات: كل جرعة مضى موعدها بساعة، تُؤخذ باحتمال adherence،
-    // وتُؤكَّد غالباً خلال دقائق من موعدها وأحياناً متأخرة
+    // كل جرعة مضى موعدها بساعة، حتى نهاية الكورس أو يوم الإيقاف
     const now = new Date();
-    for (let day = new Date(start); day <= now && (!end || day <= end); day.setDate(day.getDate() + 1)) {
+    const last = [end, stopped].filter(Boolean).sort((a, b) => a - b)[0];
+    const dues = [];
+    for (let day = new Date(start); day <= now && (!last || day <= last); day.setDate(day.getDate() + 1)) {
         for (const t of med.times) {
             const due = at(day, t);
-            if (due > new Date(now.getTime() - 60 * 60 * 1000)) continue;
-            if (random() > med.adherence) continue;
-            const delay = random() < 0.85 ? Math.floor(random() * 25) : 60 + Math.floor(random() * 120);
-            const confirmed = new Date(due.getTime() + delay * 60 * 1000);
-            await pool.query(
-                "INSERT INTO dose_logs (medication_id, scheduled_at, confirmed_at, status) VALUES ($1, $2, $3, 'taken')",
-                [id, sqlTs(due), sqlTs(confirmed)]
-            );
+            if (due <= new Date(now.getTime() - 60 * 60 * 1000)) dues.push(due);
         }
+    }
+
+    // سجل الجرعات: كل جرعة تُؤخذ باحتمال adherence، وتُؤكَّد غالباً خلال
+    // دقائق من موعدها وأحياناً متأخرة
+    const skipFrom = dues.length - (med.missLast || 0);
+    for (const [i, due] of dues.entries()) {
+        if (i >= skipFrom || random() > med.adherence) continue;
+        const delay = random() < 0.85 ? Math.floor(random() * 25) : 60 + Math.floor(random() * 120);
+        const confirmed = new Date(due.getTime() + delay * 60 * 1000);
+        await pool.query(
+            "INSERT INTO dose_logs (medication_id, scheduled_at, confirmed_at, status) VALUES ($1, $2, $3, 'taken')",
+            [id, sqlTs(due), sqlTs(confirmed)]
+        );
     }
     return { id, name: row.brand_name };
 }
@@ -140,8 +156,15 @@ async function main() {
     // دواء خاص: لا يظهر في صفحة الطبيب ولا في سجلها
     await addMedication(sara, { ingredient: "SERTRALINE", strength: "50", times: ["09:00"], startedDaysAgo: 30, units: 30, adherence: 0.93, private: true });
 
-    // دورة مضاد حيوي لسبعة أيام، بدأت قبل ٤ أيام — مرتين يومياً
+    // ---------- الكورسات (course.js) ----------
+    // مضاد حيوي لسبعة أيام، بدأ قبل ٤ أيام — مرتين يومياً، يسير جيداً
     await addMedication(layla, { ingredient: "CEFADROXIL", times: ["08:00", "20:00"], startedDaysAgo: 4, courseDays: 7, adherence: 0.92, instructions: "بعد الأكل" });
+    // في خطر: فاتت آخر جرعتين — هكذا يبدأ التوقف الصامت
+    await addMedication(khaled, { ingredient: "CIPROFLOXACIN", strength: "500", times: ["08:00", "20:00"], startedDaysAgo: 3, courseDays: 7, adherence: 1, missLast: 2 });
+    // اكتمل قبل يومين — يظهر في «كورسات مكتملة»
+    await addMedication(sara, { ingredient: "CLARITHROMYCIN", strength: "500", times: ["08:00", "20:00"], startedDaysAgo: 8, courseDays: 7, adherence: 1 });
+    // أُوقف في اليوم الرابع من عشرة لأنه «شعر بتحسّن» — يراه الطبيب في صفحة المشاركة
+    await addMedication(khaled, { ingredient: "METRONIDAZOLE", strength: "250", times: ["08:00", "14:00", "22:00"], startedDaysAgo: 18, courseDays: 10, stoppedAfter: 4, stopReason: "felt_better", adherence: 0.95 });
 
     // ---------- المواعيد ----------
     const appts = [
@@ -162,6 +185,7 @@ async function main() {
         ["dose", "حان وقت الجرعة", "سيفادروكسيل — ليلى", "/", 0, "08:00", false],
         ["appointment", "موعد غداً", "طبيب القلب لـخالد — الساعة 10:00 ص", "/appointments", 0, "20:00", false],
         ["refill", "دواء يقترب من النفاد", "أتورفاستاتين لـخالد — ينفد خلال ٣ أيام. جدّد العلبة قريباً.", `/members/${khaled}`, 0, "10:00", true],
+        ["course", "كورس لم يكتمل", "آخر جرعتين من سيبروفلوكساسين لـخالد لم تُسجَّلا، وباقي ٣ أيام من الكورس. لا يُوقف قبل نهايته إلا بقرار الطبيب.", `/members/${khaled}`, 0, "10:00", false],
         ["dose", "حان وقت الجرعة", "مونتيلوكاست — سارة", "/", 1, "21:00", true],
     ];
     for (const [kind, title, body, url, ago, time, read] of notes) {
@@ -177,7 +201,11 @@ async function main() {
         "SELECT count(*)::int AS n FROM dose_logs dl JOIN medications m ON m.id = dl.medication_id JOIN members mem ON mem.id = m.member_id WHERE mem.user_id = $1",
         [userId]
     )).rows[0].n;
-    console.log(`✓ حساب العرض جاهز: ٣ أفراد، ٧ أدوية، ${doses} جرعة مؤكَّدة، ٤ مواعيد.`);
+    const meds = (await pool.query(
+        "SELECT count(*)::int AS n FROM medications m JOIN members mem ON mem.id = m.member_id WHERE mem.user_id = $1",
+        [userId]
+    )).rows[0].n;
+    console.log(`✓ حساب العرض جاهز: ٣ أفراد، ${meds} أدوية (٤ كورسات)، ${doses} جرعة مؤكَّدة، ٤ مواعيد.`);
     console.log(`  البريد: ${DEMO.email}`);
     console.log(`  كلمة المرور: ${DEMO.password}`);
 }
