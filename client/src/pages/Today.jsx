@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { Pill, Calendar, AlertTriangle, Activity, Plus, ChevronLeft, Check, CheckCircle2, BellRing, X } from "lucide-react";
 import api from "../api";
 import useDoseAlarm from "../useDoseAlarm";
 import { playBeep } from "../beep";
@@ -7,15 +8,6 @@ import PushToggle from "../components/PushToggle";
 import Skeleton from "../components/Skeleton";
 import { useFeedback } from "../feedback/context";
 import { PERIODS, periodOf, timeParts, formatTime, formatDate, daysText as courseDaysText } from "../utils/format";
-import "./Today.css";
-
-function CheckIcon() {
-    return (
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M5 12.5l4.5 4.5L19 7.5" />
-        </svg>
-    );
-}
 
 export default function Today() {
     const [date, setDate] = useState("");
@@ -112,160 +104,187 @@ export default function Today() {
     const next = sorted.find((d) => d.status !== "taken");
     const rest = sorted.filter((d) => d !== next);
 
+    // أرقام حقيقية من بيانات الصفحة نفسها، لا إحصاءات مصطنعة
+    const stats = [
+        { label: "جرعات أُخذت اليوم", value: `${takenCount} من ${doses.length}`, icon: Pill, color: "bg-forest-100 text-forest-600" },
+        { label: "مواعيد اليوم وغداً", value: appts.length, icon: Calendar, color: "bg-purple-100 text-purple-600" },
+        { label: "كورسات جارية", value: courses.filter((c) => c.status !== "completed").length, icon: Activity, color: "bg-blue-100 text-blue-600" },
+        { label: "تنفد قريباً", value: refills.length, icon: AlertTriangle, color: "bg-amber-100 text-amber-600" },
+    ];
+
+    const closeAlarm = () => { setAlarm(null); document.title = "نبض"; };
+
     return (
-        <div className="page page-wide">
+        <div className="space-y-6">
             {alarm && (
-                <div className="alarm-bar">
-                    <div className="alarm-text">
-                        حان وقت جرعة <strong>{alarm.medication_name}</strong> لـ{" "}
-                        <strong>{alarm.member_name}</strong>
-                    </div>
-                    <div className="alarm-actions">
-                        <button
-                            className="alarm-confirm"
-                            onClick={() => { confirm(alarm); setAlarm(null); document.title = "نبض"; }}
-                        >
-                            تم الأخذ
-                        </button>
-                        <button
-                            className="alarm-close"
-                            onClick={() => { setAlarm(null); document.title = "نبض"; }}
-                        >
-                            إغلاق
-                        </button>
-                    </div>
+                <div role="alert" className="fixed top-16 lg:top-6 inset-x-4 lg:right-72 lg:left-8 z-40 gradient-forest text-white rounded-2xl shadow-2xl shadow-forest-950/30 p-4 flex flex-wrap items-center gap-3 animate-fade-down">
+                    <BellRing className="w-6 h-6 text-forest-200 flex-shrink-0" />
+                    <p className="flex-1 min-w-[10rem]">
+                        حان وقت جرعة <strong>{alarm.medication_name}</strong> لـ <strong>{alarm.member_name}</strong>
+                    </p>
+                    <button onClick={() => { confirm(alarm); closeAlarm(); }}
+                        className="bg-white text-forest-700 font-bold px-5 py-2 rounded-xl hover:bg-forest-50 transition-colors">
+                        تم الأخذ
+                    </button>
+                    <button onClick={closeAlarm} aria-label="إغلاق" className="p-2 rounded-lg hover:bg-white/10">
+                        <X className="w-5 h-5" />
+                    </button>
                 </div>
             )}
-            <div className="page-head">
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <p className="kicker today-date">{formatDate(date)}</p>
-                    <h1>جرعات اليوم</h1>
+                    <h1 className="text-2xl lg:text-3xl font-extrabold text-forest-950">جرعات اليوم</h1>
+                    <p className="text-forest-700/60 mt-1">{formatDate(date)}</p>
+                </div>
+                <div className="flex gap-2">
+                    <Link to="/members/new" className="btn-secondary flex items-center gap-2">
+                        <Plus className="w-4 h-4" /> فرد جديد
+                    </Link>
+                    <Link to="/appointments/new" className="btn-primary flex items-center gap-2">
+                        <Plus className="w-4 h-4" /> موعد جديد
+                    </Link>
                 </div>
             </div>
 
-            {/* على الحاسوب: الجرعة التالية ثابتة على اليمين، والقائمة على اليسار */}
-            <div className="today-grid">
-                <aside className="today-side">
-                    {error && <div className="error">{error}</div>}
-
-                    {doses.length === 0 && !error ? (
-                        <div className="empty">
-                            لا توجد جرعات اليوم.
-                            <br />
-                            <Link to="/members">أضف دواءً من ملف أحد أفراد العائلة</Link>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {stats.map((stat) => (
+                    <div key={stat.label} className="card p-5">
+                        <div className={`w-12 h-12 ${stat.color} rounded-xl flex items-center justify-center mb-3`}>
+                            <stat.icon className="w-6 h-6" />
                         </div>
-                    ) : doses.length > 0 && (
-                        <>
-                            {next ? (
-                                <NextDose
-                                    key={next.schedule_id}
-                                    dose={next}
-                                    late={isLate(next)}
-                                    saving={saving === next.schedule_id}
-                                    onConfirm={() => confirm(next)}
-                                />
-                            ) : (
-                                <section className="next-dose all-done">
-                                    <span className="all-done-icon"><CheckIcon /></span>
-                                    <div>
-                                        <h3>أُخذت كل جرعات اليوم</h3>
-                                        <p>اطمئن، لا شيء متبقٍّ لليوم.</p>
-                                    </div>
-                                </section>
-                            )}
+                        <p className="text-3xl font-extrabold text-forest-950">{stat.value}</p>
+                        <p className="text-sm text-forest-700/60">{stat.label}</p>
+                    </div>
+                ))}
+            </div>
 
-                            <div className="day-progress">
-                                <div
-                                    className="day-progress-bar"
-                                    role="img"
-                                    aria-label={`تم تأكيد ${takenCount} من أصل ${doses.length} جرعات`}
-                                >
-                                    {sorted.map((d) => (
-                                        <span
-                                            key={d.schedule_id}
-                                            className={
-                                                d.status === "taken"
-                                                    ? `seg ${periodOf(d.time_of_day).key}${d.justTaken ? " just" : ""}`
-                                                    : "seg"
-                                            }
-                                        />
-                                    ))}
-                                </div>
-                                <span className="day-progress-label">{takenCount} من {doses.length}</span>
+            <div className="grid lg:grid-cols-3 gap-6">
+                {/* الجرعات */}
+                <div className="lg:col-span-2 space-y-6">
+                    {error && <div className="card p-4 !border-red-200 bg-red-50 text-red-700">{error}</div>}
+
+                    {doses.length > 0 && (next ? (
+                        <NextDose
+                            key={next.schedule_id}
+                            dose={next}
+                            late={isLate(next)}
+                            saving={saving === next.schedule_id}
+                            onConfirm={() => confirm(next)}
+                        />
+                    ) : (
+                        <div className="card p-6 flex items-center gap-4 gradient-mint">
+                            <div className="w-14 h-14 bg-forest-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg shadow-forest-600/30">
+                                <Check className="w-7 h-7 text-white" strokeWidth={3} />
                             </div>
-                        </>
-                    )}
+                            <div>
+                                <h3 className="text-lg font-bold text-forest-950">أُخذت كل جرعات اليوم</h3>
+                                <p className="text-forest-700/70">اطمئن، لا شيء متبقٍّ لليوم.</p>
+                            </div>
+                        </div>
+                    ))}
 
-                    {appts.length > 0 && <SoonAppointments items={appts} />}
+                    <div className="card p-6">
+                        <div className="flex items-center justify-between mb-5 gap-3">
+                            <h2 className="text-lg font-bold text-forest-950 flex items-center gap-2">
+                                <Pill className="w-5 h-5 text-forest-600" />
+                                جدول اليوم
+                            </h2>
+                            {doses.length > 0 && (
+                                <span className="text-sm font-semibold text-forest-700">{takenCount} من {doses.length}</span>
+                            )}
+                        </div>
 
-                    {courses.length > 0 && <CourseList items={courses} />}
+                        {doses.length > 0 && (
+                            <div className="flex gap-1 mb-6" role="img" aria-label={`تم تأكيد ${takenCount} من أصل ${doses.length} جرعات`}>
+                                {sorted.map((d) => (
+                                    <span key={d.schedule_id}
+                                        className={`h-2 flex-1 rounded-full transition-colors duration-500 ${d.status === "taken" ? periodOf(d.time_of_day).bar : "bg-sage-100 dark:bg-forest-800/60"}`} />
+                                ))}
+                            </div>
+                        )}
 
-                    {refills.length > 0 && <RefillList items={refills} />}
-
-                    <PushToggle hideWhenOn />
-                </aside>
-
-                <div className="today-main">
-                    {PERIODS.map((period) => {
-                        const list = rest.filter((d) => periodOf(d.time_of_day).key === period.key);
-                        if (list.length === 0) return null;
-                        return (
-                            <section key={period.key} className="period">
-                                <h2 className="period-title">
-                                    <span className={`period-swatch ${period.key}`} aria-hidden="true" />
-                                    {period.label}
-                                </h2>
-                                <div className="dose-list">
-                                    {list.map((d, i) => {
-                                        const taken = d.status === "taken";
-                                        const late = isLate(d);
-                                        return (
-                                            <div
-                                                className={`dose-row${taken ? " taken" : ""}${late ? " late" : ""}`}
-                                                key={d.schedule_id}
-                                                style={{ "--i": i }}
-                                            >
-                                                {/* الوقت أولاً وبخط كبير — أول ما تبحث عنه العين */}
-                                                <span className="dose-clock">
-                                                    {timeParts(d.time_of_day).clock}
-                                                    <small>{timeParts(d.time_of_day).suffix}</small>
-                                                </span>
-                                                <span className={`dose-marker ${period.key}`} aria-hidden="true" />
-                                                <div className="dose-info">
-                                                    <h3>
-                                                        {d.medication_name}
-                                                        {d.strength && <span className="dose-strength"> {d.strength}</span>}
-                                                        {late && <span className="badge-late">متأخرة</span>}
-                                                    </h3>
-                                                    <p className="muted">
-                                                        <Link to={`/members/${d.member_id}`} className="member-link">{d.member_name}</Link>
-                                                        {d.instructions && ` · ${d.instructions}`}
-                                                        <CourseDay course={d.course} />
-                                                    </p>
-                                                </div>
-
-                                                {taken ? (
-                                                    <span className={`done ${period.key}${d.justTaken ? " just" : ""}`} role="img" aria-label="تم الأخذ">
-                                                        <CheckIcon />
-                                                    </span>
-                                                ) : (
-                                                    <button
-                                                        className={late ? "btn-primary" : "btn-outline"}
-                                                        onClick={() => confirm(d)}
-                                                        disabled={saving === d.schedule_id}
-                                                    >
-                                                        {saving === d.schedule_id ? "..." : "تم الأخذ"}
-                                                    </button>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
+                        {doses.length === 0 && !error ? (
+                            <div className="text-center py-10">
+                                <div className="w-16 h-16 bg-sage-100 dark:bg-forest-800/60 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Pill className="w-8 h-8 text-sage-400 dark:text-forest-600" />
                                 </div>
-                            </section>
-                        );
-                    })}
+                                <p className="text-forest-700/60">لا توجد جرعات اليوم.</p>
+                                <Link to="/members" className="btn-secondary inline-block mt-4">أضف دواءً من ملف أحد أفراد العائلة</Link>
+                            </div>
+                        ) : rest.length === 0 && doses.length > 0 ? (
+                            <p className="text-sm text-forest-700/60 text-center py-4">لا جرعات أخرى اليوم.</p>
+                        ) : (
+                            <div className="space-y-6">
+                                {PERIODS.map((period) => {
+                                    const list = rest.filter((d) => periodOf(d.time_of_day).key === period.key);
+                                    if (list.length === 0) return null;
+                                    return (
+                                        <section key={period.key}>
+                                            <h3 className="flex items-center gap-2 text-sm font-bold text-forest-800 mb-3">
+                                                <span className={`w-2.5 h-2.5 rounded-full ${period.dot}`} aria-hidden="true" />
+                                                {period.label}
+                                            </h3>
+                                            <div className="space-y-3">
+                                                {list.map((d) => (
+                                                    <DoseRow key={d.schedule_id} dose={d} period={period}
+                                                        late={isLate(d)} saving={saving === d.schedule_id}
+                                                        onConfirm={() => confirm(d)} />
+                                                ))}
+                                            </div>
+                                        </section>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* الجانب: المواعيد والكورسات وما ينفد */}
+                <div className="space-y-6">
+                    <SoonAppointments items={appts} />
+                    {courses.length > 0 && <CourseList items={courses} />}
+                    {refills.length > 0 && <RefillList items={refills} />}
+                    <PushToggle hideWhenOn />
                 </div>
             </div>
+        </div>
+    );
+}
+
+// سطر جرعة: الوقت أولاً وبخط كبير — أول ما تبحث عنه العين
+function DoseRow({ dose: d, period, late, saving, onConfirm }) {
+    const taken = d.status === "taken";
+    const { clock, suffix } = timeParts(d.time_of_day);
+    return (
+        <div className={`flex items-center gap-4 rounded-xl p-4 transition-colors ${late
+            ? "bg-red-50 ring-1 ring-red-200 dark:ring-red-900/50"
+            : "bg-sage-50 dark:bg-forest-800/40 hover:bg-mint-50 dark:hover:bg-forest-800/60"}`}>
+            <div className="w-12 text-center flex-shrink-0">
+                <p className={`text-lg font-extrabold leading-none ${taken ? "text-forest-700/60" : "text-forest-950"}`}>{clock}</p>
+                <p className="text-xs text-forest-700/60 mt-1">{suffix}</p>
+            </div>
+            <span className={`w-1 self-stretch rounded-full ${period.dot}`} aria-hidden="true" />
+            <div className="flex-1 min-w-0">
+                <p className={`font-semibold truncate ${taken ? "text-forest-700/60 line-through decoration-forest-300" : "text-forest-950"}`}>
+                    {d.medication_name}
+                    {d.strength && <span className="font-normal text-forest-700/60"> {d.strength}</span>}
+                </p>
+                <div className="text-sm text-forest-700/60 flex flex-wrap items-center gap-x-1.5 gap-y-1 mt-0.5">
+                    <Link to={`/members/${d.member_id}`} className="hover:text-forest-600 font-medium">{d.member_name}</Link>
+                    {d.instructions && <span>· {d.instructions}</span>}
+                    {late && <span className="badge badge-danger">متأخرة</span>}
+                    <CourseDay course={d.course} />
+                </div>
+            </div>
+            {taken ? (
+                <CheckCircle2 className="w-8 h-8 text-forest-600 flex-shrink-0 animate-scale-in" role="img" aria-label="تم الأخذ" />
+            ) : (
+                <button onClick={onConfirm} disabled={saving}
+                    className={`${late ? "btn-primary" : "btn-secondary"} !px-4 !py-2 text-sm flex-shrink-0`}>
+                    {saving ? "..." : "تم الأخذ"}
+                </button>
+            )}
         </div>
     );
 }
@@ -275,31 +294,32 @@ function NextDose({ dose, late, saving, onConfirm }) {
     const period = periodOf(dose.time_of_day);
     const { clock, suffix } = timeParts(dose.time_of_day);
     return (
-        <section className={`next-dose${late ? " late" : ""}`} aria-label="الجرعة التالية">
-            <div className="next-top">
-                <span className="next-label">الجرعة التالية</span>
-                {late ? (
-                    <span className="next-chip late">متأخرة</span>
-                ) : (
-                    <span className={`next-chip ${period.key}`}>{period.label}</span>
-                )}
+        <section aria-label="الجرعة التالية"
+            className={`relative overflow-hidden rounded-2xl p-6 text-white shadow-xl animate-fade-up ${late
+                ? "bg-gradient-to-l from-red-600 to-red-500 shadow-red-500/30"
+                : "gradient-forest shadow-forest-900/20"}`}>
+            <div className="absolute -top-16 -left-16 w-48 h-48 bg-white/10 rounded-full blur-2xl" aria-hidden="true" />
+            <div className="relative flex items-center justify-between gap-3 mb-4">
+                <span className="text-sm font-semibold text-white/80">الجرعة التالية</span>
+                <span className="badge bg-white/15 text-white">{late ? "متأخرة" : period.label}</span>
             </div>
-            <div className="next-body">
-                <div className="next-info">
-                    <div className="next-time">
-                        {clock} <small>{suffix}</small>
-                    </div>
-                    <h3>
-                        {dose.medication_name}
-                        {dose.strength && <span className="dose-strength"> {dose.strength}</span>}
-                    </h3>
-                    <p>
-                        <Link to={`/members/${dose.member_id}`} className="member-link">{dose.member_name}</Link>
-                        {dose.instructions && ` · ${dose.instructions}`}
-                        <CourseDay course={dose.course} />
+            <div className="relative flex flex-wrap items-end justify-between gap-4">
+                <div className="min-w-0">
+                    <p className="text-5xl font-extrabold leading-none">
+                        {clock} <span className="text-xl font-bold text-white/80">{suffix}</span>
                     </p>
+                    <h3 className="text-xl font-bold mt-3">
+                        {dose.medication_name}
+                        {dose.strength && <span className="font-normal text-white/80"> {dose.strength}</span>}
+                    </h3>
+                    <div className="text-white/80 mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                        <Link to={`/members/${dose.member_id}`} className="font-semibold text-white hover:underline">{dose.member_name}</Link>
+                        {dose.instructions && <span>· {dose.instructions}</span>}
+                        <CourseDay course={dose.course} onDark />
+                    </div>
                 </div>
-                <button className="next-confirm" onClick={onConfirm} disabled={saving}>
+                <button onClick={onConfirm} disabled={saving}
+                    className="bg-white text-forest-700 font-bold text-lg px-8 py-3.5 rounded-xl shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-70">
                     {saving ? "..." : "تم الأخذ"}
                 </button>
             </div>
@@ -316,82 +336,87 @@ function daysText(n) {
 }
 
 // يوم الكورس بجانب الجرعة: «يوم ٤ من ٧» أو «آخر يوم»
-function CourseDay({ course }) {
+function CourseDay({ course, onDark = false }) {
     if (!course) return null;
+    const tone = onDark ? "bg-white/15 text-white" : course.final_day ? "badge-warning" : "badge-info";
     return (
-        <span className={`course-day${course.final_day ? " last" : ""}`}>
+        <span className={`badge ${tone}`}>
             {course.final_day ? "آخر يوم في الكورس" : `يوم ${course.day} من ${course.total_days}`}
         </span>
     );
 }
+
+// بطاقة جانبية بعنوان وأيقونة
+function SideCard({ icon: Icon, iconColor, title, action, children, className = "" }) {
+    return (
+        <section className={`card p-6 ${className}`}>
+            <div className="flex items-center justify-between mb-5">
+                <h2 className="text-lg font-bold text-forest-950 flex items-center gap-2">
+                    <Icon className={`w-5 h-5 ${iconColor}`} />
+                    {title}
+                </h2>
+                {action}
+            </div>
+            {children}
+        </section>
+    );
+}
+
+const rowLink = "flex items-center gap-3 bg-sage-50 dark:bg-forest-800/40 rounded-xl p-3 hover:bg-mint-50 dark:hover:bg-forest-800/60 transition-colors";
 
 // الكورسات الجارية: في خطر أولاً (فاتت آخر جرعتين)، ثم آخر يوم، ثم الباقي.
 // والمكتمل يبقى يومين — إنهاء الكورس يستحق أن يُرى
 function CourseList({ items }) {
     const risky = items.some((c) => c.course.at_risk);
     const chipFor = (c) => {
-        if (c.status === "completed") return <span className="chip">اكتمل</span>;
-        if (c.at_risk) return <span className="chip danger">فاتت جرعتان</span>;
-        if (c.final_day) return <span className="chip">آخر يوم</span>;
-        return <span className="chip neutral">باقي {courseDaysText(c.days_left)}</span>;
+        if (c.status === "completed") return <span className="badge badge-success">اكتمل</span>;
+        if (c.at_risk) return <span className="badge badge-danger">فاتت جرعتان</span>;
+        if (c.final_day) return <span className="badge badge-warning">آخر يوم</span>;
+        return <span className="badge badge-info">باقي {courseDaysText(c.days_left)}</span>;
     };
     return (
-        <section className={`course-box${risky ? " risky" : ""}`} aria-labelledby="course-title">
-            <h2 id="course-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <rect x="3.5" y="9" width="17" height="7" rx="3.5" />
-                    <path d="M12 9v7" />
-                    <path d="M7 4.5h10" />
-                </svg>
-                الكورسات
-            </h2>
-            <ul>
+        <SideCard icon={Activity} iconColor={risky ? "text-red-500" : "text-blue-500"} title="الكورسات"
+            className={risky ? "!border-red-200 dark:!border-red-900/60" : ""}>
+            <ul className="space-y-3">
                 {items.map(({ medication_id, name, member_id, member_name, course: c }) => (
                     <li key={medication_id}>
-                        <Link to={`/members/${member_id}`}>
-                            <span className="refill-text">
-                                <b>{name}</b>
-                                <small>
+                        <Link to={`/members/${member_id}`} className={rowLink}>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-forest-950 text-sm truncate">{name}</p>
+                                <p className="text-xs text-forest-700/60">
                                     {member_name} · {c.status === "completed" ? `${c.taken} من ${c.planned} جرعة` : `اليوم ${c.day} من ${c.total_days}`}
-                                </small>
-                                <span className="course-mini" aria-hidden="true">
-                                    <i style={{ width: `${c.percent}%` }} />
-                                </span>
-                            </span>
+                                </p>
+                                <div className="h-1.5 bg-sage-100 dark:bg-forest-900/60 rounded-full overflow-hidden mt-2" aria-hidden="true">
+                                    <div className={`h-full rounded-full ${c.at_risk ? "bg-red-500" : "bg-forest-500"}`} style={{ width: `${c.percent}%` }} />
+                                </div>
+                            </div>
                             {chipFor(c)}
                         </Link>
                     </li>
                 ))}
             </ul>
-        </section>
+        </SideCard>
     );
 }
 
 // الأدوية التي تنفد قريباً — كل سطر يفتح ملف صاحبه حيث زر «جدّدت العلبة»
 function RefillList({ items }) {
     return (
-        <section className="refill-box" aria-labelledby="refill-title">
-            <h2 id="refill-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <rect x="6" y="3" width="12" height="18" rx="3" />
-                    <path d="M6 14h12" />
-                </svg>
-                تنفد قريباً
-            </h2>
-            <ul>
+        <SideCard icon={AlertTriangle} iconColor="text-amber-500" title="تنفد قريباً">
+            <ul className="space-y-3">
                 {items.map((r) => (
                     <li key={r.medication_id}>
-                        <Link to={`/members/${r.member_id}`}>
-                            <span className="refill-text">
-                                <b>{r.name}</b>
-                                <small>{r.member_name}</small>
-                            </span>
-                            <span className="chip danger">{daysText(r.days_left)}</span>
+                        <Link to={`/members/${r.member_id}`} className={rowLink}>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-forest-950 text-sm truncate">{r.name}</p>
+                                <p className="text-xs text-forest-700/60">{r.member_name}</p>
+                            </div>
+                            <span className="badge badge-danger">{daysText(r.days_left)}</span>
                         </Link>
                     </li>
                 ))}
             </ul>
-        </section>
+        </SideCard>
     );
 }
 
@@ -405,30 +430,41 @@ function dayOffset(scheduledAt) {
 // مواعيد اليوم والغد — كل سطر يفتح صفحة المواعيد
 function SoonAppointments({ items }) {
     return (
-        <section className="soon-appts" aria-labelledby="soon-appts-title">
-            <h2 id="soon-appts-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <rect x="3.5" y="5" width="17" height="15" rx="3" />
-                    <path d="M3.5 10h17M8 3v4M16 3v4" />
-                </svg>
-                مواعيد قريبة
-            </h2>
-            <ul>
-                {items.map((a) => {
-                    const time = String(a.scheduled_at).replace("T", " ").split(" ")[1].slice(0, 5);
-                    return (
-                        <li key={a.id}>
-                            <Link to="/appointments">
-                                <span className="chip">{dayOffset(a.scheduled_at) === 0 ? "اليوم" : "غداً"}</span>
-                                <span className="refill-text">
-                                    <b>{a.title}</b>
-                                    <small>{formatTime(time)} · {a.member_name}{a.location ? ` · ${a.location}` : ""}</small>
-                                </span>
-                            </Link>
-                        </li>
-                    );
-                })}
-            </ul>
-        </section>
+        <SideCard icon={Calendar} iconColor="text-purple-500" title="مواعيد قريبة"
+            action={
+                <Link to="/appointments" className="text-sm text-forest-600 hover:text-forest-700 font-medium flex items-center gap-1">
+                    الكل <ChevronLeft className="w-4 h-4" />
+                </Link>
+            }>
+            {items.length === 0 ? (
+                <div className="text-center py-6">
+                    <div className="w-14 h-14 bg-sage-100 dark:bg-forest-800/60 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <Calendar className="w-7 h-7 text-sage-400 dark:text-forest-600" />
+                    </div>
+                    <p className="text-forest-700/60 text-sm">لا مواعيد اليوم أو غداً.</p>
+                </div>
+            ) : (
+                <ul className="space-y-3">
+                    {items.map((a) => {
+                        const time = String(a.scheduled_at).replace("T", " ").split(" ")[1].slice(0, 5);
+                        return (
+                            <li key={a.id}>
+                                <Link to="/appointments" className={rowLink}>
+                                    <div className="flex items-center justify-center bg-forest-600 text-white rounded-lg w-12 h-12 flex-shrink-0">
+                                        <span className="text-xs font-bold">{dayOffset(a.scheduled_at) === 0 ? "اليوم" : "غداً"}</span>
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="font-semibold text-forest-950 text-sm truncate">{a.title}</p>
+                                        <p className="text-xs text-forest-700/60">
+                                            {formatTime(time)} · {a.member_name}{a.location ? ` · ${a.location}` : ""}
+                                        </p>
+                                    </div>
+                                </Link>
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
+        </SideCard>
     );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import "./InstallPrompt.css";
+import { Download } from "lucide-react";
 
 function isIOS() {
     return /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -46,25 +46,19 @@ export default function InstallPrompt() {
     if (!deferred && !showIOS) return null;
 
     return (
-        <div className="install-bar">
-            {deferred ? (
-                <>
-                    <span>ثبّت «نبض» على شاشتك ليصلك التذكير بالجرعات</span>
-                    <div className="install-actions">
-                        <button className="install-yes" onClick={install}>تثبيت</button>
-                        <button className="install-no" onClick={dismiss}>لاحقاً</button>
-                    </div>
-                </>
-            ) : (
-                <>
-                    <span>
-                        لتثبيت التطبيق: اضغط زر المشاركة في سفاري ثم «إضافة إلى الشاشة الرئيسية»
-                    </span>
-                    <div className="install-actions">
-                        <button className="install-no" onClick={dismiss}>حسناً</button>
-                    </div>
-                </>
-            )}
+        <div className="card p-4 mb-6 flex flex-wrap items-center gap-3">
+            <div className="w-10 h-10 bg-forest-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Download className="w-5 h-5 text-forest-600" />
+            </div>
+            <p className="flex-1 min-w-[12rem] text-sm font-medium text-forest-950">
+                {deferred
+                    ? "ثبّت «نبض» على شاشتك ليصلك التذكير بالجرعات"
+                    : "لتثبيت التطبيق: اضغط زر المشاركة في سفاري ثم «إضافة إلى الشاشة الرئيسية»"}
+            </p>
+            <div className="flex gap-2">
+                {deferred && <button className="btn-primary !px-4 !py-2 text-sm" onClick={install}>تثبيت</button>}
+                <button className="btn-secondary !px-4 !py-2 text-sm" onClick={dismiss}>{deferred ? "لاحقاً" : "حسناً"}</button>
+            </div>
         </div>
     );
 }

@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 /**
  * رأس الصفحات الداخلية: زر رجوع + عنوان + إجراء اختياري.
@@ -6,8 +7,9 @@ import { useNavigate } from "react-router-dom";
  * فبدون هذا الزر يعلق المستخدم داخل الصفحة.
  *
  * back: الصفحة التي نرجع إليها إن فُتحت هذه الصفحة مباشرة من رابط
+ * subtitle: سطر خافت تحت العنوان
  */
-export default function PageHeader({ title, back = "/", action }) {
+export default function PageHeader({ title, subtitle, back = "/", action }) {
     const navigate = useNavigate();
 
     // إن جاء المستخدم من صفحة داخل التطبيق نرجع خطوة، وإلا نذهب للصفحة الأم
@@ -17,15 +19,17 @@ export default function PageHeader({ title, back = "/", action }) {
     };
 
     return (
-        <div className="page-header">
-            <button type="button" className="icon-btn" onClick={goBack} aria-label="رجوع">
+        <div className="flex items-center gap-3 mb-6">
+            <button type="button" onClick={goBack} aria-label="رجوع"
+                className="w-10 h-10 flex-shrink-0 flex items-center justify-center rounded-xl bg-white border border-sage-200 text-forest-700 hover:border-forest-400 transition-colors">
                 {/* سهم لليمين: الرجوع في الواجهة العربية */}
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M9 5l7 7-7 7" />
-                </svg>
+                <ArrowRight className="w-5 h-5" />
             </button>
-            {title && <h1>{title}</h1>}
-            {action && <div className="page-header-action">{action}</div>}
+            <div className="flex-1 min-w-0">
+                {title && <h1 className="text-2xl lg:text-3xl font-extrabold text-forest-950 truncate">{title}</h1>}
+                {subtitle && <p className="text-forest-700/60 mt-0.5">{subtitle}</p>}
+            </div>
+            {action && <div className="flex-shrink-0">{action}</div>}
         </div>
     );
 }

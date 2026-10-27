@@ -1,10 +1,23 @@
 // أدوات تنسيق مشتركة بين الصفحات: الأوقات، التواريخ، فترات اليوم
 
-// فترات اليوم — لكل فترة لونها الثابت في variables.css
+// فترات اليوم — لكل فترة لونها الثابت (فئات Tailwind):
+// chip شارة الفترة، dot نقطتها، bar لونها في شريط التقدّم
 export const PERIODS = [
-    { key: "morning", label: "الصباح" },
-    { key: "noon", label: "الظهر" },
-    { key: "evening", label: "المساء" },
+    {
+        key: "morning", label: "الصباح",
+        chip: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
+        dot: "bg-amber-400", bar: "bg-amber-400",
+    },
+    {
+        key: "noon", label: "الظهر",
+        chip: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300",
+        dot: "bg-orange-400", bar: "bg-orange-400",
+    },
+    {
+        key: "evening", label: "المساء",
+        chip: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300",
+        dot: "bg-indigo-400", bar: "bg-indigo-400",
+    },
 ];
 
 // «08:30:00» ← فترة الصباح
