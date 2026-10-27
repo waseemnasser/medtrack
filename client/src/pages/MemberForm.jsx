@@ -5,8 +5,12 @@ import PageHeader from "../components/PageHeader";
 import AllergyEditor from "../components/AllergyEditor";
 import { fromServer, toPayload } from "../utils/allergies";
 import Field, { FormError } from "../components/Field";
+import ContactsEditor from "../components/ContactsEditor";
+import { contactsError } from "../utils/contacts";
 import { useFeedback } from "../feedback/context";
-import { Save, Trash2 } from "lucide-react";
+import { Save, Trash2, Siren } from "lucide-react";
+
+const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
 export default function MemberForm() {
     const { id } = useParams();          // موجود عند التعديل، غير موجود عند الإضافة
@@ -19,7 +23,12 @@ export default function MemberForm() {
         name: "",
         birth_date: "",
         chronic_conditions: "",
+        blood_type: "",
+        gender: "",
+        emergency_notes: "",
     });
+    // أرقام الطوارئ — تُحفظ بطلب منفصل بعد الفرد، كالحساسية
+    const [contacts, setContacts] = useState([]);
     // الحساسية بنود منظّمة (مادة أو عائلة)، لا نص — تُحفظ بطلب منفصل
     const [allergies, setAllergies] = useState([]);
     const [error, setError] = useState("");
@@ -36,9 +45,15 @@ export default function MemberForm() {
                     name: m.name || "",
                     birth_date: m.birth_date ? String(m.birth_date).slice(0, 10) : "",
                     chronic_conditions: m.chronic_conditions || "",
+                    blood_type: m.blood_type || "",
+                    gender: m.gender || "",
+                    emergency_notes: m.emergency_notes || "",
                 });
             }
         });
+        api.get(`/members/${id}/contacts`)
+            .then((res) => setContacts(res.data.map((c) => ({ name: c.name, phone: c.phone, relation: c.relation || "" }))))
+            .catch(() => setError("تعذّر تحميل أرقام الطوارئ"));
         api.get(`/members/${id}/allergies`)
             .then((res) => setAllergies(res.data.allergies.map(fromServer)))
             .catch(() => setError("تعذّر تحميل الحساسية"));
@@ -54,12 +69,16 @@ export default function MemberForm() {
             setError("الرجاء إدخال الاسم");
             return;
         }
+        // قبل أي حفظ: لا نحفظ الفرد ثم نفشل في أرقامه
+        const contactsProblem = contactsError(contacts);
+        if (contactsProblem) return setError(contactsProblem);
         setSaving(true);
         try {
             const memberId = isEdit
                 ? (await api.put(`/members/${id}`, form), id)
                 : (await api.post("/members", form)).data.id;
             const { data } = await api.put(`/members/${memberId}/allergies`, { items: toPayload(allergies) });
+            await api.put(`/members/${memberId}/contacts`, { items: contacts });
 
             // حساسية جديدة لدواء يأخذه أصلاً: ننبّه الآن، والتفاصيل في ملفه
             if (data.conflicts.medications.length) {
@@ -122,6 +141,35 @@ export default function MemberForm() {
                     hint="اختر المادة الفعّالة أو العائلة أو الاسم التجاري من القائمة، فننبّهك لكل دواء يحتويها أياً كانت الشركة. وتظهر للطبيب بالأحمر عند المشاركة.">
                     <AllergyEditor items={allergies} onChange={setAllergies} />
                 </Field>
+
+                {/* ── بطاقة الطوارئ ── */}
+                <div className="pt-5 border-t border-sage-100 dark:border-forest-800/60 space-y-4">
+                    <h2 className="text-lg font-bold text-forest-950 flex items-center gap-2">
+                        <Siren className="w-5 h-5 text-red-500" /> بطاقة الطوارئ
+                    </h2>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Field label="فصيلة الدم" htmlFor="blood_type">
+                            <select id="blood_type" name="blood_type" value={form.blood_type} onChange={change} className="input-field" dir="ltr">
+                                <option value="">غير معروفة</option>
+                                {BLOOD_TYPES.map((b) => <option key={b} value={b}>{b}</option>)}
+                            </select>
+                        </Field>
+                        <Field label="الجنس" htmlFor="gender">
+                            <select id="gender" name="gender" value={form.gender} onChange={change} className="input-field">
+                                <option value="">—</option>
+                                <option value="male">ذكر</option>
+                                <option value="female">أنثى</option>
+                            </select>
+                        </Field>
+                    </div>
+                    <Field label="أرقام الطوارئ" hint="تظهر على بطاقة الطوارئ، ويُتّصل بها بلمسة واحدة.">
+                        <ContactsEditor items={contacts} onChange={setContacts} />
+                    </Field>
+                    <Field label="ملاحظة للمسعف" htmlFor="emergency_notes" hint="اختياري — ما يجب أن يعرفه من يساعده في حالة طارئة.">
+                        <textarea id="emergency_notes" name="emergency_notes" value={form.emergency_notes} onChange={change}
+                            rows={2} maxLength={300} placeholder="مثال: بخاخ الربو في الحقيبة دائماً" className="input-field" />
+                    </Field>
+                </div>
 
                 <FormError>{error}</FormError>
 

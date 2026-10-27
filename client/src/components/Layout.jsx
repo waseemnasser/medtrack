@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Outlet, NavLink, Link, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, Settings, LogOut, Menu, Accessibility, Moon, Sun } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, Settings, LogOut, Menu, Accessibility, Moon, Sun, Siren, Mic } from "lucide-react";
 import api from "../api";
 import InstallPrompt from "./InstallPrompt";
 import NotificationBell from "./NotificationBell";
@@ -10,12 +10,14 @@ import { getEasyMode, setEasyMode } from "../utils/easyMode";
 import { logout } from "../utils/session";
 import { initial } from "../utils/format";
 
-// تبويبات التطبيق الأربعة — كل صفحة أخرى تتفرّع من أحدها.
+// أقسام التطبيق — كل صفحة أخرى تتفرّع من أحدها.
 // الأيقونات والألوان من نموذج bolt (AppLayout.tsx)
 const NAV = [
     { to: "/", label: "اليوم", icon: LayoutDashboard, color: "text-forest-600" },
     { to: "/members", label: "العائلة", icon: Users, color: "text-blue-500" },
     { to: "/appointments", label: "المواعيد", icon: Calendar, color: "text-purple-500" },
+    { to: "/emergency", label: "بطاقة الطوارئ", icon: Siren, color: "text-red-500" },
+    { to: "/voice", label: "التأكيد الصوتي", icon: Mic, color: "text-rose-500" },
     { to: "/account", label: "الحساب", icon: Settings, color: "text-sage-400" },
 ];
 

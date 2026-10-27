@@ -105,8 +105,15 @@ export default function DoctorView() {
                     <p className="text-forest-700/70">
                         {years !== null ? `${years} سنة` : "العمر غير مسجّل"}
                         {m.birth_date && ` · مواليد ${formatDate(m.birth_date, false)} ${String(m.birth_date).slice(0, 4)}`}
+                        {m.gender && ` · ${m.gender === "male" ? "ذكر" : "أنثى"}`}
                     </p>
                 </div>
+                {m.blood_type && (
+                    <div className="mr-auto text-center flex-shrink-0">
+                        <p className="text-xs font-bold text-red-500">فصيلة الدم</p>
+                        <p className="text-3xl font-extrabold text-red-600" dir="ltr">{m.blood_type}</p>
+                    </div>
+                )}
             </section>
 
             {/* الحساسية أولاً: أهم معلومة للطبيب قبل أن يصف أي دواء */}

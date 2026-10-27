@@ -12,6 +12,8 @@ import AppointmentForm from "./pages/AppointmentForm";
 import SharePage from "./pages/SharePage";
 import DoctorView from "./pages/DoctorView";
 import Account from "./pages/Account";
+import Emergency from "./pages/Emergency";
+import VoiceLog from "./pages/VoiceLog";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
 import FeedbackProvider from "./feedback/FeedbackProvider";
@@ -43,6 +45,8 @@ function GuestOnly({ children }) {
         ├ تعديل دواء        /members/:id/medications/:medId/edit
         └ مشاركة مع الطبيب  /members/:id/share
   المواعيد      /appointments
+  الطوارئ       /emergency?member=  (بطاقة الطوارئ)
+  الصوت         /voice?member=      (التأكيد الصوتي)
   الحساب        /account
   الصفحة التعريفية /welcome     (عامة)
   صفحة الطبيب  /share/:token   (عامة، بلا تسجيل دخول)
@@ -73,6 +77,9 @@ export default function App() {
             <Route path="/appointments" element={<Appointments />} />
             <Route path="/appointments/new" element={<AppointmentForm />} />
             <Route path="/appointments/:id/edit" element={<AppointmentForm />} />
+
+            <Route path="/emergency" element={<Emergency />} />
+            <Route path="/voice" element={<VoiceLog />} />
 
             <Route path="/account" element={<Account />} />
             <Route path="*" element={<NotFound />} />

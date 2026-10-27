@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Pill, Calendar, AlertTriangle, Activity, Plus, ChevronLeft, Check, CheckCircle2, BellRing, X } from "lucide-react";
+import { Pill, Calendar, AlertTriangle, Activity, Plus, ChevronLeft, Check, CheckCircle2, BellRing, X, Siren, Mic, TrendingUp } from "lucide-react";
 import api from "../api";
 import useDoseAlarm from "../useDoseAlarm";
 import { playBeep } from "../beep";
@@ -243,6 +243,7 @@ export default function Today() {
                 {/* الجانب: المواعيد والكورسات وما ينفد */}
                 <div className="space-y-6">
                     <SoonAppointments items={appts} />
+                    <QuickActions />
                     {courses.length > 0 && <CourseList items={courses} />}
                     {refills.length > 0 && <RefillList items={refills} />}
                     <PushToggle hideWhenOn />
@@ -329,6 +330,33 @@ function NextDose({ dose, late, saving, onConfirm }) {
                 </button>
             </div>
         </section>
+    );
+}
+
+// إجراءات سريعة — بطاقة «Quick Actions» في لوحة النموذج
+const ACTIONS = [
+    { to: "/emergency", label: "بطاقة الطوارئ", icon: Siren, color: "text-red-500 bg-red-50" },
+    { to: "/voice", label: "التأكيد الصوتي", icon: Mic, color: "text-rose-500 bg-rose-50" },
+    { to: "/appointments/new", label: "موعد جديد", icon: Calendar, color: "text-purple-500 bg-purple-100" },
+    { to: "/members", label: "الالتزام ومشاركة الطبيب", icon: TrendingUp, color: "text-indigo-500 bg-indigo-50" },
+];
+
+function QuickActions() {
+    return (
+        <SideCard icon={TrendingUp} iconColor="text-forest-600" title="إجراءات سريعة">
+            <div className="space-y-1">
+                {ACTIONS.map((a) => (
+                    <Link key={a.to} to={a.to}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-sage-50 dark:hover:bg-forest-800/40 transition-colors">
+                        <span className={`w-10 h-10 ${a.color} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                            <a.icon className="w-5 h-5" />
+                        </span>
+                        <span className="font-medium text-forest-950">{a.label}</span>
+                        <ChevronLeft className="w-4 h-4 text-sage-400 mr-auto" />
+                    </Link>
+                ))}
+            </div>
+        </SideCard>
     );
 }
 

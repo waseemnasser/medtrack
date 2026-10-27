@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
     Menu, X, Accessibility, ArrowLeft, ShieldCheck, Clock, HeartPulse, Pill, Package, Calendar,
-    QrCode, Users, Bell, AlertTriangle, Activity, TrendingUp, Check, ChevronDown, Stethoscope,
+    QrCode, Users, Bell, AlertTriangle, Activity, Check, ChevronDown, Stethoscope, Mic, Siren,
 } from "lucide-react";
 import Logo from "../components/Logo";
 import ThemeToggle from "../components/ThemeToggle";
@@ -44,8 +44,7 @@ export default function Landing() {
 const NAV_LINKS = [
     { label: "المزايا", target: "features" },
     { label: "الوضع المريح", target: "easy" },
-    { label: "مع الطبيب", target: "doctor" },
-    { label: "أسئلة", target: "faq" },
+    { label: "طوارئ SOS", target: "emergency" },
 ];
 
 function EasySwitch() {
@@ -60,6 +59,14 @@ function EasySwitch() {
             <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${easy ? "translate-x-5" : ""}`} />
         </button>
     );
+}
+
+// زر «بطاقة الطوارئ» الأحمر: لمن سجّل دخوله يفتح البطاقة، وللزائر يعرّفه بها
+function EmergencyButton({ isIn, onScroll, className = "" }) {
+    const inner = <><AlertTriangle className="w-4 h-4" /> بطاقة الطوارئ</>;
+    return isIn
+        ? <Link to="/emergency" className={`btn-danger flex items-center justify-center gap-2 ${className}`}>{inner}</Link>
+        : <button type="button" onClick={onScroll} className={`btn-danger flex items-center justify-center gap-2 ${className}`}>{inner}</button>;
 }
 
 function LandingNavbar({ isIn, start }) {
@@ -98,10 +105,8 @@ function LandingNavbar({ isIn, start }) {
                             <span className="text-sm font-semibold text-forest-800">الوضع المريح</span>
                             <EasySwitch />
                         </div>
-                        {!isIn && <Link to="/login" className="btn-secondary">تسجيل الدخول</Link>}
-                        <Link to={start} className="btn-primary flex items-center gap-2">
-                            {isIn ? "افتح التطبيق" : "ابدأ الآن"}
-                        </Link>
+                        <Link to={isIn ? "/" : "/login"} className="btn-secondary">{isIn ? "افتح التطبيق" : "تسجيل الدخول"}</Link>
+                        <EmergencyButton isIn={isIn} onScroll={() => scrollTo("emergency")} />
                     </div>
 
                     <div className="flex items-center gap-2 lg:hidden">
@@ -125,6 +130,7 @@ function LandingNavbar({ isIn, start }) {
                         ))}
                         {!isIn && <Link to="/login" className="block w-full btn-secondary text-center">تسجيل الدخول</Link>}
                         <Link to={start} className="block w-full btn-primary text-center">{isIn ? "افتح التطبيق" : "ابدأ الآن"}</Link>
+                        <EmergencyButton isIn={isIn} onScroll={() => scrollTo("emergency")} className="w-full" />
                         <div className="flex items-center justify-between bg-mint-50 border border-mint-200 dark:border-forest-800 rounded-xl px-4 py-3">
                             <div className="flex items-center gap-2">
                                 <Accessibility className="w-5 h-5 text-forest-700" />
@@ -303,11 +309,11 @@ const SERVICES = [
     { icon: Bell, title: "تذكير بكل جرعة", desc: "إشعار على الهاتف في موعد كل جرعة حتى والتطبيق مغلق، وتأكيدها بلمسة واحدة.", color: "bg-forest-100 text-forest-700" },
     { icon: Users, title: "ملف لكل شخص", desc: "أدويته ومواعيده وأمراضه المزمنة وحساسيته في صفحة واحدة واضحة.", color: "bg-mint-100 text-forest-600" },
     { icon: AlertTriangle, title: "تنبيه الحساسية", desc: "إن أضفت دواءً مادته أو عائلته تتعارض مع حساسية مسجّلة، يتوقف نبض ويسألك قبل الحفظ.", color: "bg-red-100 text-red-600" },
-    { icon: Package, title: "قبل أن ينفد الدواء", desc: "تقدير لتاريخ نفاد كل علبة، وتذكير صباحي لتجدّدها في وقتها.", color: "bg-amber-100 text-amber-600" },
+    { icon: Siren, title: "بطاقة الطوارئ", desc: "فصيلة الدم والحساسية والأدوية وأرقام الأهل في شاشة واحدة، ورمز QR للملف الكامل.", color: "bg-amber-100 text-amber-600" },
     { icon: Activity, title: "الكورس حتى آخر يوم", desc: "متابعة المضاد الحيوي يوماً بيوم، وتنبيه إن فاتت جرعتان قبل نهاية الكورس.", color: "bg-blue-100 text-blue-600" },
     { icon: Calendar, title: "مواعيد الطبيب", desc: "تذكير مساء اليوم السابق، وآخر قبل الموعد بساعتين.", color: "bg-purple-100 text-purple-600" },
     { icon: QrCode, title: "مشاركة مع الطبيب", desc: "رابط مؤقّت ورمز QR يفتحه الطبيب بلا حساب، للقراءة فقط.", color: "bg-teal-100 text-teal-600" },
-    { icon: TrendingUp, title: "تقرير الالتزام", desc: "نسبة الجرعات المأخوذة آخر ٧ أو ٣٠ يوماً، لكل دواء ولكل يوم.", color: "bg-indigo-100 text-indigo-600" },
+    { icon: Mic, title: "تأكيد صوتي", desc: "قل «أخذت الدواء» فتُسجَّل الجرعة المستحقة، بلا قوائم ولا أزرار صغيرة.", color: "bg-rose-100 text-rose-600" },
 ];
 
 function Services() {
@@ -468,7 +474,112 @@ function FeatureShowcase({ start, isIn }) {
                 </div>
             </section>
 
-            {/* مع الطبيب — مكان بطاقة الطوارئ في النموذج */}
+            {/* بطاقة الطوارئ — قسم «Emergency SOS» في النموذج */}
+            <section id="emergency" className="py-20 lg:py-28 bg-sage-50 dark:bg-[#0B1F1E] scroll-mt-20">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        <Reveal animation="scale-in" delay={200} className="order-2 lg:order-1">
+                            <div className="card p-8 shadow-2xl shadow-red-500/10 !border-red-200 dark:!border-red-900/60" aria-hidden="true">
+                                <div className="flex items-center gap-3 mb-6">
+                                    <div className="w-14 h-14 bg-red-500 rounded-2xl flex items-center justify-center relative flex-shrink-0">
+                                        <AlertTriangle className="w-7 h-7 text-white" />
+                                        <span className="absolute inset-0 rounded-2xl bg-red-500 animate-pulse-ring" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-extrabold text-forest-950">بطاقة طوارئ طبية</h3>
+                                        <p className="text-sm text-forest-600">للمسعف أو الطبيب في لحظة</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    {[
+                                        { k: "فصيلة الدم", v: "O+", tone: "text-lg font-extrabold text-red-600" },
+                                        { k: "الحساسية", v: "إيبوبروفين — طفح جلدي", tone: "text-sm font-bold text-red-600" },
+                                        { k: "الأمراض المزمنة", v: "سكري، ارتفاع ضغط" },
+                                        { k: "جهة الطوارئ", v: "سارة — الابنة" },
+                                        { k: "آخر دواء", v: "ميتفورمين — 8:05 ص" },
+                                    ].map((row) => (
+                                        <div key={row.k} className="flex justify-between items-center gap-3 bg-sage-50 dark:bg-forest-800/40 rounded-xl px-4 py-3">
+                                            <span className="text-sm font-medium text-forest-700 dark:text-forest-300">{row.k}</span>
+                                            <span className={row.tone || "text-sm font-bold text-forest-950 dark:text-forest-50"}>{row.v}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="mt-5 flex justify-center">
+                                    <div className="w-24 h-24 bg-[#fff] border-2 border-forest-300 dark:border-forest-600 rounded-2xl flex items-center justify-center">
+                                        <QrCode className="w-16 h-16 text-[#042F2E]" />
+                                    </div>
+                                </div>
+                            </div>
+                        </Reveal>
+
+                        <Reveal animation="fade-up" className="order-1 lg:order-2">
+                            <span className="badge badge-danger mb-4">طوارئ SOS</span>
+                            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-forest-950 text-balance">
+                                معلومات حرجة، على بُعد لمسة
+                            </h2>
+                            <p className="mt-4 text-lg text-forest-700/70 leading-relaxed">
+                                هبوط مفاجئ في السكر أو سقوط في البيت — كل ثانية مهمة. تفتح بطاقة الطوارئ
+                                فيرى المسعف ما يحتاجه فوراً.
+                            </p>
+                            <Bullets icon={AlertTriangle} box="bg-red-100" color="text-red-500" items={[
+                                "فصيلة الدم والحساسية أولاً، بالأحمر",
+                                "اتصال بلمسة واحدة بأرقام الطوارئ المسجّلة",
+                                "الأدوية الحالية ووقت آخر جرعة أُخذت",
+                                "رمز QR لرابط مؤقّت بالملف الكامل، ينتهي بعد ٢٤ ساعة",
+                            ]} />
+                            <Link to={isIn ? "/emergency" : start} className="btn-danger mt-8 inline-flex items-center gap-2">
+                                <AlertTriangle className="w-5 h-5" />
+                                {isIn ? "افتح بطاقة الطوارئ" : "أنشئ بطاقة الطوارئ"}
+                            </Link>
+                        </Reveal>
+                    </div>
+                </div>
+            </section>
+
+            {/* التأكيد الصوتي — قسم «Voice Logging» في النموذج */}
+            <section className="py-20 lg:py-28 bg-white dark:bg-[#0B1F1E]">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                        <Reveal animation="fade-up">
+                            <span className="badge badge-info mb-4">التأكيد الصوتي</span>
+                            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-forest-950 text-balance">
+                                فقط قُلها
+                            </h2>
+                            <p className="mt-4 text-lg text-forest-700/70 leading-relaxed">
+                                لا قوائم ولا أزرار صغيرة. يقول «أخذت الدواء» فيسجّل نبض الجرعة المستحقة الآن،
+                                ويفهم «ما أخذته» على أنه ليس تأكيداً.
+                            </p>
+                            <Bullets icon={Mic} box="bg-blue-100" color="text-blue-500" items={[
+                                "تعرّف على الكلام بالعربية من المتصفح نفسه",
+                                "اذكر اسم الدواء إن كانت أكثر من جرعة مستحقة",
+                                "يُسجَّل في السجل أن التأكيد كان بالصوت",
+                                "والضغط متاح دائماً لمن يفضّله",
+                            ]} />
+                        </Reveal>
+
+                        <Reveal animation="scale-in" delay={200}>
+                            <div className="card p-8 gradient-mint !border-2 !border-forest-200 dark:!border-forest-700 text-center" aria-hidden="true">
+                                <div className="w-24 h-24 bg-forest-600 rounded-full flex items-center justify-center mx-auto mb-6 relative">
+                                    <Mic className="w-12 h-12 text-white" />
+                                    <span className="absolute inset-0 rounded-full bg-forest-600 animate-pulse-ring" />
+                                </div>
+                                <p className="text-2xl font-bold text-forest-950 dark:text-forest-50">«أخذت الدواء»</p>
+                                <p className="text-sm text-forest-600 dark:text-forest-400 mt-2">جارٍ الاستماع...</p>
+                                <div className="mt-6 flex items-center justify-center gap-1">
+                                    {[...Array(7)].map((_, i) => (
+                                        <div key={i} className="w-1.5 bg-forest-600 rounded-full animate-pulse"
+                                            style={{ height: `${20 + Math.sin(i) * 15 + 15}px`, animationDelay: `${i * 100}ms` }} />
+                                    ))}
+                                </div>
+                                <p className="mt-6 text-sm font-semibold text-forest-700 dark:text-forest-300">سُجّلت جرعة الساعة 2:03 م</p>
+                            </div>
+                        </Reveal>
+                    </div>
+                </div>
+            </section>
+
+            {/* مع الطبيب */}
+
             <section id="doctor" className="py-20 lg:py-28 bg-sage-50 dark:bg-[#0B1F1E] scroll-mt-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -526,7 +637,7 @@ function FeatureShowcase({ start, isIn }) {
                 </div>
             </section>
 
-            {/* الكورس — مكان التأكيد الصوتي في النموذج */}
+            {/* الكورس */}
             <section className="py-20 lg:py-28 bg-white dark:bg-[#0B1F1E]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
