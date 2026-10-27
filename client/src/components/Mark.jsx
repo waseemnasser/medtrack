@@ -1,27 +1,20 @@
 /**
- * علامة «طمّني» — فقاعة رسالة وصلت.
- * الحركة كلها في Auth.css، هنا الشكل فقط.
+ * علامة «نبض» — خط نبض يمرّ داخل كبسولة دواء.
+ * نصف الكبسولة أفتح قليلاً، مثل الكبسولة الحقيقية بلونين.
+ * الشكل نفسه في public/favicon.svg وأيقونات التطبيق.
+ * الإطار مقصوص على الكبسولة، فعرضها أكبر من size بقليل وارتفاعها أقل.
  */
-export default function Mark({ size = 120, animated = false, color = "var(--primary)", tickColor = "var(--bg)" }) {
+export default function Mark({ size = 120, color = "var(--primary)", lineColor = "var(--bg)" }) {
+  const width = Math.round(size * 1.4);
   return (
-    <svg
-      className={animated ? "auth-bubble" : undefined}
-      width={size}
-      height={size}
-      viewBox="0 0 120 120"
-      role="img"
-      aria-label="رسالة اطمئنان"
-    >
+    <svg width={width} height={Math.round(width * 64 / 116)} viewBox="2 28 116 64" role="img" aria-label="نبض">
+      <rect x="4" y="30" width="112" height="60" rx="30" fill={color} />
+      <path d="M60 30 h26 a30 30 0 0 1 0 60 h-26 Z" fill="#fff" fillOpacity="0.14" />
       <path
-        d="M14 42 a26 26 0 0 1 26 -26 h40 a26 26 0 0 1 26 26 v22 a26 26 0 0 1 -26 26 h-14 l-20 16 v-16 h-6 a26 26 0 0 1 -26 -26 Z"
-        fill={color}
-      />
-      <path
-        className={animated ? "auth-tick" : undefined}
-        d="M42 54 L54 67 L79 40"
+        d="M17 60 H40 L48 47 L58 75 L68 40 L76 60 H103"
         fill="none"
-        stroke={tickColor}
-        strokeWidth={animated ? 8 : 9}
+        stroke={lineColor}
+        strokeWidth="7"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
