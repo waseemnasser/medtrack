@@ -335,10 +335,10 @@ function NextDose({ dose, late, saving, onConfirm }) {
 
 // إجراءات سريعة — بطاقة «Quick Actions» في لوحة النموذج
 const ACTIONS = [
-    { to: "/emergency", label: "بطاقة الطوارئ", icon: Siren, color: "text-red-500 bg-red-50" },
+    { to: "/emergency", label: "الطوارئ والمشاركة مع الطبيب", icon: Siren, color: "text-red-500 bg-red-50" },
     { to: "/voice", label: "التأكيد الصوتي", icon: Mic, color: "text-rose-500 bg-rose-50" },
     { to: "/appointments/new", label: "موعد جديد", icon: Calendar, color: "text-purple-500 bg-purple-100" },
-    { to: "/members", label: "الالتزام ومشاركة الطبيب", icon: TrendingUp, color: "text-indigo-500 bg-indigo-50" },
+    { to: "/members", label: "الالتزام بالجرعات", icon: TrendingUp, color: "text-indigo-500 bg-indigo-50" },
 ];
 
 function QuickActions() {

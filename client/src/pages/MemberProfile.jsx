@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import {
-    Pill, Calendar, Share2, Edit2, PauseCircle, RefreshCw, AlertTriangle, Heart, Clock,
+    Pill, Calendar, Siren, Edit2, PauseCircle, RefreshCw, AlertTriangle, Heart, Clock,
     MapPin, Stethoscope, Lock, CheckCircle, HelpCircle, Plus,
 } from "lucide-react";
 import api from "../api";
@@ -252,8 +252,8 @@ export default function MemberProfile() {
                 <Link to={`/appointments/new?member_id=${id}`} className="btn-secondary flex items-center justify-center gap-2">
                     <Calendar className="w-5 h-5 text-purple-500" /> إضافة موعد
                 </Link>
-                <Link to={`/members/${id}/share`} className="btn-secondary flex items-center justify-center gap-2">
-                    <Share2 className="w-5 h-5 text-teal-500" /> مشاركة مع الطبيب
+                <Link to={`/emergency?member=${id}`} className="btn-secondary flex items-center justify-center gap-2">
+                    <Siren className="w-5 h-5 text-red-500" /> الطوارئ والمشاركة
                 </Link>
             </div>
 

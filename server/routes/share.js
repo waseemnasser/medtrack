@@ -67,7 +67,7 @@ router.get("/:token", shareLimiter, async (req, res) => {
         const memberId = link.rows[0].member_id;
 
         const member = await pool.query(
-            "SELECT id, name, birth_date, chronic_conditions, allergies, blood_type, gender FROM members WHERE id = $1",
+            "SELECT id, name, birth_date, chronic_conditions, allergies, blood_type, gender, emergency_notes FROM members WHERE id = $1",
             [memberId]
         );
 
@@ -110,6 +110,13 @@ router.get("/:token", shareLimiter, async (req, res) => {
             [memberId]
         );
 
+        // أرقام الطوارئ: الرابط هو رمز QR في بطاقة الطوارئ، ومن يمسحه
+        // قد يكون مسعفاً يحتاج أن يتصل بالأهل
+        const contacts = await pool.query(
+            "SELECT id, name, phone, relation FROM emergency_contacts WHERE member_id = $1 ORDER BY position, id",
+            [memberId]
+        );
+
         // الحساسية منظّمة مع شدّتها ونوع التفاعل — أهم ما يقرؤه الطبيب
         const allergies = (await listAllergies(pool, memberId)).map((x) => ({
             label: x.label,
@@ -130,6 +137,7 @@ router.get("/:token", shareLimiter, async (req, res) => {
         res.json({
             member: member.rows[0],
             allergies,
+            contacts: contacts.rows,
             // الالتزام آخر ٣٠ يوماً، بلا الأدوية الخاصة
             adherence: await adherence(pool, memberId, 30, { includePrivate: false }),
             medications: meds.rows,

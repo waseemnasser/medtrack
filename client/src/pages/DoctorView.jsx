@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../api";
-import { Clock, Printer, AlertTriangle, Heart, Pill, PauseCircle, Calendar, History, CheckCircle, Info } from "lucide-react";
+import { Clock, Printer, AlertTriangle, Heart, Pill, PauseCircle, Calendar, History, CheckCircle, Info, Phone, FileText } from "lucide-react";
 import Logo from "../components/Logo";
 import { periodOf, formatTime, formatDate, calcAge, initial } from "../utils/format";
 import AdherenceReport from "../components/AdherenceReport";
@@ -150,6 +150,43 @@ export default function DoctorView() {
                 </div>
             </div>
 
+            {/* أرقام الطوارئ وملاحظة المسعف — الرابط هو رمز QR في بطاقة الطوارئ */}
+            {(data.contacts?.length > 0 || m.emergency_notes) && (
+                <section className="card p-5 !border-red-200 dark:!border-red-900/60">
+                    {data.contacts?.length > 0 && (
+                        <>
+                            <p className="text-sm font-bold text-red-600 flex items-center gap-2 mb-3">
+                                <Phone className="w-4 h-4" /> جهات الطوارئ — اضغط للاتصال
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {data.contacts.map((c) => (
+                                    <a key={c.id} href={`tel:${c.phone}`}
+                                        className="flex items-center gap-3 bg-red-50 border border-red-200 dark:border-red-900/60 rounded-xl p-4 hover:bg-red-100 transition-colors">
+                                        <span className="w-11 h-11 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <Phone className="w-5 h-5 text-white" />
+                                        </span>
+                                        <span className="min-w-0">
+                                            <span className="block font-bold text-forest-950">{c.name}</span>
+                                            <span className="block text-sm text-forest-700/60">
+                                                {c.relation && `${c.relation} · `}<bdi dir="ltr">{c.phone}</bdi>
+                                            </span>
+                                        </span>
+                                    </a>
+                                ))}
+                            </div>
+                        </>
+                    )}
+                    {m.emergency_notes && (
+                        <div className={data.contacts?.length > 0 ? "mt-4" : ""}>
+                            <p className="text-sm font-bold text-forest-800 flex items-center gap-2 mb-1">
+                                <FileText className="w-4 h-4" /> ملاحظة للمسعف
+                            </p>
+                            <p className="text-forest-950">{m.emergency_notes}</p>
+                        </div>
+                    )}
+                </section>
+            )}
+
             {/* ---------- الأدوية ---------- */}
             <SectionTitle icon={Pill} color="text-forest-600" count={data.medications.length}>الأدوية الحالية</SectionTitle>
             {data.medications.length === 0 ? (
@@ -160,8 +197,10 @@ export default function DoctorView() {
                         <article className="card p-5 break-inside-avoid" key={med.id}>
                             <div className="flex items-start justify-between gap-2 mb-3">
                                 <h3 className="font-bold text-forest-950">
-                                    {med.name}
-                                    {med.strength && <span className="font-normal text-forest-700/60"> {med.strength}</span>}
+                                    <bdi>
+                                        {med.name}
+                                        {med.strength && <span className="font-normal text-forest-700/60"> {med.strength}</span>}
+                                    </bdi>
                                 </h3>
                                 {med.form && <span className="badge badge-success flex-shrink-0">{med.form}</span>}
                             </div>
@@ -203,8 +242,10 @@ export default function DoctorView() {
                             <article className="card p-5 break-inside-avoid" key={med.id}>
                                 <div className="flex items-start justify-between gap-2">
                                     <h3 className="font-bold text-forest-950">
-                                        {med.name}
-                                        {med.strength && <span className="font-normal text-forest-700/60"> {med.strength}</span>}
+                                        <bdi>
+                                            {med.name}
+                                            {med.strength && <span className="font-normal text-forest-700/60"> {med.strength}</span>}
+                                        </bdi>
                                     </h3>
                                     <span className="badge badge-danger flex-shrink-0">أُوقف {formatDate(med.course.stopped_on, false)}</span>
                                 </div>

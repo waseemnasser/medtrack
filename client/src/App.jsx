@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -9,7 +9,6 @@ import Appointments from "./pages/Appointments";
 import MemberProfile from "./pages/MemberProfile";
 import MedicationForm from "./pages/MedicationForm";
 import AppointmentForm from "./pages/AppointmentForm";
-import SharePage from "./pages/SharePage";
 import DoctorView from "./pages/DoctorView";
 import Account from "./pages/Account";
 import Emergency from "./pages/Emergency";
@@ -29,6 +28,12 @@ function Protected({ children }) {
   return <Navigate to={pathname === "/" ? "/welcome" : "/login"} replace />;
 }
 
+// صفحة المشاركة القديمة: الرابط ورمز QR صارا في بطاقة الطوارئ
+function ShareMoved() {
+  const { id } = useParams();
+  return <Navigate to={`/emergency?member=${id}`} replace />;
+}
+
 // صفحتا الدخول والتسجيل: من سجّل دخوله لا يحتاجهما
 function GuestOnly({ children }) {
   return loggedIn() ? <Navigate to="/" replace /> : children;
@@ -43,7 +48,7 @@ function GuestOnly({ children }) {
         ├ تعديل الفرد       /members/:id/edit
         ├ إضافة دواء        /members/:id/medications/new
         ├ تعديل دواء        /members/:id/medications/:medId/edit
-        └ مشاركة مع الطبيب  /members/:id/share
+        └ (/members/:id/share القديمة ← بطاقة الطوارئ: المشاركة صارت فيها)
   المواعيد      /appointments
   الطوارئ       /emergency?member=  (بطاقة الطوارئ)
   الصوت         /voice?member=      (التأكيد الصوتي)
@@ -72,7 +77,7 @@ export default function App() {
             <Route path="/members/:id/edit" element={<MemberForm />} />
             <Route path="/members/:id/medications/new" element={<MedicationForm />} />
             <Route path="/members/:id/medications/:medId/edit" element={<MedicationForm />} />
-            <Route path="/members/:id/share" element={<SharePage />} />
+            <Route path="/members/:id/share" element={<ShareMoved />} />
 
             <Route path="/appointments" element={<Appointments />} />
             <Route path="/appointments/new" element={<AppointmentForm />} />

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
     Siren, AlertTriangle, Droplet, Heart, Phone, Pill, Clock, QrCode, ShieldAlert, HeartPulse,
-    Mic, Edit2, Plus, FileText,
+    Mic, Edit2, Plus, FileText, Copy, CheckCircle, Send, Link as LinkIcon, Lock,
 } from "lucide-react";
 import api from "../api";
 import Skeleton from "../components/Skeleton";
@@ -12,8 +12,16 @@ import { calcAge, initial, formatDate, formatTime } from "../utils/format";
   بطاقة الطوارئ — تصميم EmergencySOS.tsx في نموذج bolt.
   ما يحتاجه المسعف أو الطبيب في لحظة: فصيلة الدم، الحساسية، الأمراض
   المزمنة، الأدوية الحالية، آخر جرعة، وأرقام يُتّصل بها بلمسة.
-  رمز QR حقيقي: رابط مشاركة مؤقّت (٢٤ ساعة) بالملف الكامل، للقراءة فقط.
+  رمز QR حقيقي: رابط مشاركة مؤقّت بالملف الكامل، للقراءة فقط — وهو نفسه
+  ما يُرسل للطبيب، فلا صفحة مشاركة منفصلة: يوم أو ٣ أيام أو أسبوع.
 */
+
+// مدة صلاحية الرابط — الخادم يقبل أي عدد ساعات
+const DURATIONS = [
+    { hours: 24, num: "١", unit: "يوم" },
+    { hours: 72, num: "٣", unit: "أيام" },
+    { hours: 168, num: "٧", unit: "أيام" },
+];
 
 const SEVERITY = { severe: "شديدة", mild: "خفيفة" };
 const GENDER = { male: "ذكر", female: "أنثى" };
@@ -34,6 +42,8 @@ export default function Emergency() {
     const [card, setCard] = useState(null);
     const [qr, setQr] = useState(null);       // { memberId, url, qr_data_url, expires_at }
     const [making, setMaking] = useState(false);
+    const [hours, setHours] = useState(24);
+    const [copied, setCopied] = useState(false);
     const [error, setError] = useState("");
 
     // ?member= من رابط قديم لفرد محذوف؟ نرجع إلى أول فرد بدل صفحة فارغة
@@ -59,7 +69,7 @@ export default function Emergency() {
     const makeQr = async () => {
         setMaking(true);
         try {
-            const r = await api.post(`/share/${selectedId}`, { hours: 24 });
+            const r = await api.post(`/share/${selectedId}`, { hours });
             setQr({ memberId: selectedId, ...r.data });
         } catch {
             setError("تعذّر إنشاء رمز QR، حاول مجدداً");
@@ -67,6 +77,24 @@ export default function Emergency() {
             setMaking(false);
         }
     };
+
+    const copy = async () => {
+        try {
+            await navigator.clipboard.writeText(qr.url);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch {
+            setError("تعذّر النسخ، انسخ الرابط يدوياً");
+        }
+    };
+
+    // إرسال عبر تطبيقات الهاتف (واتساب، رسائل...) إن كان المتصفح يدعمها
+    const canSend = typeof navigator !== "undefined" && Boolean(navigator.share);
+    const send = () => navigator.share({
+        title: "ملف طبي — نبض",
+        text: "رابط مؤقّت للقراءة فقط: الحساسية والأدوية وأرقام الطوارئ",
+        url: qr.url,
+    }).catch(() => { /* ألغى المستخدم الإرسال */ });
 
     if (!members && !error) return <Skeleton variant="profile" rows={3} />;
 
@@ -289,24 +317,72 @@ export default function Emergency() {
                         </Link>
                     </div>
 
-                    {/* رمز QR */}
-                    <section className="card p-6 text-center">
-                        <h2 className="text-lg font-bold text-forest-950 mb-2">رمز QR للمسعف أو الطبيب</h2>
-                        <p className="text-sm text-forest-700/60 mb-4 max-w-md mx-auto">
-                            يفتح الملف الكامل — الحساسية والأدوية وسجل الجرعات — على أي هاتف، بلا حساب.
-                            الرابط للقراءة فقط وينتهي بعد ٢٤ ساعة.
+                    {/* المشاركة: رمز QR للمسعف، والرابط نفسه للطبيب */}
+                    <section className="card p-6">
+                        <h2 className="text-lg font-bold text-forest-950 flex items-center gap-2 mb-1">
+                            <QrCode className="w-5 h-5 text-forest-600" /> المشاركة مع المسعف أو الطبيب
+                        </h2>
+                        <p className="text-sm text-forest-700/60 mb-5">
+                            رمز QR ورابط يفتحان الملف الكامل على أي هاتف بلا حساب: كل ما في هذه البطاقة،
+                            مع الالتزام وتقدّم الكورسات والمواعيد. للقراءة فقط، وينتهي وحده.
                         </p>
+
                         {memberQr ? (
-                            <>
-                                <div className="inline-block w-44 h-44 bg-[#fff] border-4 border-forest-200 rounded-3xl p-2 shadow-lg">
-                                    <img src={memberQr.qr_data_url} alt="رمز QR لملف الفرد الكامل" className="w-full h-full" />
+                            <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-6 items-center">
+                                <div className="min-w-0 space-y-4">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="badge badge-success"><CheckCircle className="w-3 h-3" /> الرابط جاهز</span>
+                                        <span className="badge badge-info"><Clock className="w-3 h-3" /> صالح حتى {when(memberQr.expires_at)}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 bg-sage-50 dark:bg-forest-800/40 rounded-xl p-3">
+                                        <LinkIcon className="w-4 h-4 text-sage-400 flex-shrink-0" />
+                                        <span className="text-xs text-forest-700 truncate flex-1 font-mono" dir="ltr">{memberQr.url}</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        <button type="button" className="btn-primary flex items-center gap-2" onClick={copy}>
+                                            {copied ? <CheckCircle className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                                            {copied ? "تم نسخ الرابط" : "نسخ الرابط"}
+                                        </button>
+                                        {canSend && (
+                                            <button type="button" className="btn-secondary flex items-center gap-2" onClick={send}>
+                                                <Send className="w-5 h-5" /> إرسال…
+                                            </button>
+                                        )}
+                                    </div>
+                                    <button type="button" className="text-sm font-medium text-forest-600 hover:text-forest-700" onClick={() => setQr(null)}>
+                                        إنشاء رابط بمدة أخرى
+                                    </button>
                                 </div>
-                                <p className="text-xs text-forest-700/60 mt-3">صالح حتى {when(memberQr.expires_at)}</p>
-                            </>
+                                <div className="text-center">
+                                    <div className="w-44 h-44 mx-auto bg-[#fff] border-4 border-forest-200 rounded-3xl p-2 shadow-lg">
+                                        <img src={memberQr.qr_data_url} alt="رمز QR لملف الفرد الكامل" className="w-full h-full" />
+                                    </div>
+                                    <p className="text-xs text-forest-700/60 mt-2">يُمسح بكاميرا أي هاتف</p>
+                                </div>
+                            </div>
                         ) : (
-                            <button type="button" onClick={makeQr} disabled={making} className="btn-primary inline-flex items-center gap-2">
-                                <QrCode className="w-5 h-5" /> {making ? "جارٍ الإنشاء..." : "إنشاء رمز QR"}
-                            </button>
+                            <>
+                                <p className="text-sm font-semibold text-forest-800 mb-2">مدة صلاحية الرابط</p>
+                                <div className="grid grid-cols-3 gap-3" role="radiogroup" aria-label="مدة صلاحية الرابط">
+                                    {DURATIONS.map((d) => (
+                                        <button key={d.hours} type="button" role="radio" aria-checked={hours === d.hours}
+                                            onClick={() => setHours(d.hours)}
+                                            className={`rounded-xl border-2 py-3 transition-all ${hours === d.hours
+                                                ? "border-forest-500 bg-mint-50"
+                                                : "border-sage-200 hover:border-forest-300"}`}>
+                                            <span className="block text-2xl font-extrabold text-forest-950">{d.num}</span>
+                                            <span className="block text-sm text-forest-700/60">{d.unit}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                                <p className="text-xs text-forest-700/60 mt-3 flex items-center gap-1.5">
+                                    <Lock className="w-3.5 h-3.5 flex-shrink-0" />
+                                    الأدوية المعلّمة «خاصة» لا تظهر في الرابط.
+                                </p>
+                                <button type="button" onClick={makeQr} disabled={making} className="btn-primary w-full flex items-center justify-center gap-2 mt-4">
+                                    <QrCode className="w-5 h-5" /> {making ? "جارٍ الإنشاء..." : "إنشاء رمز QR ورابط"}
+                                </button>
+                            </>
                         )}
                     </section>
                 </>
