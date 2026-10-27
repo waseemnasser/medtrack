@@ -6,8 +6,8 @@
 // يعطي البيانات نفسها. لا يلمس أي حساب آخر.
 //
 // الدخول بعدها:
-//   البريد:        demo@tamenni.test
-//   كلمة المرور:   tamenni-demo-2026
+//   البريد:        demo@nabd.test
+//   كلمة المرور:   nabd-demo-2026
 //
 // الأسماء والأدوية أمثلة للعرض فقط، لا بيانات مرضى حقيقيين.
 
@@ -16,7 +16,7 @@ const pool = require("../db");
 const migrate = require("../migrate");
 const { replaceAllergies } = require("../allergy");
 
-const DEMO = { name: "حساب العرض", email: "demo@tamenni.test", password: "tamenni-demo-2026" };
+const DEMO = { name: "حساب العرض", email: "demo@nabd.test", password: "nabd-demo-2026" };
 
 // مولّد أرقام شبه عشوائية ثابت: كل تشغيل يعطي السجل نفسه
 let seed = 20261020;
@@ -103,11 +103,12 @@ async function main() {
     await migrate();
 
     // البدء من الصفر: حذف الحساب التجريبي وكل ما يتبعه
-    const old = await pool.query("SELECT id FROM users WHERE email = $1", [DEMO.email]);
-    if (old.rows.length) {
-        await pool.query("DELETE FROM share_links WHERE member_id IN (SELECT id FROM members WHERE user_id = $1)", [old.rows[0].id]);
-        await pool.query("DELETE FROM members WHERE user_id = $1", [old.rows[0].id]);
-        await pool.query("DELETE FROM users WHERE id = $1", [old.rows[0].id]);
+    // (ومعه حساب العرض القديم من أيام اسم «طمّني»)
+    const old = await pool.query("SELECT id FROM users WHERE email = ANY($1)", [[DEMO.email, "demo@tamenni.test"]]);
+    for (const { id } of old.rows) {
+        await pool.query("DELETE FROM share_links WHERE member_id IN (SELECT id FROM members WHERE user_id = $1)", [id]);
+        await pool.query("DELETE FROM members WHERE user_id = $1", [id]);
+        await pool.query("DELETE FROM users WHERE id = $1", [id]);
     }
 
     const hash = await bcrypt.hash(DEMO.password, 10);
