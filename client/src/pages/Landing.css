@@ -1851,6 +1851,168 @@ html:has(.landing) {
   mask: var(--pulse) 50% 50% / 600px 60px repeat-x;
 }
 
+/* ============================================================
+   لمسة النيون
+   ------------------------------------------------------------
+   ضوء نيون فيروزي على الحواف والأفعال فقط: الأزرار، الإطارات،
+   النقاط، والبطاقات عند المرور. النص نفسه يبقى بألوانه المقروءة —
+   النيون هالة حوله لا لون له.
+   الألوان (--neon و --glow) في variables.css، مشتركة مع التطبيق.
+   ============================================================ */
+
+/* ---------- الشريط العلوي ---------- */
+
+/* خط نيون رفيع أسفل الشريط، يتلاشى عند الطرفين */
+.ld-nav::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glow) 30%, var(--neon) 50%, var(--glow) 70%, transparent);
+  box-shadow: 0 0 10px var(--glow-soft);
+  pointer-events: none;
+}
+
+.ld-links a {
+  position: relative;
+}
+
+/* شَرطة نيون تضيء تحت الرابط عند المرور */
+.ld-links a::after {
+  content: "";
+  position: absolute;
+  inset-inline: 14px;
+  bottom: 3px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--neon);
+  box-shadow: 0 0 8px var(--glow);
+  transform: scaleX(0);
+  transition: transform .25s;
+}
+
+.ld-links a:hover::after {
+  transform: scaleX(1);
+}
+
+/* ---------- الأزرار ---------- */
+
+.ld-btn.primary {
+  box-shadow: 0 0 0 1px var(--glow-soft), 0 8px 24px -8px var(--glow);
+}
+
+.ld-btn.primary:hover {
+  box-shadow: 0 0 0 1px var(--glow), 0 0 26px var(--glow), 0 10px 30px -10px var(--glow);
+}
+
+.ld-btn.outline:hover {
+  box-shadow: 0 0 18px var(--glow-soft);
+}
+
+/* ---------- البطل ---------- */
+
+/* نقطة الحالة فوق العنوان تنبض بضوء نيون */
+.ld-dot {
+  background: var(--neon);
+  box-shadow: 0 0 0 4px var(--glow-soft), 0 0 12px var(--glow);
+  animation: ld-dot 2.4s ease-in-out infinite;
+}
+
+@keyframes ld-dot {
+  50% { box-shadow: 0 0 0 7px transparent, 0 0 18px var(--glow); }
+}
+
+/* هالة نيون حول «في وقتها» — اللون نفسه يبقى فيروزياً مقروءاً */
+.ld-title em {
+  text-shadow: 0 0 34px var(--glow-soft), 0 0 2px var(--glow-soft);
+}
+
+/* حافة نيون على إطار الهاتف — كضوء يلمع على المعدن */
+.phone {
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255, 255, 255, .14),
+    0 0 0 1.5px var(--glow-soft),
+    0 0 40px var(--glow-soft),
+    var(--shadow-pop),
+    0 40px 80px -30px rgba(15, 42, 46, .45);
+}
+
+.wk-btn {
+  box-shadow: 0 0 12px var(--glow);
+}
+
+.wk-notif.show {
+  box-shadow: var(--shadow-pop), 0 0 0 1px var(--glow-soft), 0 0 22px var(--glow-soft);
+}
+
+.ph-next {
+  box-shadow: 0 8px 22px -10px var(--glow);
+}
+
+/* الكبسولات الطافية تلتقط شيئاً من الضوء */
+.ph-cap {
+  box-shadow: var(--shadow-lg), 0 0 18px var(--glow-soft);
+}
+
+/* ---------- البطاقات والكبسولات عند المرور ---------- */
+
+.ld-pills li,
+.ld-notif,
+.ld-faq details {
+  transition: border-color .25s, box-shadow .25s;
+}
+
+.ld-pills li:hover,
+.ld-notif:hover {
+  border-color: var(--glow);
+  box-shadow: 0 0 0 1px var(--glow-soft), 0 0 22px var(--glow-soft);
+}
+
+/* رقم الميزة يضيء عند المرور على صفّها */
+.ld-num {
+  transition: text-shadow .25s, color .25s;
+}
+
+.ld-numbered li:hover .ld-num {
+  text-shadow: 0 0 12px var(--glow);
+}
+
+.ld-kicker {
+  text-shadow: 0 0 14px var(--glow-soft);
+}
+
+/* خط المبادئ العلوي يصير أنبوب نيون */
+.ld-principles div {
+  border-top-color: var(--primary);
+  box-shadow: 0 -8px 18px -14px var(--glow);
+}
+
+/* السؤال المفتوح: علامة + تضيء */
+.ld-faq details[open] .ld-plus {
+  box-shadow: 0 0 0 1px var(--glow-soft), 0 0 14px var(--glow);
+}
+
+/* بطاقة الوضع المريح */
+.ez-card {
+  box-shadow: 0 0 0 1px var(--glow-soft), 0 14px 34px -14px var(--glow);
+}
+
+/* ---------- الدعوة الأخيرة ---------- */
+
+/* حافة نيون حول الشريط، وحلقاته تلمع بالنيون بدل الأبيض */
+.ld-final-band {
+  box-shadow: 0 0 0 1px var(--glow-soft), 0 0 50px var(--glow-soft), 0 30px 60px -30px var(--glow);
+  background-image:
+    repeating-radial-gradient(circle at 0% 100%, transparent 0 46px, rgba(255, 255, 255, .2) 46px 48px),
+    repeating-radial-gradient(circle at 100% 0%, transparent 0 46px, rgba(255, 255, 255, .2) 46px 48px);
+}
+
+/* نبضة التذييل تتوهّج قليلاً */
+.ld-footer::before {
+  filter: drop-shadow(0 0 6px var(--glow));
+}
+
 /* ---------- الظهور أثناء التمرير ---------- */
 
 [data-reveal] {
@@ -1888,6 +2050,7 @@ html:has(.landing) {
   .phone,
   .phone-stage::after,
   .ph-cap,
+  .ld-dot,
   .ld-hero-visual::before {
     animation: none;
   }
