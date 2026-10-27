@@ -26,6 +26,11 @@
   html[lang="ar"] body {
     font-family: 'Cairo', system-ui, sans-serif;
   }
+  /* «الوضع المريح» (utils/easyMode.js): كل مقاسات Tailwind بالـ rem،
+     فتكبير خط الجذر يكبّر النص والأزرار والمسافات معاً، في كل الصفحات */
+  html[data-easy] {
+    font-size: 112.5%;
+  }
   ::selection {
     background-color: #0D9488;
     color: white;

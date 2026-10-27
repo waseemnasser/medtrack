@@ -1,5 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
-  <rect x="4" y="30" width="112" height="60" rx="30" fill="#0A7E84"/>
-  <path d="M60 30 h26 a30 30 0 0 1 0 60 h-26 Z" fill="#fff" fill-opacity="0.14"/>
-  <path d="M17 60 H40 L48 47 L58 75 L68 40 L76 60 H103" fill="none" stroke="#FAF6EE" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+  <!-- شعار نبض (components/Logo.jsx): خط نبض أبيض على مربع فيروزي متدرّج -->
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2DD4BF"/>
+      <stop offset="0.5" stop-color="#14B8A6"/>
+      <stop offset="1" stop-color="#0D9488"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="14" fill="url(#g)"/>
+  <path d="M8 25 L15 25 L18.5 16 L22 33 L25.5 20 L28 25 L40 25" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="40" cy="25" r="2.5" fill="white" opacity="0.9"/>
 </svg>

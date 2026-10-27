@@ -167,7 +167,7 @@ export default function Layout() {
                 {!desktop && <NotificationBell />}
             </div>
 
-            <main className={`flex-1 min-w-0 pt-14 lg:pt-0 lg:mr-64 ${easy ? "elderly-scale" : ""}`}>
+            <main className="flex-1 min-w-0 pt-14 lg:pt-0 lg:mr-64">
                 <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
                     {/* الحاسوب: الجرس في زاوية المحتوى */}
                     {desktop && (
