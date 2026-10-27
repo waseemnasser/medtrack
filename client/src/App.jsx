@@ -18,6 +18,7 @@ import FeedbackProvider from "./feedback/FeedbackProvider";
 import "./styles/variables.css";
 import "./styles/base.css";
 import "./styles/components.css";
+import "./styles/neon.css";
 
 const loggedIn = () => Boolean(localStorage.getItem("token"));
 
