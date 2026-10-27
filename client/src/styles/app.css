@@ -1,0 +1,222 @@
+/* ============================================================
+   تصميم نبض — منسوخ من نموذج bolt (project/src/index.css) كما هو
+   ------------------------------------------------------------
+   Tailwind + فئات المكوّنات (btn-primary, card, input-field, badge...)
+   والوضع الداكن عبر الفئة dark على <html> (utils/theme.js).
+   ============================================================ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    background-color: #F2FAFA;
+    color: #042F2E;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  html.dark body {
+    background-color: #0B1F1E;
+    color: #D1FAE5;
+  }
+  html[lang="ar"] body {
+    font-family: 'Cairo', system-ui, sans-serif;
+  }
+  ::selection {
+    background-color: #0D9488;
+    color: white;
+  }
+  html.dark ::selection {
+    background-color: #2DD4BF;
+    color: #042F2E;
+  }
+  /* RTL-aware spacing helpers */
+  [dir="rtl"] .rtl-flip { transform: scaleX(-1); }
+  [dir="rtl"] .rtl-text-right { text-align: right; }
+  [dir="rtl"] .rtl-text-left { text-align: left; }
+
+  /* ===== DARK MODE: Text color overrides ===== */
+  html.dark .text-forest-950 { color: #F0FDFA !important; }
+  html.dark .text-forest-900 { color: #D1FAE5 !important; }
+  html.dark .text-forest-800 { color: #CCFBF1 !important; }
+  html.dark .text-forest-700 { color: #99F6E4 !important; }
+  html.dark .text-forest-700\/60 { color: rgba(153,246,228,0.65) !important; }
+  html.dark .text-forest-700\/70 { color: rgba(153,246,228,0.7) !important; }
+  html.dark .text-forest-700\/80 { color: rgba(153,246,228,0.8) !important; }
+  html.dark .text-forest-900\/60 { color: rgba(209,250,229,0.6) !important; }
+  html.dark .text-forest-800\/70 { color: rgba(204,251,241,0.65) !important; }
+  html.dark .text-forest-800\/80 { color: rgba(204,251,241,0.8) !important; }
+  /* forest-600 stays as accent — visible on dark */
+  /* forest-300/200/100 are already light — keep as is */
+
+  /* ===== DARK MODE: Background color overrides ===== */
+  html.dark .bg-sage-50 { background-color: #0B1F1E !important; }
+  html.dark .bg-sage-100 { background-color: #12302E !important; }
+  html.dark .bg-mint-50 { background-color: #12302E !important; }
+  html.dark .bg-mint-100 { background-color: #143836 !important; }
+  html.dark .bg-forest-50 { background-color: #0B1F1E !important; }
+  html.dark .bg-forest-100 { background-color: #143836 !important; }
+  html.dark .bg-white { background-color: #143433 !important; }
+  html.dark .bg-white\/80 { background-color: rgba(20,52,51,0.9) !important; }
+  html.dark .bg-white\/5 { background-color: rgba(45,212,191,0.06) !important; }
+
+  /* ===== DARK MODE: Border color overrides ===== */
+  html.dark .border-sage-200 { border-color: #1A3A38 !important; }
+  html.dark .border-sage-200\/50 { border-color: rgba(26,58,56,0.5) !important; }
+  html.dark .border-sage-200\/60 { border-color: rgba(26,58,56,0.6) !important; }
+  html.dark .border-sage-300 { border-color: #1A4A48 !important; }
+  html.dark .border-forest-200 { border-color: #1A3A38 !important; }
+  html.dark .border-forest-300 { border-color: #1A4A48 !important; }
+
+  /* ===== DARK MODE: Colored light backgrounds (icon chips, stat tiles) ===== */
+  html.dark .bg-blue-100 { background-color: rgba(59,130,246,0.15) !important; }
+  html.dark .bg-blue-50 { background-color: rgba(59,130,246,0.1) !important; }
+  html.dark .bg-purple-100 { background-color: rgba(168,85,247,0.15) !important; }
+  html.dark .bg-amber-100 { background-color: rgba(245,158,11,0.15) !important; }
+  html.dark .bg-red-50 { background-color: rgba(239,68,68,0.12) !important; }
+  html.dark .bg-red-100 { background-color: rgba(239,68,68,0.15) !important; }
+  html.dark .bg-rose-50 { background-color: rgba(244,63,94,0.12) !important; }
+  html.dark .bg-teal-50 { background-color: rgba(20,184,166,0.12) !important; }
+  html.dark .bg-indigo-50 { background-color: rgba(99,102,241,0.12) !important; }
+  html.dark .bg-amber-50 { background-color: rgba(245,158,11,0.1) !important; }
+
+  /* Dark-mode text on colored icon chips */
+  html.dark .text-blue-600 { color: #60A5FA !important; }
+  html.dark .text-purple-600 { color: #C084FC !important; }
+  html.dark .text-amber-600 { color: #FCD34D !important; }
+
+  /* ===== DARK MODE: hover overrides ===== */
+  html.dark .hover\:bg-sage-50:hover { background-color: #12302E !important; }
+  html.dark .hover\:bg-mint-50:hover { background-color: #12302E !important; }
+
+  /* ===== DARK MODE: placeholder text ===== */
+  html.dark .placeholder\:text-sage-400::placeholder { color: #4A8B89 !important; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-forest-600 hover:bg-forest-700 text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300 shadow-lg shadow-forest-600/30 hover:shadow-xl hover:shadow-forest-600/40 hover:-translate-y-0.5 active:translate-y-0;
+  }
+  .btn-elderly {
+    @apply bg-forest-600 hover:bg-forest-700 text-white font-bold text-xl px-8 py-5 rounded-2xl transition-all duration-300 shadow-lg shadow-forest-600/30 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0;
+  }
+  .btn-secondary {
+    @apply bg-white hover:bg-sage-50 text-forest-950 font-semibold px-6 py-3 rounded-xl border border-sage-200 transition-all duration-300 hover:border-forest-400 hover:-translate-y-0.5;
+  }
+  html.dark .btn-secondary {
+    @apply bg-forest-900/60 hover:bg-forest-800/60 text-forest-50 border-forest-700 hover:border-forest-400;
+  }
+  .btn-danger {
+    @apply bg-red-500 hover:bg-red-600 text-white font-semibold px-5 py-2.5 rounded-xl transition-all duration-300 shadow-lg shadow-red-500/30 hover:shadow-xl hover:-translate-y-0.5;
+  }
+  .card {
+    @apply bg-white rounded-2xl border border-sage-200/60 shadow-sm transition-all duration-300;
+  }
+  html.dark .card {
+    @apply bg-forest-900/50 border-forest-700/50 shadow-forest-950/40;
+  }
+  .card-hover {
+    @apply hover:shadow-xl hover:shadow-forest-900/5 hover:border-forest-300 hover:-translate-y-1;
+  }
+  html.dark .card-hover {
+    @apply hover:shadow-xl hover:shadow-forest-950/60 hover:border-forest-500;
+  }
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl border border-sage-200 bg-white text-forest-950 placeholder:text-sage-400 focus:outline-none focus:ring-2 focus:ring-forest-500/40 focus:border-forest-500 transition-all;
+  }
+  html.dark .input-field {
+    @apply bg-forest-900/50 border-forest-700 text-forest-50 placeholder:text-forest-600 focus:ring-forest-400/40 focus:border-forest-400;
+  }
+  .input-elderly {
+    @apply w-full px-5 py-4 text-lg rounded-xl border-2 border-sage-200 bg-white text-forest-950 placeholder:text-sage-400 focus:outline-none focus:ring-2 focus:ring-forest-500/40 focus:border-forest-500 transition-all;
+  }
+  html.dark .input-elderly {
+    @apply bg-forest-900/50 border-2 border-forest-700 text-forest-50 placeholder:text-forest-600 focus:ring-forest-400/40 focus:border-forest-400;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
+  }
+  .badge-success {
+    @apply bg-mint-100 text-forest-700;
+  }
+  html.dark .badge-success {
+    @apply bg-forest-700/50 text-forest-200;
+  }
+  .badge-warning {
+    @apply bg-amber-100 text-amber-700;
+  }
+  html.dark .badge-warning {
+    @apply bg-amber-900/40 text-amber-300;
+  }
+  .badge-danger {
+    @apply bg-red-100 text-red-700;
+  }
+  html.dark .badge-danger {
+    @apply bg-red-900/40 text-red-300;
+  }
+  .badge-info {
+    @apply bg-blue-100 text-blue-700;
+  }
+  html.dark .badge-info {
+    @apply bg-blue-900/40 text-blue-300;
+  }
+  .gradient-forest {
+    background: linear-gradient(135deg, #042F2E 0%, #115E59 50%, #0D9488 100%);
+  }
+  .gradient-mint {
+    background: linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 50%, #99F6E4 100%);
+  }
+  html.dark .gradient-mint {
+    background: linear-gradient(135deg, #082322 0%, #0C3533 50%, #114543 100%);
+  }
+  .gradient-glossy {
+    background: linear-gradient(135deg, #0D9488 0%, #14B8A6 40%, #2DD4BF 100%);
+    position: relative;
+  }
+  .gradient-glossy::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(255,255,255,0.25) 0%, transparent 50%);
+    pointer-events: none;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #C9E8E8;
+    border-radius: 9999px;
+  }
+  html.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: #115E59;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .elderly-scale {
+    font-size: 1.15rem;
+  }
+  .glass {
+    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.85);
+  }
+  html.dark .glass {
+    background: rgba(11, 31, 30, 0.9);
+  }
+  .glass-dark {
+    backdrop-filter: blur(12px);
+    background: rgba(4, 47, 46, 0.85);
+  }
+}

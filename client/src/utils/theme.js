@@ -1,5 +1,5 @@
 // اختيار المظهر: «auto» يتبع إعداد الجهاز، أو «light» / «dark» يدوياً.
-// الاختيار يُحفظ في localStorage ويُطبَّق كـ data-theme على <html>،
+// الاختيار يُحفظ في localStorage ويُطبَّق كـ data-theme وفئة dark على <html>،
 // والسطر نفسه في index.html يطبّقه قبل ظهور الصفحة حتى لا تومض بيضاء.
 
 const KEY = "theme";
@@ -74,8 +74,15 @@ export function setTheme(theme, { origin, update } = {}) {
     });
 }
 
+const systemDark = () => window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+// التصميم (Tailwind) يقرأ الفئة dark على <html>: داكن يدوياً، أو تلقائي والجهاز داكن
 export function applyTheme(theme) {
     const root = document.documentElement;
     if (theme === "light" || theme === "dark") root.dataset.theme = theme;
     else delete root.dataset.theme;
+    root.classList.toggle("dark", theme === "dark" || (theme !== "light" && systemDark()));
 }
+
+// «تلقائي» يتبع الجهاز حتى لو تغيّر إعداده والتطبيق مفتوح
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => applyTheme(getTheme()));

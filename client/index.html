@@ -6,14 +6,16 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>نبض — متابعة أدوية العائلة</title>
-    <meta name="theme-color" content="#FAF6EE" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#0E2A2D" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#F2FAFA" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0B1F1E" media="(prefers-color-scheme: dark)">
     <!-- يطبّق المظهر والوضع المريح المحفوظين قبل رسم الصفحة،
          حتى لا تومض بيضاء في الوضع الداكن ولا تقفز الأحجام -->
     <script>
         try {
             var t = localStorage.getItem("theme");
             if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+            if (t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches))
+                document.documentElement.classList.add("dark");
             if (localStorage.getItem("easy") === "1") document.documentElement.dataset.easy = "";
         } catch (e) { }
     </script>
@@ -21,7 +23,7 @@
     <link rel="icon" type="image/png" href="/favicon-32.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@600;700;800&family=Readex+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="نبض" />

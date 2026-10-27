@@ -15,10 +15,9 @@ import Account from "./pages/Account";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
 import FeedbackProvider from "./feedback/FeedbackProvider";
+// متغيّرات التصميم القديم — تبقى حتى تُنقل كل الصفحات إلى Tailwind
 import "./styles/variables.css";
-import "./styles/base.css";
-import "./styles/components.css";
-import "./styles/neon.css";
+import "./styles/app.css";
 
 const loggedIn = () => Boolean(localStorage.getItem("token"));
 
