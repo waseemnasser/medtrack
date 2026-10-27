@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import api from "../api";
 import PageHeader from "../components/PageHeader";
+import Field, { FormError } from "../components/Field";
 import { useFeedback } from "../feedback/context";
-import "./Appointments.css";
+import { Save } from "lucide-react";
 
 export default function AppointmentForm() {
     const { id } = useParams();
@@ -95,59 +96,53 @@ export default function AppointmentForm() {
     };
 
     return (
-        <div className="page">
-            <PageHeader title={isEdit ? "تعديل موعد" : "إضافة موعد"} back={parent} />
+        <div className="max-w-2xl">
+            <PageHeader title={isEdit ? "تعديل موعد" : "موعد جديد"} back={parent} />
 
-            <form className="form-card" onSubmit={submit}>
-                <label>الفرد</label>
-                <select name="member_id" value={form.member_id} onChange={change}>
-                    <option value="">— اختر —</option>
-                    {members.map((m) => (
-                        <option key={m.id} value={m.id}>{m.name}</option>
-                    ))}
-                </select>
+            <form className="card p-6 space-y-4" onSubmit={submit}>
+                <div className="grid sm:grid-cols-2 gap-4">
+                    <Field label="الفرد" htmlFor="member_id" required>
+                        <select id="member_id" name="member_id" value={form.member_id} onChange={change} className="input-field">
+                            <option value="">— اختر —</option>
+                            {members.map((m) => (
+                                <option key={m.id} value={m.id}>{m.name}</option>
+                            ))}
+                        </select>
+                    </Field>
 
-                <label>عنوان الموعد</label>
-                <input
-                    name="title"
-                    value={form.title}
-                    onChange={change}
-                    placeholder="مثال: مراجعة طبيب القلب"
-                />
+                    <Field label="عنوان الموعد" htmlFor="title" required>
+                        <input id="title" name="title" value={form.title} onChange={change}
+                            placeholder="مثال: مراجعة طبيب القلب" className="input-field" />
+                    </Field>
+                </div>
 
-                <label>التاريخ والساعة</label>
-                <input
-                    type="datetime-local"
-                    name="scheduled_at"
-                    value={form.scheduled_at}
-                    onChange={change}
-                />
+                <Field label="التاريخ والساعة" htmlFor="scheduled_at" required
+                    hint="يصلك تذكير مساء اليوم السابق، وتذكير آخر قبل الموعد بساعتين.">
+                    <input id="scheduled_at" type="datetime-local" name="scheduled_at" value={form.scheduled_at}
+                        onChange={change} className="input-field" />
+                </Field>
 
-                <span className="hint">
-                    يصلك تذكير مساء اليوم السابق، وتذكير آخر قبل الموعد بساعتين.
-                </span>
+                <div className="grid sm:grid-cols-2 gap-4">
+                    <Field label="اسم الطبيب" htmlFor="doctor_name">
+                        <input id="doctor_name" name="doctor_name" value={form.doctor_name} onChange={change} className="input-field" />
+                    </Field>
+                    <Field label="المكان" htmlFor="location">
+                        <input id="location" name="location" value={form.location} onChange={change} className="input-field" />
+                    </Field>
+                </div>
 
-                <label>اسم الطبيب</label>
-                <input name="doctor_name" value={form.doctor_name} onChange={change} />
+                <Field label="ملاحظات" htmlFor="notes">
+                    <textarea id="notes" name="notes" value={form.notes} onChange={change} rows={3}
+                        placeholder="مثال: أخذ آخر تحليل معي" className="input-field" />
+                </Field>
 
-                <label>المكان</label>
-                <input name="location" value={form.location} onChange={change} />
+                <FormError>{error}</FormError>
 
-                <label>ملاحظات</label>
-                <input
-                    name="notes"
-                    value={form.notes}
-                    onChange={change}
-                    placeholder="مثال: أخذ آخر تحليل معي"
-                />
-
-                {error && <div className="error">{error}</div>}
-
-                <div className="form-actions">
-                    <button type="submit" className="btn-primary" disabled={saving}>
-                        {saving ? "جارٍ الحفظ..." : "حفظ"}
+                <div className="flex gap-3">
+                    <button type="submit" className="btn-primary flex items-center gap-2" disabled={saving}>
+                        <Save className="w-5 h-5" /> {saving ? "جارٍ الحفظ..." : "حفظ"}
                     </button>
-                    <button type="button" onClick={() => navigate(parent)}>
+                    <button type="button" className="btn-secondary" onClick={() => navigate(parent)}>
                         إلغاء
                     </button>
                 </div>
