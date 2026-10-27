@@ -100,7 +100,7 @@ export default function AppointmentForm() {
             <PageHeader title={isEdit ? "تعديل موعد" : "موعد جديد"} back={parent} />
 
             <form className="card p-6 space-y-4" onSubmit={submit}>
-                <div className="grid sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field label="الفرد" htmlFor="member_id" required>
                         <select id="member_id" name="member_id" value={form.member_id} onChange={change} className="input-field">
                             <option value="">— اختر —</option>
@@ -122,7 +122,7 @@ export default function AppointmentForm() {
                         onChange={change} className="input-field" />
                 </Field>
 
-                <div className="grid sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field label="اسم الطبيب" htmlFor="doctor_name">
                         <input id="doctor_name" name="doctor_name" value={form.doctor_name} onChange={change} className="input-field" />
                     </Field>

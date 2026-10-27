@@ -46,7 +46,7 @@ export default function AllergyEditor({ items, onChange }) {
                 id="allergies"
                 onPick={add}
                 allowNote
-                placeholder="ابحث: بنسلين، بروفين، IBUPROFEN..."
+                placeholder="ابحث: بنسلين، بروفين..."
             />
 
             {items.length > 0 && (

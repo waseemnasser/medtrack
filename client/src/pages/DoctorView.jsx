@@ -110,7 +110,7 @@ export default function DoctorView() {
             </section>
 
             {/* الحساسية أولاً: أهم معلومة للطبيب قبل أن يصف أي دواء */}
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className={`card p-5 ${m.allergies ? "!border-red-200 dark:!border-red-900/60 bg-red-50" : ""}`}>
                     <p className={`text-sm font-bold flex items-center gap-2 mb-2 ${m.allergies ? "text-red-700 dark:text-red-300" : "text-forest-800"}`}>
                         <AlertTriangle className="w-4 h-4" /> الحساسية من أدوية
@@ -148,7 +148,7 @@ export default function DoctorView() {
             {data.medications.length === 0 ? (
                 <Empty>لا توجد أدوية مسجّلة.</Empty>
             ) : (
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {data.medications.map((med) => (
                         <article className="card p-5 break-inside-avoid" key={med.id}>
                             <div className="flex items-start justify-between gap-2 mb-3">
@@ -191,7 +191,7 @@ export default function DoctorView() {
             {data.stopped_courses?.length > 0 && (
                 <>
                     <SectionTitle icon={PauseCircle} color="text-red-500" count={data.stopped_courses.length}>كورسات أُوقفت قبل نهايتها</SectionTitle>
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {data.stopped_courses.map((med) => (
                             <article className="card p-5 break-inside-avoid" key={med.id}>
                                 <div className="flex items-start justify-between gap-2">
@@ -221,7 +221,7 @@ export default function DoctorView() {
             {data.upcoming_appointments.length === 0 ? (
                 <Empty>لا توجد مواعيد قادمة.</Empty>
             ) : (
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {data.upcoming_appointments.map((a) => (
                         <article className="card p-5" key={a.id}>
                             <h3 className="font-bold text-forest-950">{a.title}</h3>

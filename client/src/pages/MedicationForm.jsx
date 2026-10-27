@@ -330,7 +330,7 @@ export default function MedicationForm() {
                                 name="name"
                                 value={form.name}
                                 onChange={onNameChange}
-                                placeholder="مثال: باراسيتامول أو PARACETAMOL"
+                                placeholder="مثال: باراسيتامول"
                                 autoComplete="off"
                                 className="input-field !pr-11"
                             />
@@ -388,7 +388,7 @@ export default function MedicationForm() {
                                 id="ingredient-search"
                                 types={["ingredient", "brand"]}
                                 onPick={addIngredients}
-                                placeholder="ابحث عن المادة أو اسم العلبة: IBUPROFEN، بروفين..."
+                                placeholder="المادة أو اسم العلبة"
                             />
                             {ingredients.length > 0 && (
                                 <div className="flex flex-wrap gap-2 mt-2">
@@ -411,7 +411,7 @@ export default function MedicationForm() {
                         </p>
                     )}
 
-                    <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <Field label="العيار" htmlFor="strength">
                             <input id="strength" name="strength" value={form.strength} onChange={change} placeholder="مثال: 5 ملغ" className="input-field" />
                         </Field>
@@ -521,7 +521,7 @@ export default function MedicationForm() {
                 {/* ── الكمية ── */}
                 <section className="card p-6 space-y-4">
                     <h2 className={sectionTitle}><Package className="w-5 h-5 text-amber-500" /> الكمية المتوفرة</h2>
-                    <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <Field label="عدد الوحدات في العلبة" htmlFor="units_total">
                             <input id="units_total" type="number" name="units_total" value={form.units_total} onChange={change} min="0" className="input-field" />
                         </Field>

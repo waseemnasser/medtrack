@@ -168,7 +168,7 @@ function Hero({ isIn, start }) {
             <div className="absolute bottom-10 left-10 w-96 h-96 bg-mint-300/20 rounded-full blur-3xl dark:bg-forest-500/10" aria-hidden="true" />
 
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
                     <div className="text-center lg:text-start">
                         <Reveal animation="fade-down" className="inline-flex">
                             <div className="inline-flex items-center gap-2 bg-white/80 dark:bg-forest-900/80 border border-forest-200 dark:border-forest-700 rounded-full px-4 py-2 mb-6">
@@ -324,7 +324,7 @@ function Services() {
                     </p>
                 </Reveal>
 
-                <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {SERVICES.map((service, i) => (
                         <Reveal key={service.title} animation="fade-up" delay={i * 80}>
                             <div className="card card-hover p-6 h-full group">
@@ -420,7 +420,7 @@ function FeatureShowcase({ start, isIn }) {
             {/* الوضع المريح */}
             <section id="easy" className="py-20 lg:py-28 bg-white dark:bg-[#0B1F1E] scroll-mt-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <Reveal animation="fade-up">
                             <span className="badge badge-warning mb-4">الوضع المريح</span>
                             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-forest-950 text-balance">
@@ -471,7 +471,7 @@ function FeatureShowcase({ start, isIn }) {
             {/* مع الطبيب — مكان بطاقة الطوارئ في النموذج */}
             <section id="doctor" className="py-20 lg:py-28 bg-sage-50 dark:bg-[#0B1F1E] scroll-mt-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <Reveal animation="scale-in" delay={200} className="order-2 lg:order-1">
                             <div className="card p-8 shadow-2xl shadow-forest-500/10" aria-hidden="true">
                                 <div className="flex items-center gap-3 mb-6">
@@ -529,7 +529,7 @@ function FeatureShowcase({ start, isIn }) {
             {/* الكورس — مكان التأكيد الصوتي في النموذج */}
             <section className="py-20 lg:py-28 bg-white dark:bg-[#0B1F1E]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <Reveal animation="fade-up">
                             <span className="badge badge-info mb-4">الكورس</span>
                             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-forest-950 text-balance">
@@ -639,7 +639,7 @@ function LandingCTA({ isIn, start }) {
                             </p>
                             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
                                 <Link to={start}
-                                    className="bg-white text-forest-950 hover:bg-mint-50 font-semibold px-8 py-4 rounded-xl transition-all hover:-translate-y-0.5 shadow-lg flex items-center justify-center gap-2">
+                                    className="bg-[#fff] text-[#042F2E] hover:bg-[#F0FDFA] font-semibold px-8 py-4 rounded-xl transition-all hover:-translate-y-0.5 shadow-lg flex items-center justify-center gap-2">
                                     {isIn ? "افتح التطبيق" : "أنشئ حسابك الآن"}
                                     <ArrowLeft className="w-5 h-5" />
                                 </Link>

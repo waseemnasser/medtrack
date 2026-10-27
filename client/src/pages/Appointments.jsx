@@ -126,7 +126,7 @@ export default function Appointments() {
                     <p className="text-forest-700/60 mt-1">أضف موعد طبيب أو تحليل، ونذكّرك به في وقته.</p>
                 </div>
             ) : (
-                <div className="grid sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {shown.map((a) => (
                         <ApptCard key={a.id} a={a} past={parseDT(a.scheduled_at) < now}
                             memberName={memberName(a.member_id)}

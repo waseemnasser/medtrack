@@ -91,7 +91,7 @@ export default function AdherenceReport({ data, onDays, kicker = "الالتزا
                     <ul className="space-y-3 mt-5 pt-5 border-t border-sage-100 dark:border-forest-800/60">
                         {data.medications.map((m) => (
                             <li key={m.id} className="flex items-center gap-3">
-                                <span className="w-28 sm:w-36 truncate text-sm font-semibold text-forest-950">{m.name}</span>
+                                <span className="w-28 sm:w-36 truncate text-right text-sm font-semibold text-forest-950" dir="auto">{m.name}</span>
                                 <span className="flex-1 h-2 bg-sage-100 dark:bg-forest-800/60 rounded-full overflow-hidden" aria-hidden="true">
                                     <i className={`block h-full rounded-full ${BAR[tone(m.percent)]}`} style={{ width: `${m.percent ?? 0}%` }} />
                                 </span>

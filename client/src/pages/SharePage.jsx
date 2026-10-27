@@ -166,7 +166,7 @@ export default function SharePage() {
                 </>
             ) : (
                 <section className="card p-6">
-                    <div className="grid sm:grid-cols-[1fr_auto] gap-6 items-center">
+                    <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-6 items-center">
                         <div className="min-w-0 space-y-4">
                             <div className="flex flex-wrap items-center gap-2">
                                 <span className="badge badge-success"><CheckCircle className="w-3 h-3" /> الرابط جاهز</span>
@@ -198,7 +198,7 @@ export default function SharePage() {
                         </div>
 
                         <div className="text-center">
-                            <div className="w-44 h-44 mx-auto bg-white border-2 border-forest-200 rounded-2xl p-2">
+                            <div className="w-44 h-44 mx-auto bg-[#fff] border-2 border-forest-200 rounded-2xl p-2">
                                 <img src={link.qr_data_url} alt="رمز QR لرابط الملف" className="w-full h-full" />
                             </div>
                             <p className="text-xs text-forest-700/60 mt-2">يمسحه الطبيب بكاميرا هاتفه</p>

@@ -286,7 +286,7 @@ export default function MemberProfile() {
                             </Link>
                         </EmptyState>
                     ) : (
-                        <div className="grid md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {active.map((m) => (
                                 <div className="card p-5 flex flex-col" key={m.id}>
                                     <div className="flex items-start justify-between gap-3 mb-3">
@@ -295,9 +295,9 @@ export default function MemberProfile() {
                                                 <Pill className="w-6 h-6 text-forest-600" />
                                             </div>
                                             <div className="min-w-0">
-                                                <h3 className="font-bold text-forest-950 truncate">{m.name}</h3>
+                                                <h3 className="font-bold text-forest-950 break-words"><bdi>{m.name}</bdi></h3>
                                                 {(m.strength || m.form) && (
-                                                    <p className="text-sm text-forest-700/60">{[m.strength, m.form].filter(Boolean).join(" — ")}</p>
+                                                    <p className="text-sm text-forest-700/60">{[m.strength, m.form].filter(Boolean).map((x, i) => <span key={i}>{i > 0 && " — "}<bdi>{x}</bdi></span>)}</p>
                                                 )}
                                             </div>
                                         </div>
@@ -379,7 +379,7 @@ export default function MemberProfile() {
                     {completed.length > 0 && (
                         <>
                             <SectionTitle>كورسات مكتملة</SectionTitle>
-                            <div className="grid md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {completed.map((m) => (
                                     <div className="card p-5 opacity-80" key={m.id}>
                                         <div className="flex items-center justify-between gap-2">
@@ -397,7 +397,7 @@ export default function MemberProfile() {
                     {stopped.length > 0 && (
                         <>
                             <SectionTitle>أدوية متوقفة</SectionTitle>
-                            <div className="grid md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {stopped.map((m) => (
                                     <div className="card p-5 opacity-60" key={m.id}>
                                         <div className="flex items-center justify-between gap-2">
@@ -427,7 +427,7 @@ export default function MemberProfile() {
                             </Link>
                         </EmptyState>
                     ) : (
-                        <div className="grid md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {upcomingAppts.map((a) => (
                                 <ApptCard a={a} key={a.id} onEdit={() => navigate(`/appointments/${a.id}/edit?member_id=${id}`)} />
                             ))}
@@ -437,7 +437,7 @@ export default function MemberProfile() {
                     {pastAppts.length > 0 && (
                         <>
                             <SectionTitle>مواعيد سابقة</SectionTitle>
-                            <div className="grid md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {pastAppts.map((a) => <ApptCard a={a} dim key={a.id} />)}
                             </div>
                         </>

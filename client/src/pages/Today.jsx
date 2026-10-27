@@ -120,10 +120,10 @@ export default function Today() {
                 <div role="alert" className="fixed top-16 lg:top-6 inset-x-4 lg:right-72 lg:left-8 z-40 gradient-forest text-white rounded-2xl shadow-2xl shadow-forest-950/30 p-4 flex flex-wrap items-center gap-3 animate-fade-down">
                     <BellRing className="w-6 h-6 text-forest-200 flex-shrink-0" />
                     <p className="flex-1 min-w-[10rem]">
-                        حان وقت جرعة <strong>{alarm.medication_name}</strong> لـ <strong>{alarm.member_name}</strong>
+                        حان وقت جرعة <strong><bdi>{alarm.medication_name}</bdi></strong> لـ <strong>{alarm.member_name}</strong>
                     </p>
                     <button onClick={() => { confirm(alarm); closeAlarm(); }}
-                        className="bg-white text-forest-700 font-bold px-5 py-2 rounded-xl hover:bg-forest-50 transition-colors">
+                        className="bg-[#fff] text-[#0F766E] font-bold px-5 py-2 rounded-xl hover:bg-forest-50 transition-colors">
                         تم الأخذ
                     </button>
                     <button onClick={closeAlarm} aria-label="إغلاق" className="p-2 rounded-lg hover:bg-white/10">
@@ -159,7 +159,7 @@ export default function Today() {
                 ))}
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* الجرعات */}
                 <div className="lg:col-span-2 space-y-6">
                     {error && <div className="card p-4 !border-red-200 bg-red-50 text-red-700">{error}</div>}
@@ -266,9 +266,12 @@ function DoseRow({ dose: d, period, late, saving, onConfirm }) {
             </div>
             <span className={`w-1 self-stretch rounded-full ${period.dot}`} aria-hidden="true" />
             <div className="flex-1 min-w-0">
-                <p className={`font-semibold truncate ${taken ? "text-forest-700/60 line-through decoration-forest-300" : "text-forest-950"}`}>
-                    {d.medication_name}
-                    {d.strength && <span className="font-normal text-forest-700/60"> {d.strength}</span>}
+                <p className={`font-semibold break-words ${taken ? "text-forest-700/60 line-through decoration-forest-300" : "text-forest-950"}`}>
+                    {/* الاسم والعيار في عزل واحد: الأسماء اللاتينية لا تنقلب في الواجهة العربية */}
+                    <bdi>
+                        {d.medication_name}
+                        {d.strength && <span className="font-normal text-forest-700/60"> {d.strength}</span>}
+                    </bdi>
                 </p>
                 <div className="text-sm text-forest-700/60 flex flex-wrap items-center gap-x-1.5 gap-y-1 mt-0.5">
                     <Link to={`/members/${d.member_id}`} className="hover:text-forest-600 font-medium">{d.member_name}</Link>
@@ -309,8 +312,10 @@ function NextDose({ dose, late, saving, onConfirm }) {
                         {clock} <span className="text-xl font-bold text-white/80">{suffix}</span>
                     </p>
                     <h3 className="text-xl font-bold mt-3">
-                        {dose.medication_name}
-                        {dose.strength && <span className="font-normal text-white/80"> {dose.strength}</span>}
+                        <bdi>
+                            {dose.medication_name}
+                            {dose.strength && <span className="font-normal text-white/80"> {dose.strength}</span>}
+                        </bdi>
                     </h3>
                     <div className="text-white/80 mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1">
                         <Link to={`/members/${dose.member_id}`} className="font-semibold text-white hover:underline">{dose.member_name}</Link>
@@ -319,7 +324,7 @@ function NextDose({ dose, late, saving, onConfirm }) {
                     </div>
                 </div>
                 <button onClick={onConfirm} disabled={saving}
-                    className="bg-white text-forest-700 font-bold text-lg px-8 py-3.5 rounded-xl shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-70">
+                    className="bg-[#fff] text-[#0F766E] font-bold text-lg px-8 py-3.5 rounded-xl shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-70">
                     {saving ? "..." : "تم الأخذ"}
                 </button>
             </div>
@@ -382,7 +387,7 @@ function CourseList({ items }) {
                     <li key={medication_id}>
                         <Link to={`/members/${member_id}`} className={rowLink}>
                             <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-forest-950 text-sm truncate">{name}</p>
+                                <p className="font-semibold text-forest-950 text-sm truncate text-right" dir="auto">{name}</p>
                                 <p className="text-xs text-forest-700/60">
                                     {member_name} · {c.status === "completed" ? `${c.taken} من ${c.planned} جرعة` : `اليوم ${c.day} من ${c.total_days}`}
                                 </p>
@@ -408,7 +413,7 @@ function RefillList({ items }) {
                     <li key={r.medication_id}>
                         <Link to={`/members/${r.member_id}`} className={rowLink}>
                             <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-forest-950 text-sm truncate">{r.name}</p>
+                                <p className="font-semibold text-forest-950 text-sm truncate text-right" dir="auto">{r.name}</p>
                                 <p className="text-xs text-forest-700/60">{r.member_name}</p>
                             </div>
                             <span className="badge badge-danger">{daysText(r.days_left)}</span>

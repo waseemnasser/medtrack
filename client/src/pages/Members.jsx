@@ -54,7 +54,7 @@ export default function Members() {
                     </Link>
                 </div>
             ) : (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {/* البطاقة كلها رابط واحد إلى ملف الفرد.
                         التعديل والحذف داخل الملف، بعيداً عن نقرة خاطئة. */}
                     {members.map((m) => {

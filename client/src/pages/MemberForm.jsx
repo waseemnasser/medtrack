@@ -101,7 +101,7 @@ export default function MemberForm() {
             <PageHeader title={isEdit ? "تعديل بيانات الفرد" : "إضافة فرد جديد"} back={parent} />
 
             <form className="card p-6 space-y-5" onSubmit={submit}>
-                <div className="grid sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field label="الاسم" htmlFor="name" required>
                         <input id="name" name="name" value={form.name} onChange={change}
                             placeholder="مثال: أحمد، سارة، أنا" className="input-field" />
