@@ -4,8 +4,9 @@ import api from "../api";
 import PageHeader from "../components/PageHeader";
 import AllergyEditor from "../components/AllergyEditor";
 import { fromServer, toPayload } from "../utils/allergies";
+import Field, { FormError } from "../components/Field";
 import { useFeedback } from "../feedback/context";
-import "./Members.css";
+import { Save, Trash2 } from "lucide-react";
 
 export default function MemberForm() {
     const { id } = useParams();          // موجود عند التعديل، غير موجود عند الإضافة
@@ -94,64 +95,52 @@ export default function MemberForm() {
         }
     };
 
+
     return (
-        <div className="page">
+        <div className="max-w-2xl">
             <PageHeader title={isEdit ? "تعديل بيانات الفرد" : "إضافة فرد جديد"} back={parent} />
 
-            <form className="form-card" onSubmit={submit}>
-                <label htmlFor="name">الاسم</label>
-                <input
-                    id="name"
-                    name="name"
-                    value={form.name}
-                    onChange={change}
-                    placeholder="مثال: أحمد، سارة، أنا"
-                />
+            <form className="card p-6 space-y-5" onSubmit={submit}>
+                <div className="grid sm:grid-cols-2 gap-4">
+                    <Field label="الاسم" htmlFor="name" required>
+                        <input id="name" name="name" value={form.name} onChange={change}
+                            placeholder="مثال: أحمد، سارة، أنا" className="input-field" />
+                    </Field>
 
-                <label htmlFor="birth_date">تاريخ الميلاد</label>
-                <input
-                    id="birth_date"
-                    type="date"
-                    name="birth_date"
-                    value={form.birth_date}
-                    onChange={change}
-                />
-                <span className="hint">اختياري — يمكنك إضافته لاحقاً</span>
+                    <Field label="تاريخ الميلاد" htmlFor="birth_date" hint="اختياري — يمكنك إضافته لاحقاً">
+                        <input id="birth_date" type="date" name="birth_date" value={form.birth_date}
+                            onChange={change} className="input-field" />
+                    </Field>
+                </div>
 
-                <label htmlFor="chronic_conditions">الأمراض المزمنة</label>
-                <input
-                    id="chronic_conditions"
-                    name="chronic_conditions"
-                    value={form.chronic_conditions}
-                    onChange={change}
-                    placeholder="مثال: ضغط، سكري"
-                />
+                <Field label="الأمراض المزمنة" htmlFor="chronic_conditions">
+                    <input id="chronic_conditions" name="chronic_conditions" value={form.chronic_conditions}
+                        onChange={change} placeholder="مثال: ضغط، سكري" className="input-field" />
+                </Field>
 
-                <label htmlFor="allergies">الحساسية من أدوية</label>
-                <AllergyEditor items={allergies} onChange={setAllergies} />
-                <span className="hint">
-                    اختر المادة الفعّالة أو العائلة أو الاسم التجاري من القائمة، فننبّهك لكل دواء
-                    يحتويها أياً كانت الشركة. وتظهر للطبيب بالأحمر عند المشاركة.
-                </span>
+                <Field label="الحساسية من أدوية" htmlFor="allergies"
+                    hint="اختر المادة الفعّالة أو العائلة أو الاسم التجاري من القائمة، فننبّهك لكل دواء يحتويها أياً كانت الشركة. وتظهر للطبيب بالأحمر عند المشاركة.">
+                    <AllergyEditor items={allergies} onChange={setAllergies} />
+                </Field>
 
-                {error && <div className="error">{error}</div>}
+                <FormError>{error}</FormError>
 
-                <div className="form-actions">
-                    <button type="submit" className="btn-primary" disabled={saving}>
-                        {saving ? "جارٍ الحفظ..." : "حفظ"}
+                <div className="flex gap-3">
+                    <button type="submit" className="btn-primary flex items-center gap-2" disabled={saving}>
+                        <Save className="w-5 h-5" /> {saving ? "جارٍ الحفظ..." : "حفظ"}
                     </button>
-                    <button type="button" onClick={() => navigate(parent)}>
+                    <button type="button" className="btn-secondary" onClick={() => navigate(parent)}>
                         إلغاء
                     </button>
                 </div>
             </form>
 
             {isEdit && (
-                <section className="danger-zone">
-                    <h2>حذف الفرد</h2>
-                    <p>يحذف الفرد وكل أدويته ومواعيده وسجل جرعاته. لا يمكن التراجع عن ذلك.</p>
-                    <button type="button" className="btn-danger" onClick={remove} disabled={deleting}>
-                        {deleting ? "جارٍ الحذف..." : "حذف الفرد نهائياً"}
+                <section className="card p-6 mt-6 !border-red-200 dark:!border-red-900/60">
+                    <h2 className="text-lg font-bold text-red-600 dark:text-red-400">حذف الفرد</h2>
+                    <p className="text-sm text-forest-700/70 mt-1 mb-4">يحذف الفرد وكل أدويته ومواعيده وسجل جرعاته. لا يمكن التراجع عن ذلك.</p>
+                    <button type="button" className="btn-danger flex items-center gap-2" onClick={remove} disabled={deleting}>
+                        <Trash2 className="w-4 h-4" /> {deleting ? "جارٍ الحذف..." : "حذف الفرد نهائياً"}
                     </button>
                 </section>
             )}

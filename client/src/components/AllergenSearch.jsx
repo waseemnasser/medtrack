@@ -1,8 +1,14 @@
 import { useState, useEffect, useRef } from "react";
+import { Search } from "lucide-react";
 import api from "../api";
-import "./AllergenSearch.css";
 
 const TYPE_LABEL = { class: "عائلة أدوية", ingredient: "مادة فعّالة", brand: "اسم تجاري" };
+const TYPE_TONE = {
+    class: "badge-info",
+    ingredient: "badge-success",
+    brand: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
+    note: "badge-warning",
+};
 
 /**
  * بحث في عائلات الأدوية والمواد الفعّالة والأسماء التجارية.
@@ -44,8 +50,11 @@ export default function AllergenSearch({ id, types = ["class", "ingredient", "br
         setOpen(false);
     };
 
+    const option = "w-full text-right px-4 py-3 hover:bg-sage-50 dark:hover:bg-forest-800/60 flex flex-col items-start gap-1 transition-colors";
+
     return (
-        <div className="allergen-search">
+        <div className="relative">
+            <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-sage-400 pointer-events-none" />
             <input
                 id={id}
                 value={q}
@@ -55,15 +64,16 @@ export default function AllergenSearch({ id, types = ["class", "ingredient", "br
                 onBlur={() => setTimeout(() => setOpen(false), 150)}
                 placeholder={placeholder}
                 autoComplete="off"
+                className="input-field !pr-11"
             />
             {showList && (
-                <ul className="allergen-results">
+                <ul className="absolute z-30 inset-x-0 mt-2 card !shadow-xl max-h-80 overflow-y-auto scrollbar-thin divide-y divide-sage-100 dark:divide-forest-800/60">
                     {items.map((r) => (
                         <li key={`${r.type}-${r.id || r.brand_name}`}>
-                            <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => pick(r)}>
-                                <span className={`allergen-type ${r.type}`}>{TYPE_LABEL[r.type]}</span>
-                                <strong>{r.name_ar || r.name || r.brand_name}</strong>
-                                <small dir="ltr">
+                            <button type="button" className={option} onMouseDown={(e) => e.preventDefault()} onClick={() => pick(r)}>
+                                <span className={`badge ${TYPE_TONE[r.type]}`}>{TYPE_LABEL[r.type]}</span>
+                                <strong className="text-forest-950">{r.name_ar || r.name || r.brand_name}</strong>
+                                <small className="text-xs text-forest-700/60" dir="ltr">
                                     {r.type === "brand"
                                         ? `${r.brand_name} ← ${r.ingredients.map((i) => i.name).join(" + ")}`
                                         : r.name}
@@ -73,11 +83,11 @@ export default function AllergenSearch({ id, types = ["class", "ingredient", "br
                     ))}
                     {allowNote && (
                         <li>
-                            <button type="button" className="as-note" onMouseDown={(e) => e.preventDefault()}
+                            <button type="button" className={option} onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => pick({ type: "note", note: query })}>
-                                <span className="allergen-type note">نص فقط</span>
-                                <strong>أضف «{query}» كما هو</strong>
-                                <small>لم نجده؟ يُحفظ ويظهر للطبيب، لكن لا يُفحص تلقائياً</small>
+                                <span className={`badge ${TYPE_TONE.note}`}>نص فقط</span>
+                                <strong className="text-forest-950">أضف «{query}» كما هو</strong>
+                                <small className="text-xs text-forest-700/60">لم نجده؟ يُحفظ ويظهر للطبيب، لكن لا يُفحص تلقائياً</small>
                             </button>
                         </li>
                     )}
