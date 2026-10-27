@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Mail, User, ArrowLeft } from "lucide-react";
 import api from "../api";
 import AuthLayout from "../components/AuthLayout";
 import PasswordInput from "../components/PasswordInput";
+import Field, { FormError } from "../components/Field";
 import { getEasyMode, setEasyMode } from "../utils/easyMode";
 
 export default function Register() {
@@ -33,43 +35,53 @@ export default function Register() {
   };
 
   return (
-    <AuthLayout kicker="حساب جديد" headline="كل جرعة، في وقتها." lead="دقيقة واحدة، ثم أضف أول شخص تتابع أدويته.">
-      <form className="auth-form" onSubmit={handleSubmit}>
+    <AuthLayout headline="إنشاء حساب" lead="دقيقة واحدة، ثم أضف أول شخص تتابع أدويته.">
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        <Field label="الاسم" htmlFor="name">
+          <div className="relative">
+            <User className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-sage-400 pointer-events-none" />
+            <input
+              id="name"
+              autoComplete="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="input-field !pr-11"
+            />
+          </div>
+        </Field>
 
-        <label htmlFor="name">الاسم</label>
-        <input
-          id="name"
-          autoComplete="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
+        <Field label="البريد الإلكتروني" htmlFor="email">
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-sage-400 pointer-events-none" />
+            <input
+              id="email"
+              type="email"
+              dir="ltr"
+              autoComplete="email"
+              placeholder="name@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="input-field !pl-11"
+            />
+          </div>
+        </Field>
 
-        <label htmlFor="email">البريد الإلكتروني</label>
-        <input
-          id="email"
-          type="email"
-          dir="ltr"
-          autoComplete="email"
-          placeholder="name@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-
-        <label htmlFor="password">كلمة المرور</label>
-        <PasswordInput
-          id="password"
-          autoComplete="new-password"
-          placeholder="8 أحرف على الأقل"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          minLength={8}
-          required
-        />
+        <Field label="كلمة المرور" htmlFor="password">
+          <PasswordInput
+            id="password"
+            autoComplete="new-password"
+            placeholder="8 أحرف على الأقل"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            minLength={8}
+            required
+          />
+        </Field>
 
         {/* يُطبَّق فوراً حتى يرى المستخدم الفرق قبل أن يقرّر */}
-        <label className="auth-check">
+        <label className="flex items-start gap-3 bg-white dark:bg-forest-900/50 border border-sage-200 dark:border-forest-700/50 rounded-xl p-4 cursor-pointer">
           <input
             type="checkbox"
             checked={easy}
@@ -77,21 +89,27 @@ export default function Register() {
               setEasyMode(e.target.checked);
               setEasy(e.target.checked);
             }}
+            className="w-5 h-5 mt-0.5 rounded accent-forest-600"
           />
           <span>
-            الوضع المريح: نص أكبر وأزرار أوسع
-            <small>يمكنك تغييره لاحقاً من صفحة الحساب</small>
+            <span className="block font-semibold text-forest-950">الوضع المريح: نص أكبر وأزرار أوسع</span>
+            <small className="block text-xs text-forest-700/60 mt-0.5">يمكنك تغييره لاحقاً من صفحة الحساب</small>
           </span>
         </label>
 
-        {error && <div className="error">{error}</div>}
+        <FormError>{error}</FormError>
 
-        <button type="submit" className="auth-cta" disabled={loading}>
-          {loading ? "جارٍ الإنشاء..." : "إنشاء حساب"}
+        <button type="submit" className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50" disabled={loading}>
+          {loading ? (
+            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" aria-label="جارٍ الإنشاء" />
+          ) : (
+            <>إنشاء حساب <ArrowLeft className="w-5 h-5" /></>
+          )}
         </button>
 
-        <p className="auth-switch">
-          عندك حساب؟ <Link to="/login">سجّل دخولك</Link>
+        <p className="text-center text-sm text-forest-700/70">
+          عندك حساب؟{" "}
+          <Link to="/login" className="text-forest-600 font-semibold hover:underline">سجّل دخولك</Link>
         </p>
       </form>
     </AuthLayout>
