@@ -49,9 +49,17 @@ const classId = async (code) => (await pool.query("SELECT id FROM drug_classes W
 
 async function addMember(userId, m) {
     const { rows } = await pool.query(
-        "INSERT INTO members (user_id, name, birth_date, chronic_conditions) VALUES ($1, $2, $3, $4) RETURNING id",
-        [userId, m.name, m.birth_date, m.chronic || null]
+        `INSERT INTO members (user_id, name, birth_date, chronic_conditions, blood_type, gender, emergency_notes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+        [userId, m.name, m.birth_date, m.chronic || null, m.blood || null, m.gender || null, m.notes || null]
     );
+    // جهات الطوارئ — أرقام وهمية بصيغة سورية
+    for (const [i, c] of (m.contacts || []).entries()) {
+        await pool.query(
+            "INSERT INTO emergency_contacts (member_id, name, phone, relation, position) VALUES ($1, $2, $3, $4, $5)",
+            [rows[0].id, c[0], c[1], c[2], i]
+        );
+    }
     return rows[0].id;
 }
 
@@ -134,9 +142,20 @@ async function main() {
     )).rows[0].id;
 
     // ---------- الأفراد وحساسيتهم ----------
-    const sara = await addMember(userId, { name: "سارة", birth_date: "1990-04-02", chronic: "ربو" });
-    const khaled = await addMember(userId, { name: "خالد", birth_date: "1963-09-11", chronic: "ضغط، سكري" });
-    const layla = await addMember(userId, { name: "ليلى", birth_date: "2017-06-20" });
+    const sara = await addMember(userId, {
+        name: "سارة", birth_date: "1990-04-02", chronic: "ربو", blood: "A+", gender: "female",
+        notes: "بخاخ الربو في الحقيبة دائماً.",
+        contacts: [["خالد", "0933000111", "الأب"], ["مها", "0944000222", "صديقة"]],
+    });
+    const khaled = await addMember(userId, {
+        name: "خالد", birth_date: "1963-09-11", chronic: "ضغط، سكري", blood: "O+", gender: "male",
+        notes: "عند هبوط السكر: عصير أو ملعقة سكر، ثم قياس بعد ربع ساعة.",
+        contacts: [["سارة", "0955000333", "الابنة"]],
+    });
+    const layla = await addMember(userId, {
+        name: "ليلى", birth_date: "2017-06-20", blood: "A+", gender: "female",
+        contacts: [["سارة", "0955000333", "الأم"], ["خالد", "0933000111", "الجد"]],
+    });
 
     await replaceAllergies(pool, sara, [
         { class_id: await classId("J01C"), severity: "severe", reaction: "تورّم وضيق تنفّس" },
@@ -165,6 +184,13 @@ async function main() {
     await addMedication(sara, { ingredient: "CLARITHROMYCIN", strength: "500", times: ["08:00", "20:00"], startedDaysAgo: 8, courseDays: 7, adherence: 1 });
     // أُوقف في اليوم الرابع من عشرة لأنه «شعر بتحسّن» — يراه الطبيب في صفحة المشاركة
     await addMedication(khaled, { ingredient: "METRONIDAZOLE", strength: "250", times: ["08:00", "14:00", "22:00"], startedDaysAgo: 18, courseDays: 10, stoppedAfter: 4, stopReason: "felt_better", adherence: 0.95 });
+
+    // خالد يؤكّد جرعاته بصوته غالباً — يظهر في صفحة التأكيد الصوتي وبطاقة الطوارئ
+    await pool.query(
+        `UPDATE dose_logs SET method = 'voice'
+          WHERE medication_id IN (SELECT id FROM medications WHERE member_id = $1) AND id % 3 <> 0`,
+        [khaled]
+    );
 
     // ---------- المواعيد ----------
     const appts = [

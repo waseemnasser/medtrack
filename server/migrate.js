@@ -30,6 +30,21 @@ const MIGRATIONS = [
     // الكورس (course.js): end_date = النهاية المخطّطة، وهذان = متى أُوقف فعلاً ولماذا
     "ALTER TABLE medications ADD COLUMN IF NOT EXISTS stopped_on DATE",
     "ALTER TABLE medications ADD COLUMN IF NOT EXISTS stop_reason TEXT",
+    // بطاقة الطوارئ (routes/members.js): فصيلة الدم والجنس وملاحظة للمسعف
+    "ALTER TABLE members ADD COLUMN IF NOT EXISTS blood_type TEXT",
+    "ALTER TABLE members ADD COLUMN IF NOT EXISTS gender TEXT",
+    "ALTER TABLE members ADD COLUMN IF NOT EXISTS emergency_notes TEXT",
+    `CREATE TABLE IF NOT EXISTS emergency_contacts (
+        id SERIAL PRIMARY KEY,
+        member_id INTEGER NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        relation TEXT,
+        position INTEGER NOT NULL DEFAULT 0
+    )`,
+    "CREATE INDEX IF NOT EXISTS emergency_contacts_member ON emergency_contacts (member_id, position)",
+    // كيف أُكّدت الجرعة: لمسة زر أو أمر صوتي (صفحة التأكيد الصوتي)
+    "ALTER TABLE dose_logs ADD COLUMN IF NOT EXISTS method TEXT NOT NULL DEFAULT 'tap'",
 ];
 
 async function migrate() {

@@ -18,6 +18,7 @@ router.get("/today", async (req, res) => {
          ds.time_of_day,
          m.id AS medication_id,
          m.name AS medication_name,
+         cat.name_ar AS medication_name_ar,
          m.strength,
          m.instructions,
          m.units_per_dose,
@@ -25,10 +26,12 @@ router.get("/today", async (req, res) => {
          mem.name AS member_name,
          dl.id AS log_id,
          dl.status,
-         dl.confirmed_at
+         dl.confirmed_at,
+         dl.method
        FROM dose_schedules ds
        JOIN medications m ON m.id = ds.medication_id
        JOIN members mem ON mem.id = m.member_id
+       LEFT JOIN medicines_catalog cat ON cat.id = m.catalog_id
        LEFT JOIN dose_logs dl
          ON dl.medication_id = m.id
         AND dl.scheduled_at = ($1::date + ds.time_of_day)
@@ -58,6 +61,8 @@ router.get("/today", async (req, res) => {
 // تأكيد أخذ جرعة
 router.post("/confirm", async (req, res) => {
     const { medication_id, scheduled_at } = req.body;
+    // «voice» من صفحة التأكيد الصوتي، وكل ما عداه لمسة زر
+    const method = req.body.method === "voice" ? "voice" : "tap";
     if (!medication_id || !scheduled_at)
         return res.status(400).json({ error: "البيانات ناقصة" });
 
@@ -78,18 +83,39 @@ router.post("/confirm", async (req, res) => {
         let result;
         if (existing.rows.length) {
             result = await pool.query(
-                "UPDATE dose_logs SET confirmed_at = NOW(), status = 'taken' WHERE id = $1 RETURNING *",
-                [existing.rows[0].id]
+                "UPDATE dose_logs SET confirmed_at = NOW(), status = 'taken', method = $2 WHERE id = $1 RETURNING *",
+                [existing.rows[0].id, method]
             );
         } else {
             result = await pool.query(
-                `INSERT INTO dose_logs (medication_id, scheduled_at, confirmed_at, status)
-         VALUES ($1, $2, NOW(), 'taken') RETURNING *`,
-                [medication_id, scheduled_at]
+                `INSERT INTO dose_logs (medication_id, scheduled_at, confirmed_at, status, method)
+         VALUES ($1, $2, NOW(), 'taken', $3) RETURNING *`,
+                [medication_id, scheduled_at, method]
             );
         }
 
         res.json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// آخر الجرعات المؤكَّدة لفرد واحد، وكيف أُكّدت (صوت أو لمسة)
+router.get("/recent", async (req, res) => {
+    try {
+        const result = await pool.query(
+            `SELECT dl.id, dl.scheduled_at, dl.confirmed_at, dl.method,
+                    m.name AS medication_name, m.strength
+               FROM dose_logs dl
+               JOIN medications m ON m.id = dl.medication_id
+               JOIN members mem ON mem.id = m.member_id
+              WHERE mem.id = $1 AND mem.user_id = $2
+                AND dl.status = 'taken' AND dl.confirmed_at IS NOT NULL
+              ORDER BY dl.confirmed_at DESC
+              LIMIT 10`,
+            [req.query.member_id, req.userId]
+        );
+        res.json(result.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

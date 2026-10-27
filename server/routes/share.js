@@ -67,7 +67,7 @@ router.get("/:token", shareLimiter, async (req, res) => {
         const memberId = link.rows[0].member_id;
 
         const member = await pool.query(
-            "SELECT id, name, birth_date, chronic_conditions, allergies FROM members WHERE id = $1",
+            "SELECT id, name, birth_date, chronic_conditions, allergies, blood_type, gender FROM members WHERE id = $1",
             [memberId]
         );
 
