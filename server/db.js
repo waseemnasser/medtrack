@@ -5,6 +5,20 @@ require("dotenv").config();
 types.setTypeParser(1082, (value) => value);
 types.setTypeParser(1114, (value) => value);   // TIMESTAMP WITHOUT TIME ZONE
 
+// كلمة مرور فيها # أو @ أو / تكسر الرابط إن لم تُرمَّز. نرمّزها نحن
+// (كل ما بين أول «:» بعد اسم المستخدم وآخر «@»)، ولا نطبع الرابط أبداً لأن فيه كلمة المرور
+function parseUrl(raw) {
+    const m = raw.trim().match(/^(\w+:\/\/[^:/@]+):(.*)@([^@]+)$/);
+    try {
+        if (!m) return new URL(raw.trim());
+        // كلمة مرور مرمّزة من قبل (%40...) لا نرمّزها مرتين
+        let password = m[2];
+        try { password = decodeURIComponent(password); } catch { /* فيها % عادية */ }
+        return new URL(`${m[1]}:${encodeURIComponent(password)}@${m[3]}`);
+    } catch { /* يقع في الرسالة أدناه */ }
+    throw new Error("DATABASE_URL غير صالح — تأكّد أنه منسوخ كاملاً بالشكل postgresql://user:password@host:port/db");
+}
+
 // على الإنترنت: رابط قاعدة البيانات كاملاً في DATABASE_URL (Supabase وأمثاله).
 // محلياً: قاعدة medtrack على هذا الجهاز كما كانت
 function config() {
@@ -18,7 +32,7 @@ function config() {
             database: "medtrack",
         };
     }
-    const url = new URL(raw);
+    const url = parseUrl(raw);
     const local = ["localhost", "127.0.0.1"].includes(url.hostname);
     // sslmode في الرابط يفرض التحقق من شهادة لا تقبلها مكتبة pg عند Supabase —
     // نحذفه ونطلب اتصالاً مشفّراً بأنفسنا
