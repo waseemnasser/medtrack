@@ -39,7 +39,7 @@ You will collect a few values along the way. Keep them in a notepad (not in the 
 4. Create the tables and load the medicine catalog from your laptop. Open PowerShell in the project folder:
    ```powershell
    $env:DATABASE_URL = "paste-your-DATABASE_URL-here"
-   $psql = "C:\Program Files\PostgreSQL8in\psql.exe"
+   $psql = "C:\Program Files\PostgreSQL\18\bin\psql.exe"
    & $psql $env:DATABASE_URL -1 -v ON_ERROR_STOP=1 -f database\database_setup.sql
    & $psql $env:DATABASE_URL -1 -v ON_ERROR_STOP=1 -c "SET search_path TO public" -f database\medicines_catalog.sql
    ```
