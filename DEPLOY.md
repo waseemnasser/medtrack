@@ -150,6 +150,7 @@ Do these in order. Tick each one.
 | What you see | Cause and fix |
 |---|---|
 | Render log: `password authentication failed` | The password in `DATABASE_URL` is wrong, or still has the `[ ]` brackets. |
+| On your laptop, `psql` says `server closed the connection unexpectedly` or `timeout expired` | Your network blocks port 5432. For the laptop steps only, change `:5432/` to `:6543/` in the link (`$env:DATABASE_URL = $env:DATABASE_URL -replace ':5432/', ':6543/'`). Keep `:5432` on Render. |
 | Render log: `ENETUNREACH` or `ENOTFOUND` | You used the *Direct connection* link. Use **Session pooler**. |
 | Site says it can't reach the server | `VITE_API_URL` is wrong, missing `/api`, or the site was published before you created the file. Fix it and run `npm run deploy:pages` again. |
 | Reminders arrive 3 hours early or late | `TZ` is missing on Render. |
