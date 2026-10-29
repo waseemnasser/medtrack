@@ -39,10 +39,12 @@ You will collect a few values along the way. Keep them in a notepad (not in the 
 4. Create the tables and load the medicine catalog from your laptop. Open PowerShell in the project folder:
    ```powershell
    $env:DATABASE_URL = "paste-your-DATABASE_URL-here"
-   & "C:\Program Files\PostgreSQL\18\bin\psql.exe" $env:DATABASE_URL -f database\database_setup.sql
-   & "C:\Program Files\PostgreSQL\18\bin\psql.exe" $env:DATABASE_URL -f database\medicines_catalog.sql
+   $psql = "C:\Program Files\PostgreSQL8in\psql.exe"
+   & $psql $env:DATABASE_URL -1 -v ON_ERROR_STOP=1 -f database\database_setup.sql
+   & $psql $env:DATABASE_URL -1 -v ON_ERROR_STOP=1 -c "SET search_path TO public" -f database\medicines_catalog.sql
    ```
-   The catalog takes a minute. A line like `unrecognized configuration parameter` is harmless. An error on `CREATE TABLE` is not, so stop and check.
+   The catalog takes a minute or two. `NOTICE: ... already exists, skipping` lines are normal. Any `ERROR` means the step was rolled back, so fix it and run the same line again.
+   Use `database\medicines_catalog.sql`, not `medicines_catalog_full.sql` (an older standalone copy).
 5. Create the demo account in the online database, still in the same window:
    ```powershell
    cd server

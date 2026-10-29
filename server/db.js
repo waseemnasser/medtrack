@@ -33,10 +33,15 @@ const pool = new Pool(config());
 
 // خوادم الاستضافة تعمل بتوقيت غرينتش، والجرعات والمواعيد محفوظة بالتوقيت المحلي.
 // TZ (مثلاً Asia/Damascus) يضبط ساعة Node وساعة قاعدة البيانات معاً،
-// وإلا وصلت التذكيرات متأخرة أو مبكرة بفارق التوقيت
-if (process.env.TZ) {
+// وإلا وصلت التذكيرات متأخرة أو مبكرة بفارق التوقيت.
+// ومسار الجداول public صراحةً: وسيط Supabase يعيد استعمال الاتصالات،
+// فإعداد تركه برنامج آخر على الاتصال قد يخفي جداولنا
+if (process.env.DATABASE_URL || process.env.TZ) {
     pool.on("connect", (client) => {
-        client.query("SELECT set_config('TimeZone', $1, false)", [process.env.TZ]).catch(() => { });
+        client.query("SELECT set_config('search_path', 'public', false)").catch(() => { });
+        if (process.env.TZ) {
+            client.query("SELECT set_config('TimeZone', $1, false)", [process.env.TZ]).catch(() => { });
+        }
     });
 }
 
