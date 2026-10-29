@@ -33,6 +33,10 @@ function config() {
         };
     }
     const url = parseUrl(raw);
+    // خطأ شائع: نسخ عنوان مشروع Supabase (https://...supabase.co) بدل رابط قاعدة البيانات
+    if (!/^postgres(ql)?:$/.test(url.protocol)) {
+        throw new Error("DATABASE_URL يجب أن يبدأ بـ postgresql:// — هذا عنوان موقع وليس رابط قاعدة بيانات (Supabase ← Connect ← Session pooler)");
+    }
     const local = ["localhost", "127.0.0.1"].includes(url.hostname);
     // sslmode في الرابط يفرض التحقق من شهادة لا تقبلها مكتبة pg عند Supabase —
     // نحذفه ونطلب اتصالاً مشفّراً بأنفسنا
