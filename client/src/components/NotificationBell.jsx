@@ -160,7 +160,7 @@ export default function NotificationBell() {
 
             {open && (
                 <div role="dialog" aria-label="الإشعارات"
-                    className="absolute left-0 top-12 z-50 w-[22rem] max-w-[calc(100vw-2rem)] card !shadow-2xl overflow-hidden animate-scale-in origin-top-left">
+                    className="absolute left-0 top-12 z-50 w-[22rem] max-w-[calc(100vw-2rem)] card dark:!bg-forest-900 !shadow-2xl overflow-hidden animate-scale-in origin-top-left">
                     <div className="flex items-center justify-between px-5 py-4 border-b border-sage-100 dark:border-forest-800/60">
                         <h2 className="font-bold text-forest-950">الإشعارات</h2>
                         {unread > 0 && (
