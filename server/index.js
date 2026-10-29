@@ -29,7 +29,9 @@ app.get("/api/health", async (req, res) => {
 require("./migrate")()
     .then(() => {
         require("./push").startScheduler();
-        app.listen(5000, () => console.log("Server running on port 5000"));
+        // الاستضافة تحدد المنفذ بنفسها (PORT)، ومحلياً ٥٠٠٠
+        const port = process.env.PORT || 5000;
+        app.listen(port, () => console.log(`Server running on port ${port}`));
     })
     .catch((err) => {
         console.error("تعذّر تحديث قاعدة البيانات:", err.message);
