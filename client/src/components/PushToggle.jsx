@@ -3,7 +3,11 @@ import { pushSupported, pushPermission, enablePush, syncPush, sendTestPush } fro
 import { Bell, BellOff } from "lucide-react";
 
 // رسالة الخادم إن وُجدت، وإلا رسالة عامة — لا نخفي سبب الفشل عن المستخدم
-const reason = (err, fallback) => err.response?.data?.error || err.message || fallback;
+const reason = (err, fallback) => {
+    if (err.code === "ECONNABORTED") return "الخادم لم يردّ في الوقت المحدد. تأكّد من الاتصال ثم أعد المحاولة.";
+    if (err.code === "ERR_NETWORK") return "تعذّر الوصول إلى الخادم. تأكّد أنه يعمل.";
+    return err.response?.data?.error || err.message || fallback;
+};
 
 export default function PushToggle({ hideWhenOn = false }) {
     const [state, setState] = useState(() => (pushPermission() === "denied" ? "blocked" : "checking")); // checking | idle | on | blocked

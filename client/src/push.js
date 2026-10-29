@@ -25,9 +25,22 @@ export function pushPermission() {
     return pushSupported() ? Notification.permission : "denied";
 }
 
+// خطوات الاشتراك قد تعلق بلا نهاية (عامل الخدمة لم يُسجَّل، أو خدمة الإشعارات
+// لا تردّ) — نوقفها بعد مهلة برسالة واضحة بدل زر يدور للأبد
+function withTimeout(promise, ms, message) {
+    let timer;
+    const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(message)), ms); });
+    return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+const workerReady = () => withTimeout(
+    navigator.serviceWorker.ready, 10000,
+    "عامل الإشعارات لم يعمل في هذه الصفحة. حدّث الصفحة ثم أعد المحاولة."
+);
+
 // اشتراك صالح مسجَّل في الخادم باسم المستخدم الحالي
 async function ensureSubscription() {
-    const reg = await navigator.serviceWorker.ready;
+    const reg = await workerReady();
     const { data } = await api.get("/push/key");
     const key = urlBase64ToUint8Array(data.key);
 
@@ -37,11 +50,14 @@ async function ensureSubscription() {
         sub = null;
     }
     if (!sub) {
-        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+        sub = await withTimeout(
+            reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key }), 20000,
+            "خدمة إشعارات المتصفح لا تستجيب. تأكّد من الاتصال بالإنترنت ثم أعد المحاولة."
+        );
     }
 
     // يربط هذا الجهاز بالحساب المسجَّل الآن — حتى لو كان مربوطاً بحساب آخر قبل ذلك
-    await api.post("/push/subscribe", sub.toJSON());
+    await api.post("/push/subscribe", sub.toJSON(), { timeout: 15000 });
     return sub;
 }
 
@@ -64,7 +80,7 @@ export async function enablePush() {
  */
 export async function syncPush() {
     if (!pushSupported() || Notification.permission !== "granted") return false;
-    const reg = await navigator.serviceWorker.ready;
+    const reg = await workerReady();
     if (!(await reg.pushManager.getSubscription())) return false;
     await ensureSubscription();
     return true;
@@ -84,6 +100,7 @@ export async function disablePushForThisDevice() {
 }
 
 export async function sendTestPush() {
-    const { data } = await api.post("/push/test");
+    // الخادم ينتظر خدمة الإشعارات حتى ٢٠ ثانية — نعطيه هامشاً فوقها
+    const { data } = await api.post("/push/test", null, { timeout: 30000 });
     return data;
 }

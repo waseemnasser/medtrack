@@ -10,6 +10,9 @@ webpush.setVapidDetails(
     process.env.VAPID_PRIVATE
 );
 
+// أقصى انتظار لخدمة الإشعارات (Google/Microsoft/Mozilla) لكل جهاز
+const SEND_TIMEOUT_MS = 20000;
+
 // إشعار لمستخدم: يُحفظ في سجل الإشعارات (نافذة الجرس) أولاً، ثم يُرسل
 // لكل أجهزته. السجل يُحفظ حتى لو لم يكن له جهاز مفعّل — يراه داخل التطبيق.
 // kind: dose | appointment | refill | course | test — يحدد أيقونة الإشعار ولونه
@@ -32,27 +35,30 @@ async function sendToUser(userId, payload, kind = "other") {
         [userId]
     );
 
-    let sent = 0;
-    let failed = 0;
-    for (const s of subs.rows) {
+    // كل الأجهزة معاً، ولكل جهاز مهلة: خدمة إشعارات بطيئة أو جهاز قديم
+    // لا يعلّق الطلب (ولا زر «إرسال إشعار تجريبي») إلى ما لا نهاية
+    const results = await Promise.allSettled(subs.rows.map(async (s) => {
         const subscription = {
             endpoint: s.endpoint,
             keys: { p256dh: s.p256dh, auth: s.auth },
         };
         try {
-            await webpush.sendNotification(subscription, JSON.stringify(payload));
-            sent++;
+            await webpush.sendNotification(subscription, JSON.stringify(payload), {
+                timeout: SEND_TIMEOUT_MS,
+                TTL: 60 * 60, // إن كان الجهاز مطفأً: يصله خلال ساعة، وبعدها لا معنى له
+            });
         } catch (err) {
-            failed++;
             // 410/404 تعني أن الاشتراك لم يعد صالحاً — نحذفه
             if (err.statusCode === 410 || err.statusCode === 404) {
                 await pool.query("DELETE FROM push_subscriptions WHERE id = $1", [s.id]);
             } else {
-                console.error("push error:", err.statusCode, err.body);
+                console.error("push error:", err.statusCode || err.code || err.message, err.body || "");
             }
+            throw err;
         }
-    }
-    return { sent, failed };
+    }));
+    const sent = results.filter((r) => r.status === "fulfilled").length;
+    return { sent, failed: results.length - sent };
 }
 
 // يفحص كل دقيقة: أي جرعة حان وقتها الآن ولم تُؤكَّد
