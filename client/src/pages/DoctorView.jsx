@@ -303,7 +303,11 @@ export default function DoctorView() {
                                     {logs.map((l) => (
                                         <tr key={l.id} className="hover:bg-sage-50 dark:hover:bg-forest-800/40">
                                             <td className="px-4 py-3 font-medium text-forest-950">{l.medication_name}</td>
-                                            <td className="px-4 py-3 text-forest-700">{fmtDateTime(l.scheduled_at)}</td>
+                                            <td className="px-4 py-3 text-forest-700">
+                                                {/* سطران قصيران بدل ثلاثة متكسّرة على الهاتف */}
+                                                <span className="block">{formatDate(String(l.scheduled_at).slice(0, 10), false)}</span>
+                                                <span className="block text-xs text-forest-700/60">{formatTime(String(l.scheduled_at).replace("T", " ").split(" ")[1].slice(0, 5))}</span>
+                                            </td>
                                             <td className="px-4 py-3">
                                                 {l.status === "taken"
                                                     ? <span className="badge badge-success"><CheckCircle className="w-3 h-3" /> مؤكّدة</span>
