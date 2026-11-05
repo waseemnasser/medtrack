@@ -1,0 +1,1255 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نبض — مخططات التحليل والتصميم</title>
+<style>
+  /* نفس خط الدليل (fonts/Cairo.ttf). المخططات تُرسم بمكتبة Mermaid من الإنترنت */
+  @font-face { font-family: "Cairo"; src: url("fonts/Cairo.ttf") format("truetype"); font-weight: 200 1000; font-display: block; }
+  @page { size: A4; margin: 16mm 14mm; }
+  body { font-family: "Cairo", Tahoma, sans-serif; color: #042F2E; font-size: 10.5pt; line-height: 1.75; max-width: 1050px; margin: 0 auto; padding: 0 16px 40px; background: #fff; }
+  h1, h2, h3 { line-height: 1.3; font-weight: 800; }
+  h1 { font-size: 28pt; margin: 0 0 6px; }
+  h2 { font-size: 16pt; margin: 30px 0 8px; padding-bottom: 6px; border-bottom: 2px solid #0D9488; break-after: avoid; }
+  h3 { font-size: 12pt; margin: 18px 0 4px; color: #0F766E; font-weight: 700; break-after: avoid; }
+  .kicker { color: #0D9488; font-weight: 700; font-size: 10pt; }
+  .cover { padding: 40px 0 10px; }
+  .cover p { font-size: 12pt; color: #3E5659; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 9.5pt; }
+  tr, li { break-inside: avoid; }
+  th, td { border-bottom: 1px solid #C9E8E8; padding: 5px 6px; text-align: start; vertical-align: top; }
+  th { background: #F0FDFA; }
+  code, .ltr { direction: ltr; unicode-bidi: embed; font-family: Consolas, monospace; font-size: 9pt; background: #F0FDFA; padding: 0 4px; border-radius: 3px; }
+  .box { background: #F0FDFA; border-inline-start: 4px solid #0D9488; padding: 8px 12px; margin: 10px 0; break-inside: avoid; }
+  .warn { background: #FEF2F2; border-inline-start-color: #EF4444; }
+  ul, ol { margin: 4px 0; padding-inline-start: 20px; }
+  figure { margin: 12px 0 6px; padding: 12px; border: 1px solid #C9E8E8; border-radius: 10px; break-inside: avoid; }
+  /* Mermaid يرسم بالاتجاه من اليسار لليمين — لا نورّثه اتجاه الصفحة */
+  pre.mermaid { direction: ltr; text-align: center; margin: 0; background: none; font-family: inherit; }
+  pre.mermaid svg { max-width: 100%; height: auto; }
+  figure.wide { overflow-x: auto; }
+  figure.wide pre.mermaid svg { max-width: none; min-width: 1500px; }
+  figcaption { font-size: 9.5pt; color: #3E5659; margin-top: 8px; text-align: center; }
+  details { margin: 4px 0 14px; font-size: 9pt; }
+  summary { cursor: pointer; color: #0F766E; font-weight: 700; }
+  pre.src { direction: ltr; text-align: left; background: #F8FAFA; border: 1px solid #C9E8E8; border-radius: 8px; padding: 10px; overflow-x: auto; font-size: 8.5pt; line-height: 1.5; white-space: pre; }
+  details button { font-family: inherit; font-size: 9pt; margin: 6px 0; padding: 2px 12px; border: 1px solid #0D9488; background: #fff; color: #0F766E; border-radius: 99px; cursor: pointer; }
+  .toc { columns: 2; column-gap: 30px; }
+  .toc li { margin: 2px 0; }
+  @media print { figure.wide pre.mermaid svg { min-width: 0; max-width: 100%; } details { display: none; } .page { break-before: page; } body { max-width: none; padding: 0; } }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <span class="kicker">مشروع تخرج — الجامعة الدولية الخاصة للعلوم والتكنولوجيا</span>
+  <h1>نبض<br>مخططات التحليل والتصميم</h1>
+  <p>كل مخططات UML وERD وDFD التي يحتاجها التقرير والمناقشة، مأخوذة من الكود وقاعدة البيانات الفعلية في الفرع <span class="ltr">redesign-bolt</span> — تشرين الثاني 2026.</p>
+  <p>الفريق: وسيم نصر · دارين النجم · بيسان أبو شهلا</p>
+</section>
+
+<h2>0. كيف تستخدم هذا الملف</h2>
+<ul>
+  <li><b>يحتاج إنترنت</b> عند فتحه، لأن المخططات تُرسم بمكتبة Mermaid.</li>
+  <li>تحت كل مخطط زر <b>«كود المخطط»</b>: انسخه والصقه في أحد هذه الأماكن:
+    <ul>
+      <li><span class="ltr">mermaid.live</span>: يعرض المخطط فوراً، ثم <b>Actions ← PNG أو SVG</b> لتضعه في التقرير.</li>
+      <li><b>draw.io</b> (<span class="ltr">app.diagrams.net</span>): <b>Arrange ← Insert ← Advanced ← Mermaid</b>. يصير المخطط أشكالاً قابلة للتعديل والتلوين.</li>
+    </ul>
+  </li>
+  <li>إن طلب المشرف أداة UML رسمية (StarUML أو Visual Paradigm)، ارسموا المخطط فيها <b>بنفس العناصر والعلاقات</b> الموجودة هنا. المحتوى هو المهم، والأداة لا تهم.</li>
+  <li>للطباعة: Ctrl+P ← «حفظ كـ PDF». أكواد المخططات تختفي تلقائياً من النسخة المطبوعة.</li>
+</ul>
+
+<div class="box"><b>قاعدة ذهبية للمناقشة:</b> كل مخطط هنا يطابق الكود الحالي. إن تغيّر شيء في الكود (جدول، مسار، حالة)، حدّثوا المخطط معه. السؤال الأخطر في المناقشة: «أين هذا في الكود؟». ولذلك ذُكر بجانب كل مخطط الملف الذي يأتي منه.</div>
+
+<h3>المخططات المطلوبة عادةً، ومكانها هنا</h3>
+<ol class="toc">
+  <li><a href="#usecase">مخطط حالات الاستخدام (Use Case)</a></li>
+  <li><a href="#context">مخطط السياق — DFD المستوى 0</a></li>
+  <li><a href="#dfd1">مخطط تدفق البيانات — DFD المستوى 1</a></li>
+  <li><a href="#erd">مخطط الكيانات والعلاقات (ERD)</a></li>
+  <li><a href="#class">مخطط الأصناف (Class Diagram)</a></li>
+  <li><a href="#seq">مخططات التتابع (Sequence) — 5 مخططات</a></li>
+  <li><a href="#activity">مخططات النشاط (Activity) — مخططان</a></li>
+  <li><a href="#state">مخططات الحالة (State Machine) — 3 مخططات</a></li>
+  <li><a href="#arch">مخطط المكوّنات والبنية (Component)</a></li>
+  <li><a href="#deploy">مخطط النشر (Deployment)</a></li>
+  <li><a href="#screens">مخطط التنقل بين الشاشات</a></li>
+  <li><a href="#checklist">قائمة تحقق قبل التسليم</a></li>
+</ol>
+
+<!-- ======================================================= -->
+<h2 id="usecase" class="page">1. مخطط حالات الاستخدام (Use Case)</h2>
+<p><b>ماذا يُظهر:</b> من يستخدم النظام، وماذا يستطيع كل واحد أن يفعل. <b>المصدر:</b> صفحات <span class="ltr">client/src/pages</span> والمجدول في <span class="ltr">server/push.js</span>.</p>
+<table>
+<tr><th>الفاعل (Actor)</th><th>من هو</th></tr>
+<tr><td>مسؤول العائلة (Caregiver)</td><td>صاحب الحساب. يدير أدويته أو أدوية أفراد عائلته.</td></tr>
+<tr><td>الطبيب / المسعف</td><td>بلا حساب. يفتح رابط المشاركة أو يمسح رمز QR فيرى الملف للقراءة فقط.</td></tr>
+<tr><td>المجدول (Scheduler)</td><td>فاعل زمني داخل الخادم (node-cron): يرسل التذكيرات في وقتها.</td></tr>
+<tr><td>خدمة الإشعارات (Push Service)</td><td>نظام خارجي (Google FCM / Mozilla / Microsoft) يوصل الإشعار للهاتف.</td></tr>
+</table>
+<figure>
+<pre class="mermaid">
+flowchart LR
+  CG["👤 Caregiver&lt;br&gt;مسؤول العائلة"]
+  DR["👤 Doctor / Paramedic&lt;br&gt;الطبيب / المسعف"]
+  SC["⏱ Scheduler&lt;br&gt;المجدول"]
+  PS["☁ Push Service&lt;br&gt;خدمة الإشعارات"]
+
+  subgraph SYS["نبض — Nabd"]
+    direction TB
+    U1(["Register / Log in&lt;br&gt;حساب جديد / دخول"])
+    U2(["Manage family members&lt;br&gt;إدارة أفراد العائلة"])
+    U3(["Record allergies&lt;br&gt;تسجيل الحساسية"])
+    U4(["Add / edit medication&lt;br&gt;إضافة / تعديل دواء"])
+    U4a(["Search Arabic catalog&lt;br&gt;البحث في الكتالوغ"])
+    U4b(["Check allergy conflicts&lt;br&gt;فحص الحساسية"])
+    U4c(["Save despite conflict&lt;br&gt;الحفظ رغم التعارض"])
+    U5(["Confirm dose&lt;br&gt;تأكيد جرعة"])
+    U5a(["Confirm by voice&lt;br&gt;التأكيد الصوتي"])
+    U6(["Track / stop course&lt;br&gt;متابعة / إيقاف الكورس"])
+    U7(["Renew supply&lt;br&gt;تجديد العلبة"])
+    U8(["Manage appointments&lt;br&gt;إدارة المواعيد"])
+    U9(["View adherence report&lt;br&gt;تقرير الالتزام"])
+    U10(["Emergency card + share link&lt;br&gt;بطاقة الطوارئ ورابط المشاركة"])
+    U11(["Read notifications&lt;br&gt;سجل الإشعارات"])
+    U12(["View shared profile&lt;br&gt;عرض الملف المشترك"])
+    U13(["Send reminders&lt;br&gt;إرسال التذكيرات"])
+  end
+
+  CG --- U1
+  CG --- U2
+  CG --- U3
+  CG --- U4
+  CG --- U5
+  CG --- U6
+  CG --- U7
+  CG --- U8
+  CG --- U9
+  CG --- U10
+  CG --- U11
+  DR --- U12
+  SC --- U13
+  U13 --- PS
+
+  U4 -.->|«include»| U4b
+  U4 -.->|«include»| U4a
+  U4c -.->|«extend»| U4
+  U5a -.->|«extend»| U5
+  U12 -.->|«include»| U9
+</pre>
+<figcaption>الشكل 1 — حالات الاستخدام. «include» = خطوة تحدث دائماً ضمن الحالة الأم. «extend» = خطوة اختيارية تحدث بشرط.</figcaption>
+</figure>
+<div class="box"><b>شرح العلاقات:</b> فحص الحساسية <b>include</b> لأن كل حفظ دواء يمرّ به دائماً. «الحفظ رغم التعارض» <b>extend</b> لأنه لا يحدث إلا إن وُجد تعارض وأكّد المستخدم أن الطبيب يعلم. التأكيد الصوتي <b>extend</b> لتأكيد الجرعة: طريقة بديلة اختيارية تصل إلى النتيجة نفسها.</div>
+
+<!-- ======================================================= -->
+<h2 id="context" class="page">2. مخطط السياق — DFD المستوى 0</h2>
+<p><b>ماذا يُظهر:</b> النظام كله كعملية واحدة، والجهات الخارجية، والبيانات الداخلة والخارجة. يُطلب غالباً في جامعاتنا مع التحليل البنيوي.</p>
+<figure>
+<pre class="mermaid">
+flowchart LR
+  CG["Caregiver&lt;br&gt;مسؤول العائلة"]
+  DR["Doctor / Paramedic&lt;br&gt;الطبيب / المسعف"]
+  PS["Push Service&lt;br&gt;خدمة الإشعارات"]
+  CAT["Syrian medicines list&lt;br&gt;قائمة الأدوية السورية"]
+  SYS(("0&lt;br&gt;Nabd system&lt;br&gt;نظام نبض"))
+
+  CG -->|"account, members, allergies,&lt;br&gt;medications, dose confirmations,&lt;br&gt;appointments"| SYS
+  SYS -->|"today's doses, warnings,&lt;br&gt;adherence report, emergency card"| CG
+  SYS -->|"temporary share link / QR"| CG
+  CG -.->|"sends link"| DR
+  DR -->|"share token"| SYS
+  SYS -->|"read-only medical profile"| DR
+  SYS -->|"reminder messages"| PS
+  PS -->|"phone notification"| CG
+  CAT -->|"6,818 medicines + ingredients&lt;br&gt;(loaded once)"| SYS
+</pre>
+<figcaption>الشكل 2 — مخطط السياق.</figcaption>
+</figure>
+
+<!-- ======================================================= -->
+<h2 id="dfd1">3. مخطط تدفق البيانات — DFD المستوى 1</h2>
+<p><b>ماذا يُظهر:</b> تفكيك العملية 0 إلى عملياتها الرئيسية، ومخازن البيانات (الجداول) التي تقرأ منها وتكتب فيها.</p>
+<figure class="wide">
+<pre class="mermaid">
+flowchart LR
+  CG["Caregiver"]
+  DR["Doctor"]
+  PS["Push Service"]
+
+  P1(("1.0&lt;br&gt;Manage account"))
+  P2(("2.0&lt;br&gt;Manage members&lt;br&gt;&amp; allergies"))
+  P3(("3.0&lt;br&gt;Manage medications&lt;br&gt;+ allergy guard"))
+  P4(("4.0&lt;br&gt;Track doses&lt;br&gt;&amp; courses"))
+  P5(("5.0&lt;br&gt;Send reminders"))
+  P6(("6.0&lt;br&gt;Reports &amp;&lt;br&gt;sharing"))
+
+  D1[("D1 users")]
+  D2[("D2 members, allergies,&lt;br&gt;emergency contacts")]
+  D3[("D3 medications,&lt;br&gt;dose schedules")]
+  D4[("D4 dose logs")]
+  D5[("D5 catalog, ingredients,&lt;br&gt;drug classes")]
+  D6[("D6 appointments")]
+  D7[("D7 notifications,&lt;br&gt;push subscriptions")]
+  D8[("D8 share links")]
+
+  CG -->|email, password| P1
+  P1 <--> D1
+  P1 -->|JWT token| CG
+
+  CG -->|member data, allergies| P2
+  P2 <--> D2
+  D5 -->|ingredients, classes| P2
+
+  CG -->|medication, times| P3
+  D5 -->|catalog search, ingredients| P3
+  D2 -->|member allergies| P3
+  P3 -->|conflict warning| CG
+  P3 --> D3
+
+  CG -->|dose confirmation| P4
+  D3 --> P4
+  P4 <--> D4
+  P4 -->|today, course progress| CG
+
+  D3 --> P5
+  D4 -->|not yet taken| P5
+  D6 --> P5
+  P5 <--> D7
+  P5 -->|reminder| PS
+
+  CG -->|create link| P6
+  P6 <--> D8
+  D2 --> P6
+  D3 --> P6
+  D4 -->|adherence| P6
+  DR -->|token| P6
+  P6 -->|read-only profile| DR
+</pre>
+<figcaption>الشكل 3 — DFD المستوى 1: ست عمليات وثمانية مخازن بيانات.</figcaption>
+</figure>
+
+<!-- ======================================================= -->
+<h2 id="erd" class="page">4. مخطط الكيانات والعلاقات (ERD)</h2>
+<p><b>ماذا يُظهر:</b> جداول قاعدة البيانات الفعلية وأعمدتها ومفاتيحها والعلاقات بينها. <b>المصدر:</b> <span class="ltr">database/database_setup.sql</span> مع ما تضيفه <span class="ltr">server/migrate.js</span> و<span class="ltr">ingredients.js</span> و<span class="ltr">drugClasses.js</span> و<span class="ltr">allergy.js</span> عند تشغيل الخادم.</p>
+<figure class="wide">
+<pre class="mermaid">
+erDiagram
+  users ||--o{ members : owns
+  users ||--o{ push_subscriptions : "has devices"
+  users ||--o{ notifications : receives
+  users ||--o{ share_links : creates
+  members ||--o{ medications : takes
+  members ||--o{ appointments : has
+  members ||--o{ member_allergies : has
+  members ||--o{ emergency_contacts : "has (max 5)"
+  members ||--o{ share_links : "shared via"
+  medicines_catalog |o--o{ medications : "chosen from"
+  medications ||--|{ dose_schedules : "taken at"
+  medications ||--o{ dose_logs : "confirmed in"
+  medications ||--o{ allergy_overrides : "saved despite"
+  medications ||--o{ medication_ingredients : contains
+  ingredients ||--o{ medication_ingredients : "part of"
+  medicines_catalog ||--o{ catalog_ingredients : contains
+  ingredients ||--o{ catalog_ingredients : "part of"
+  ingredients ||--o{ ingredient_classes : "belongs to"
+  drug_classes ||--o{ ingredient_classes : groups
+  drug_classes ||--o{ class_cross_reactions : "from class"
+  drug_classes ||--o{ class_cross_reactions : "to class"
+  ingredients |o--o{ member_allergies : "allergic to"
+  drug_classes |o--o{ member_allergies : "allergic to"
+
+  users {
+    int id PK
+    varchar name
+    varchar email UK
+    text password_hash "bcrypt"
+    timestamp created_at
+  }
+  members {
+    int id PK
+    int user_id FK
+    varchar name
+    date birth_date
+    text gender
+    text blood_type
+    text chronic_conditions
+    text allergies "derived summary only"
+    text emergency_notes
+    timestamp created_at
+  }
+  medications {
+    int id PK
+    int member_id FK
+    int catalog_id FK "null if typed by hand"
+    varchar name
+    varchar active_ingredient
+    varchar strength
+    varchar form
+    text instructions
+    date start_date
+    date end_date "planned course end"
+    date stopped_on "actual stop"
+    text stop_reason
+    int units_total "box size"
+    numeric units_per_dose
+    date supply_since "current box"
+    boolean is_active
+    boolean is_private "hidden from doctor"
+    timestamp created_at
+  }
+  dose_schedules {
+    int id PK
+    int medication_id FK
+    time time_of_day
+    varchar days_of_week "1=Sun ... 7=Sat"
+  }
+  dose_logs {
+    int id PK
+    int medication_id FK
+    timestamp scheduled_at
+    timestamp confirmed_at
+    varchar status "taken"
+    text method "tap or voice"
+  }
+  appointments {
+    int id PK
+    int member_id FK
+    varchar title
+    varchar doctor_name
+    varchar location
+    timestamp scheduled_at
+    text notes
+    boolean reminded_day_before
+    boolean reminded_soon
+  }
+  medicines_catalog {
+    int id PK
+    varchar brand_name
+    text name_ar
+    varchar active_ingredient
+    varchar strength
+    varchar form
+    varchar manufacturer
+    varchar source
+  }
+  ingredients {
+    int id PK
+    text name UK
+    text name_ar
+  }
+  catalog_ingredients {
+    int catalog_id PK, FK
+    int ingredient_id PK, FK
+  }
+  medication_ingredients {
+    int medication_id PK, FK
+    int ingredient_id PK, FK
+  }
+  drug_classes {
+    int id PK
+    text code UK "ATC code"
+    text name
+    text name_ar
+    text_array aliases
+  }
+  ingredient_classes {
+    int ingredient_id PK, FK
+    int class_id PK, FK
+  }
+  class_cross_reactions {
+    int from_class PK, FK
+    int to_class PK, FK
+    text note_ar
+  }
+  member_allergies {
+    int id PK
+    int member_id FK
+    int ingredient_id FK "one of these"
+    int class_id FK "or this"
+    text note "or free text"
+    text reaction
+    text severity "mild, severe, unknown"
+    timestamp created_at
+  }
+  allergy_overrides {
+    int id PK
+    int medication_id FK
+    int user_id
+    jsonb conflicts
+    timestamp confirmed_at
+  }
+  emergency_contacts {
+    int id PK
+    int member_id FK
+    text name
+    text phone
+    text relation
+    int position
+  }
+  share_links {
+    int id PK
+    int member_id FK
+    int user_id
+    varchar token UK "random 32 hex"
+    timestamp expires_at
+    timestamp created_at
+  }
+  push_subscriptions {
+    int id PK
+    int user_id FK
+    text endpoint UK
+    text p256dh
+    text auth
+    timestamp created_at
+  }
+  notifications {
+    int id PK
+    int user_id FK
+    text kind "dose, appointment, refill, course, test"
+    text title
+    text body
+    text url
+    timestamp created_at
+    timestamp read_at
+  }
+</pre>
+<figcaption>الشكل 4 — الـ ERD كاملاً: 19 جدولاً (مرّر أفقياً، أو استعمل الجزأين 4.1 و4.2 في التقرير). الرمز ||--o{ يعني «واحد إلى كثير (صفر أو أكثر)». الرمز |o--o{ يعني أن الطرف الواحد اختياري.</figcaption>
+</figure>
+
+<h3>4.1 الجزء الأول: البيانات الأساسية (الحساب، الأفراد، الأدوية، الجرعات، المواعيد، المشاركة)</h3>
+<figure>
+<pre class="mermaid">
+erDiagram
+  users ||--o{ members : owns
+  users ||--o{ push_subscriptions : "has devices"
+  users ||--o{ notifications : receives
+  users ||--o{ share_links : creates
+  members ||--o{ medications : takes
+  members ||--o{ appointments : has
+  members ||--o{ emergency_contacts : "has (max 5)"
+  members ||--o{ share_links : "shared via"
+  medications ||--|{ dose_schedules : "taken at"
+  medications ||--o{ dose_logs : "confirmed in"
+
+  users {
+    int id PK
+    varchar name
+    varchar email UK
+    text password_hash "bcrypt"
+    timestamp created_at
+  }
+  members {
+    int id PK
+    int user_id FK
+    varchar name
+    date birth_date
+    text gender
+    text blood_type
+    text chronic_conditions
+    text allergies "derived summary only"
+    text emergency_notes
+    timestamp created_at
+  }
+  medications {
+    int id PK
+    int member_id FK
+    int catalog_id FK "null if typed by hand"
+    varchar name
+    varchar active_ingredient
+    varchar strength
+    varchar form
+    text instructions
+    date start_date
+    date end_date "planned course end"
+    date stopped_on "actual stop"
+    text stop_reason
+    int units_total "box size"
+    numeric units_per_dose
+    date supply_since "current box"
+    boolean is_active
+    boolean is_private "hidden from doctor"
+    timestamp created_at
+  }
+  dose_schedules {
+    int id PK
+    int medication_id FK
+    time time_of_day
+    varchar days_of_week "1=Sun ... 7=Sat"
+  }
+  dose_logs {
+    int id PK
+    int medication_id FK
+    timestamp scheduled_at
+    timestamp confirmed_at
+    varchar status "taken"
+    text method "tap or voice"
+  }
+  appointments {
+    int id PK
+    int member_id FK
+    varchar title
+    varchar doctor_name
+    varchar location
+    timestamp scheduled_at
+    text notes
+    boolean reminded_day_before
+    boolean reminded_soon
+  }
+  emergency_contacts {
+    int id PK
+    int member_id FK
+    text name
+    text phone
+    text relation
+    int position
+  }
+  share_links {
+    int id PK
+    int member_id FK
+    int user_id
+    varchar token UK "random 32 hex"
+    timestamp expires_at
+    timestamp created_at
+  }
+  notifications {
+    int id PK
+    int user_id FK
+    text kind "dose, appointment, refill, course, test"
+    text title
+    text body
+    text url
+    timestamp created_at
+    timestamp read_at
+  }
+  push_subscriptions {
+    int id PK
+    int user_id FK
+    text endpoint UK
+    text p256dh
+    text auth
+    timestamp created_at
+  }
+</pre>
+<figcaption>الشكل 4.1 — نصف الـ ERD الأول: 10 جداول.</figcaption>
+</figure>
+
+<h3>4.2 الجزء الثاني: الحساسية والكتالوغ (المواد الفعّالة والعائلات الدوائية)</h3>
+<figure>
+<pre class="mermaid">
+erDiagram
+  members ||--o{ medications : takes
+  members ||--o{ member_allergies : has
+  medicines_catalog |o--o{ medications : "chosen from"
+  medications ||--o{ allergy_overrides : "saved despite"
+  medications ||--o{ medication_ingredients : contains
+  ingredients ||--o{ medication_ingredients : "part of"
+  medicines_catalog ||--o{ catalog_ingredients : contains
+  ingredients ||--o{ catalog_ingredients : "part of"
+  ingredients ||--o{ ingredient_classes : "belongs to"
+  drug_classes ||--o{ ingredient_classes : groups
+  drug_classes ||--o{ class_cross_reactions : "from class"
+  drug_classes ||--o{ class_cross_reactions : "to class"
+  ingredients |o--o{ member_allergies : "allergic to"
+  drug_classes |o--o{ member_allergies : "allergic to"
+
+  members {
+    int id PK
+    int user_id FK
+    varchar name
+    date birth_date
+    text gender
+    text blood_type
+    text chronic_conditions
+    text allergies "derived summary only"
+    text emergency_notes
+    timestamp created_at
+  }
+  medications {
+    int id PK
+    int member_id FK
+    int catalog_id FK "null if typed by hand"
+    varchar name
+    varchar active_ingredient
+    varchar strength
+    varchar form
+    text instructions
+    date start_date
+    date end_date "planned course end"
+    date stopped_on "actual stop"
+    text stop_reason
+    int units_total "box size"
+    numeric units_per_dose
+    date supply_since "current box"
+    boolean is_active
+    boolean is_private "hidden from doctor"
+    timestamp created_at
+  }
+  medicines_catalog {
+    int id PK
+    varchar brand_name
+    text name_ar
+    varchar active_ingredient
+    varchar strength
+    varchar form
+    varchar manufacturer
+    varchar source
+  }
+  ingredients {
+    int id PK
+    text name UK
+    text name_ar
+  }
+  catalog_ingredients {
+    int catalog_id PK, FK
+    int ingredient_id PK, FK
+  }
+  medication_ingredients {
+    int medication_id PK, FK
+    int ingredient_id PK, FK
+  }
+  drug_classes {
+    int id PK
+    text code UK "ATC code"
+    text name
+    text name_ar
+    text_array aliases
+  }
+  ingredient_classes {
+    int ingredient_id PK, FK
+    int class_id PK, FK
+  }
+  class_cross_reactions {
+    int from_class PK, FK
+    int to_class PK, FK
+    text note_ar
+  }
+  member_allergies {
+    int id PK
+    int member_id FK
+    int ingredient_id FK "one of these"
+    int class_id FK "or this"
+    text note "or free text"
+    text reaction
+    text severity "mild, severe, unknown"
+    timestamp created_at
+  }
+  allergy_overrides {
+    int id PK
+    int medication_id FK
+    int user_id
+    jsonb conflicts
+    timestamp confirmed_at
+  }
+</pre>
+<figcaption>الشكل 4.2 — نصف الـ ERD الثاني: محرّك فحص الحساسية. الجدولان <span class="ltr">members</span> و<span class="ltr">medications</span> مكرّران هنا للربط فقط.</figcaption>
+</figure>
+
+<h3>ملاحظات على الـ ERD (قد يسأل عنها المشرف)</h3>
+<table>
+<tr><th>النقطة</th><th>الشرح</th></tr>
+<tr><td>جداول الربط (Many-to-Many)</td><td><span class="ltr">catalog_ingredients</span> و<span class="ltr">medication_ingredients</span> و<span class="ltr">ingredient_classes</span>: الدواء فيه عدة مواد فعّالة، والمادة تنتمي لعدة عائلات. المفتاح الأساسي مركّب من المفتاحين الأجنبيين.</td></tr>
+<tr><td>علاقة ذاتية</td><td><span class="ltr">class_cross_reactions</span> يربط عائلة دوائية بعائلة أخرى، مثل حساسية البنسلين ← تحذير مع السيفالوسبورينات.</td></tr>
+<tr><td>قيد «واحد من ثلاثة»</td><td>في <span class="ltr">member_allergies</span> قيد CHECK يفرض وجود مادة <b>أو</b> عائلة <b>أو</b> نص حرّ على الأقل.</td></tr>
+<tr><td>الحذف المتسلسل</td><td>أغلب المفاتيح الأجنبية <span class="ltr">ON DELETE CASCADE</span>: حذف الفرد يحذف أدويته ومواعيده وسجلاته معه.</td></tr>
+<tr><td>«الفائتة» ليست صفاً</td><td>لا يُحفظ صف للجرعة الفائتة. الفائتة تُحسب: موعد مجدول مرّت عليه ساعة دون صف <span class="ltr">taken</span> في <span class="ltr">dose_logs</span>.</td></tr>
+<tr><td>members.allergies</td><td>نص ملخّص مشتق للعرض فقط. الحقيقة في <span class="ltr">member_allergies</span> (هذا تطبيع: لا تكرار للبيانات).</td></tr>
+</table>
+<div class="box warn"><b>جداول موجودة في القاعدة ولا يستخدمها الكود:</b> <span class="ltr">attachments</span> و<span class="ltr">member_shares</span> بقيا من التصميم الأول، ولذلك تُركا خارج المخطط. وهناك جدول تقني صغير <span class="ltr">app_meta</span> (مفتاح/قيمة لرقم نسخة البيانات). إن سُئلتم: «أُلغيت ميزة المرفقات والمشاركة بين الحسابات، وحلّ محلها رابط المشاركة المؤقت».</div>
+
+<!-- ======================================================= -->
+<h2 id="class" class="page">5. مخطط الأصناف (Class Diagram)</h2>
+<p><b>ماذا يُظهر:</b> نموذج المجال: الكائنات وخصائصها وعملياتها والعلاقات بينها. المشروع مكتوب بـ JavaScript بلا أصناف (classes) حرفية. العمليات هنا هي مسارات الـ API ودوال الخدمات التي تعمل على كل كيان، وهذا هو المقبول في مشاريع الويب.</p>
+<figure>
+<pre class="mermaid">
+classDiagram
+  direction LR
+  class User {
+    +int id
+    +string name
+    +string email
+    -string passwordHash
+    +register()
+    +login() JWT
+  }
+  class Member {
+    +int id
+    +string name
+    +Date birthDate
+    +string gender
+    +string bloodType
+    +string chronicConditions
+    +string emergencyNotes
+    +emergencyCard()
+    +adherence(days)
+    +setAllergies(list)
+    +setContacts(list)
+  }
+  class Medication {
+    +int id
+    +string name
+    +string strength
+    +string form
+    +Date startDate
+    +Date endDate
+    +Date stoppedOn
+    +string stopReason
+    +int unitsTotal
+    +float unitsPerDose
+    +bool isPrivate
+    +stop(reason)
+    +refill()
+    +supply() daysLeft
+    +course() Course
+  }
+  class DoseSchedule {
+    +Time timeOfDay
+    +string daysOfWeek
+  }
+  class DoseLog {
+    +DateTime scheduledAt
+    +DateTime confirmedAt
+    +string status
+    +string method
+    +confirm(method)
+  }
+  class Course {
+    &lt;&lt;computed&gt;&gt;
+    +string status
+    +int day
+    +int totalDays
+    +int daysLeft
+    +bool finalDay
+    +bool atRisk
+  }
+  class Appointment {
+    +string title
+    +string doctorName
+    +string location
+    +DateTime scheduledAt
+    +bool remindedDayBefore
+    +bool remindedSoon
+  }
+  class CatalogMedicine {
+    +string brandName
+    +string nameAr
+    +string manufacturer
+    +search(text)
+  }
+  class Ingredient {
+    +string name
+    +string nameAr
+  }
+  class DrugClass {
+    +string code
+    +string name
+    +string nameAr
+  }
+  class CrossReaction {
+    +string noteAr
+  }
+  class MemberAllergy {
+    +string severity
+    +string reaction
+    +string note
+  }
+  class AllergyOverride {
+    +json conflicts
+    +DateTime confirmedAt
+  }
+  class EmergencyContact {
+    +string name
+    +string phone
+    +string relation
+  }
+  class ShareLink {
+    +string token
+    +DateTime expiresAt
+    +isValid() bool
+  }
+  class Notification {
+    +string kind
+    +string title
+    +DateTime readAt
+    +markRead()
+  }
+  class PushSubscription {
+    +string endpoint
+  }
+
+  User "1" --> "*" Member : manages
+  User "1" --> "*" ShareLink : creates
+  User "1" --> "*" Notification : receives
+  User "1" --> "*" PushSubscription : devices
+  Member "1" *-- "*" Medication
+  Member "1" *-- "*" Appointment
+  Member "1" *-- "*" MemberAllergy
+  Member "1" *-- "0..5" EmergencyContact
+  ShareLink "*" --> "1" Member : shows
+  Medication "1" *-- "1..*" DoseSchedule
+  Medication "1" *-- "*" DoseLog
+  Medication "1" *-- "*" AllergyOverride
+  Medication ..> Course : computes
+  Medication "*" --> "0..1" CatalogMedicine : chosen from
+  Medication "*" --> "*" Ingredient : contains
+  CatalogMedicine "*" --> "*" Ingredient : contains
+  Ingredient "*" --> "*" DrugClass : belongs to
+  DrugClass "1" --> "*" CrossReaction : from
+  CrossReaction "*" --> "1" DrugClass : to
+  MemberAllergy --> "0..1" Ingredient
+  MemberAllergy --> "0..1" DrugClass
+</pre>
+<figcaption>الشكل 5 — مخطط الأصناف. المعيّن الأسود (*--) = تركيب (Composition): الجزء لا يعيش دون الكل. السهم المتقطع (..>) = اعتماد: Course لا يُخزَّن، بل يُحسب من الدواء وسجلاته.</figcaption>
+</figure>
+
+<!-- ======================================================= -->
+<h2 id="seq" class="page">6. مخططات التتابع (Sequence)</h2>
+<p><b>ماذا تُظهر:</b> ترتيب الرسائل بين الأجزاء خلال عملية واحدة، مع أكواد الرد الفعلية من الخادم. اخترنا أهم 5 عمليات.</p>
+
+<h3>6.1 تسجيل الدخول</h3>
+<p><b>المصدر:</b> <span class="ltr">server/routes/auth.js</span>، <span class="ltr">server/security.js</span>، <span class="ltr">client/src/pages/Login.jsx</span></p>
+<figure>
+<pre class="mermaid">
+sequenceDiagram
+  actor U as Caregiver
+  participant C as React client
+  participant A as Express API
+  participant D as PostgreSQL
+  U->>C: email + password
+  C->>A: POST /api/auth/login
+  A->>A: rate limit (10 tries / 15 min)
+  A->>D: SELECT user WHERE email
+  D-->>A: user row (password_hash)
+  A->>A: bcrypt.compare(password, hash)
+  alt password correct
+    A->>A: jwt.sign(user id, 7 days)
+    A-->>C: 200 (token, user)
+    C->>C: save token in localStorage
+    C-->>U: Today page
+  else wrong email or password
+    A-->>C: 400 error message
+    C-->>U: show error
+  end
+  Note over C,A: every later request sends Authorization: Bearer token
+</pre>
+<figcaption>الشكل 6 — تسجيل الدخول.</figcaption>
+</figure>
+
+<h3>6.2 إضافة دواء مع حارس الحساسية</h3>
+<p><b>المصدر:</b> <span class="ltr">server/routes/medications.js</span> (allergyGate، gateResponse، recordOverride)، <span class="ltr">server/allergy.js</span></p>
+<figure>
+<pre class="mermaid">
+sequenceDiagram
+  actor U as Caregiver
+  participant C as Medication form
+  participant A as Express API
+  participant G as Allergy engine
+  participant D as PostgreSQL
+  U->>C: type name (Arabic or English)
+  C->>A: GET /api/catalog/search?q=
+  A->>D: search catalog (name, name_ar, by sound)
+  A-->>C: matching medicines
+  U->>C: choose medicine, times, dates
+  C->>A: POST /api/medications
+  A->>D: does this member belong to the user?
+  A->>G: allergyGate(member, medicine)
+  G->>D: member_allergies, ingredient_classes, class_cross_reactions
+  G-->>A: conflicts list
+  alt conflict and not yet confirmed
+    A-->>C: 409 (code ALLERGY, conflicts)
+    C-->>U: warning - does the doctor know?
+    U->>C: yes, the doctor knows
+    C->>A: POST /api/medications (allergy_confirmed true)
+    A->>G: allergyGate again
+  end
+  A->>D: BEGIN
+  A->>D: INSERT medications, dose_schedules, medication_ingredients
+  opt saved despite a conflict
+    A->>D: INSERT allergy_overrides (who, when, what)
+  end
+  A->>D: COMMIT
+  A-->>C: 201 medication
+  C-->>U: member profile
+</pre>
+<figcaption>الشكل 7 — إضافة دواء. إن لم تُعرف المادة الفعّالة لدواء مكتوب يدوياً، يُرجع الخادم 409 برمز INGREDIENTS_UNKNOWN بنفس الآلية.</figcaption>
+</figure>
+
+<h3>6.3 تأكيد الجرعة بالصوت</h3>
+<p><b>المصدر:</b> <span class="ltr">client/src/pages/VoiceLog.jsx</span>، <span class="ltr">client/src/utils/voice.js</span>، <span class="ltr">server/routes/doses.js</span></p>
+<figure>
+<pre class="mermaid">
+sequenceDiagram
+  actor U as Caregiver
+  participant V as Voice page
+  participant S as Web Speech API (browser)
+  participant A as Express API
+  participant D as PostgreSQL
+  U->>V: press the microphone
+  V->>S: start listening (ar-SA)
+  U->>S: says the sentence
+  S-->>V: text (up to 3 alternatives)
+  V->>V: isConfirmation (rejects negations)
+  V->>V: due doses = not taken, at most 60 min ahead
+  alt no due dose
+    V-->>U: next dose is at ...
+  else at least one due dose
+    V->>V: pickDose - named drug, else nearest to now
+    V->>A: POST /api/doses/confirm (method voice)
+    A->>D: insert or update dose_logs (taken, voice)
+    A-->>V: 200
+    V-->>U: dose recorded by voice
+  end
+  Note over V,S: no audio is stored - the browser turns speech into text
+</pre>
+<figcaption>الشكل 8 — التأكيد الصوتي. التأكيد باللمس في صفحة «اليوم» يرسل الطلب نفسه مع method tap.</figcaption>
+</figure>
+
+<h3>6.4 تذكير الجرعة (يعمل وحده كل دقيقة)</h3>
+<p><b>المصدر:</b> <span class="ltr">server/push.js</span> (startScheduler، sendToUser)، <span class="ltr">client/public/sw.js</span></p>
+<figure>
+<pre class="mermaid">
+sequenceDiagram
+  participant T as Scheduler (node-cron, every minute)
+  participant P as push.js
+  participant D as PostgreSQL
+  participant W as Push service (FCM / Mozilla / WNS)
+  participant SW as Service worker (phone)
+  actor U as Caregiver
+  T->>D: doses due this minute, not yet taken
+  loop each due dose
+    P->>D: INSERT notifications (bell history)
+    P->>D: SELECT push_subscriptions of the user
+    par every device at once
+      P->>W: send notification (20 s timeout)
+      W->>SW: push event
+      SW-->>U: system notification
+    end
+    opt device answered 404 or 410
+      P->>D: DELETE expired subscription
+    end
+  end
+  Note over T,P: the same path sends appointment (day before at 18:00, 2 hours before), refill and course alerts (10:00)
+</pre>
+<figcaption>الشكل 9 — إرسال التذكير.</figcaption>
+</figure>
+
+<h3>6.5 رابط المشاركة للطبيب (رمز QR)</h3>
+<p><b>المصدر:</b> <span class="ltr">server/routes/share.js</span>، <span class="ltr">client/src/pages/Emergency.jsx</span>، <span class="ltr">DoctorView.jsx</span></p>
+<figure>
+<pre class="mermaid">
+sequenceDiagram
+  actor U as Caregiver
+  participant C as React client
+  participant A as Express API
+  participant D as PostgreSQL
+  actor R as Doctor / Paramedic
+  U->>C: emergency card - create link (1, 3 or 7 days)
+  C->>A: POST /api/share/:memberId (hours)
+  A->>A: token = 16 random bytes (32 hex)
+  A->>D: INSERT share_links (expires_at)
+  A-->>C: token
+  C-->>U: QR code + copy + send
+  U-->>R: sends link or shows QR
+  R->>C: open /share/:token (no login)
+  C->>A: GET /api/share/:token
+  A->>D: find link
+  alt link not found
+    A-->>C: 404
+  else link expired
+    A-->>C: 410
+  else valid
+    A->>D: member, allergies, contacts, non-private medications, adherence, appointments, confirmations
+    A-->>C: read-only profile
+    C-->>R: medical profile page
+  end
+</pre>
+<figcaption>الشكل 10 — المشاركة. الأدوية المعلّمة «خاصة» (is_private) لا تظهر للطبيب.</figcaption>
+</figure>
+
+<!-- ======================================================= -->
+<h2 id="activity" class="page">7. مخططات النشاط (Activity)</h2>
+
+<h3>7.1 حفظ دواء جديد</h3>
+<figure>
+<pre class="mermaid">
+flowchart TD
+  S((Start)) --> A1[Open medication form]
+  A1 --> Q1{Found in catalog?}
+  Q1 -->|yes| A2[Choose from catalog&lt;br&gt;ingredients known]
+  Q1 -->|no| A3[Type the name by hand]
+  A3 --> Q2{Ingredients chosen?}
+  Q2 -->|yes| A4
+  Q2 -->|no| W1[Warning: cannot check allergies]
+  W1 --> Q3{Save without check?}
+  Q3 -->|no| A3
+  Q3 -->|yes| A4
+  A2 --> A4[Set times, days, dates, box size]
+  A4 --> A5[Server checks member allergies&lt;br&gt;ingredient + class + cross-reaction]
+  A5 --> Q4{Conflict?}
+  Q4 -->|no| A7
+  Q4 -->|yes| W2[Show conflict and severity]
+  W2 --> Q5{Doctor knows?}
+  Q5 -->|no| E1((Cancelled))
+  Q5 -->|yes| A6[Record override: who, when, what]
+  A6 --> A7[Save medication + schedules&lt;br&gt;in one transaction]
+  A7 --> E2((End))
+</pre>
+<figcaption>الشكل 11 — نشاط حفظ دواء.</figcaption>
+</figure>
+
+<h3>7.2 يوم الجرعة</h3>
+<figure>
+<pre class="mermaid">
+flowchart TD
+  S((Start)) --> B1[Dose time arrives]
+  B1 --> B2[Scheduler sends reminder&lt;br&gt;+ saves it in the bell]
+  B2 --> Q1{Taken?}
+  Q1 -->|yes| Q2{How?}
+  Q2 -->|tap| B3[Confirm on Today page]
+  Q2 -->|voice| B4[Say: I took the medicine]
+  B3 --> B5[Save dose_log: taken]
+  B4 --> B5
+  B5 --> B6[Update course progress&lt;br&gt;and box supply]
+  B6 --> E1((End))
+  Q1 -->|no| B7[Dose stays open]
+  B7 --> Q3{1 hour passed?}
+  Q3 -->|no| Q1
+  Q3 -->|yes| B8[Counted as missed&lt;br&gt;in adherence]
+  B8 --> Q4{Course medicine and&lt;br&gt;last 2 doses missed?}
+  Q4 -->|yes| B9[Course at risk alert at 10:00]
+  Q4 -->|no| E2((End))
+  B9 --> E2
+</pre>
+<figcaption>الشكل 12 — نشاط يوم الجرعة. التأكيد بعد مرور الساعة يبقى ممكناً في اليوم نفسه، لكنه لا يُحسب «في وقته».</figcaption>
+</figure>
+
+<!-- ======================================================= -->
+<h2 id="state" class="page">8. مخططات الحالة (State Machine)</h2>
+
+<h3>8.1 حالة الكورس</h3>
+<p><b>المصدر:</b> <span class="ltr">server/course.js</span>. الحالة تُحسب في كل طلب ولا تُخزَّن.</p>
+<figure>
+<pre class="mermaid">
+stateDiagram-v2
+  direction LR
+  [*] --> upcoming : start date in the future
+  [*] --> active : start date reached
+  upcoming --> active : start date arrives
+  state active {
+    [*] --> onTrack
+    onTrack --> atRisk : last 2 due doses missed
+    atRisk --> onTrack : a dose is confirmed
+    onTrack --> finalDay : today is the end date
+    atRisk --> finalDay : today is the end date
+  }
+  active --> completed : end date passes
+  active --> stopped_early : stopped before end date (reason saved)
+  completed --> [*]
+  stopped_early --> [*]
+</pre>
+<figcaption>الشكل 13 — حالات الكورس: upcoming، active (ومعها علامتا at_risk وfinal_day)، completed، stopped_early.</figcaption>
+</figure>
+
+<h3>8.2 حالة الجرعة</h3>
+<figure>
+<pre class="mermaid">
+stateDiagram-v2
+  direction LR
+  [*] --> Scheduled
+  Scheduled --> Due : dose time, reminder sent
+  Due --> TakenOnTime : confirmed within 1 hour (tap or voice)
+  Due --> Missed : 1 hour passed without confirmation
+  Missed --> TakenLate : confirmed later the same day
+  TakenOnTime --> [*]
+  TakenLate --> [*]
+  Missed --> [*]
+</pre>
+<figcaption>الشكل 14 — حالات الجرعة. في القاعدة تُخزَّن «taken» فقط. «في وقته» و«فائتة» تُحسبان من الأوقات.</figcaption>
+</figure>
+
+<h3>8.3 حالة رابط المشاركة</h3>
+<figure>
+<pre class="mermaid">
+stateDiagram-v2
+  direction LR
+  [*] --> Active : created for 1, 3 or 7 days
+  Active --> Active : opened by doctor (read only)
+  Active --> Expired : expires_at passes
+  Expired --> [*]
+</pre>
+<figcaption>الشكل 15 — رابط المشاركة. بعد الانتهاء يرجع الخادم 410.</figcaption>
+</figure>
+
+<!-- ======================================================= -->
+<h2 id="arch" class="page">9. مخطط المكوّنات والبنية (Component)</h2>
+<p><b>ماذا يُظهر:</b> أجزاء النظام البرمجية وكيف تتصل. البنية <b>ثلاثية الطبقات</b>: واجهة (React)، خادم (Express REST API)، قاعدة بيانات (PostgreSQL).</p>
+<figure>
+<pre class="mermaid">
+flowchart LR
+  subgraph CL["Client - React 19 + Vite + Tailwind (SPA)"]
+    PG["Pages&lt;br&gt;Today, Members, Profile, Forms,&lt;br&gt;Appointments, Emergency, Voice,&lt;br&gt;Account, DoctorView, Landing"]
+    CM["Components&lt;br&gt;Layout, NotificationBell,&lt;br&gt;CourseProgress, AdherenceReport,&lt;br&gt;AllergenSearch, ConflictList"]
+    UT["utils&lt;br&gt;api.js (axios + JWT), voice.js,&lt;br&gt;format.js, theme.js"]
+    SWK["Service Worker sw.js&lt;br&gt;push + install (PWA)"]
+  end
+
+  subgraph SV["Server - Node.js + Express 5"]
+    SEC["security.js&lt;br&gt;helmet, CORS, rate limits"]
+    AU["middleware/auth.js&lt;br&gt;JWT check"]
+    RT["routes&lt;br&gt;auth, members, medications, catalog,&lt;br&gt;doses, appointments, share,&lt;br&gt;push, notifications"]
+    BL["domain logic&lt;br&gt;allergy.js, drugClasses.js, ingredients.js,&lt;br&gt;drugmatch.js, course.js, adherence.js, supply.js"]
+    SCH["push.js&lt;br&gt;node-cron scheduler + web-push"]
+    MG["migrate.js&lt;br&gt;schema updates at startup"]
+  end
+
+  DB[("PostgreSQL&lt;br&gt;19 tables")]
+  WS["Web Speech API&lt;br&gt;(browser)"]
+  PUSH["Push services&lt;br&gt;FCM / Mozilla / WNS"]
+
+  PG --> CM
+  PG --> UT
+  UT -->|"HTTPS JSON /api"| SEC
+  SEC --> AU --> RT
+  RT --> BL
+  RT --> DB
+  BL --> DB
+  SCH --> DB
+  SCH --> BL
+  MG --> DB
+  SCH -->|"VAPID signed"| PUSH
+  PUSH --> SWK
+  PG -.-> WS
+</pre>
+<figcaption>الشكل 16 — المكوّنات. 40 مساراً في الـ API موزعة على 9 ملفات routes.</figcaption>
+</figure>
+
+<h3>مسارات الـ API (للمرجع)</h3>
+<table>
+<tr><th>الملف</th><th>المسارات</th></tr>
+<tr><td class="ltr">/api/auth</td><td class="ltr">POST /register · POST /login · GET /me</td></tr>
+<tr><td class="ltr">/api/members</td><td class="ltr">GET / · POST / · PUT /:id · DELETE /:id · GET|PUT /:id/allergies · GET|PUT /:id/contacts · GET /:id/emergency · GET /:id/adherence</td></tr>
+<tr><td class="ltr">/api/medications</td><td class="ltr">GET /allergy-check · GET /member/:memberId · GET /courses · POST / · PUT /:id · PATCH /:id/stop · GET /refills · GET /:id/supply · POST /:id/refill</td></tr>
+<tr><td class="ltr">/api/catalog</td><td class="ltr">GET /search · GET /allergens</td></tr>
+<tr><td class="ltr">/api/doses</td><td class="ltr">GET /today · POST /confirm · GET /recent</td></tr>
+<tr><td class="ltr">/api/appointments</td><td class="ltr">GET / · POST / · PUT /:id · DELETE /:id</td></tr>
+<tr><td class="ltr">/api/share</td><td class="ltr">POST /:memberId · GET /:token (public)</td></tr>
+<tr><td class="ltr">/api/push</td><td class="ltr">GET /key (public) · POST /subscribe · POST /unsubscribe · POST /test</td></tr>
+<tr><td class="ltr">/api/notifications</td><td class="ltr">GET / · GET /unread · POST /read-all · POST /:id/read</td></tr>
+</table>
+
+<!-- ======================================================= -->
+<h2 id="deploy">10. مخطط النشر (Deployment)</h2>
+<p><b>ماذا يُظهر:</b> أين يعمل كل جزء فعلياً على الإنترنت. <b>المصدر:</b> <span class="ltr">DEPLOY.md</span>.</p>
+<figure>
+<pre class="mermaid">
+flowchart LR
+  subgraph DEV["«device» Phone / PC"]
+    BR["«execution env» Browser&lt;br&gt;React SPA + Service Worker"]
+  end
+  subgraph GH["«node» GitHub Pages"]
+    STAT["«artifact» static build&lt;br&gt;waseemnasser.github.io/medtrack"]
+  end
+  subgraph RN["«node» Render (free web service)"]
+    NODE["«execution env» Node.js&lt;br&gt;Express API + scheduler&lt;br&gt;TZ = Asia/Damascus"]
+  end
+  subgraph SB["«node» Supabase"]
+    PGS[("«database» PostgreSQL&lt;br&gt;session pooler")]
+  end
+  PUSH["«external» Web Push services"]
+  UR["«external» UptimeRobot&lt;br&gt;ping every 5 min"]
+
+  BR -->|"HTTPS: download site"| STAT
+  BR -->|"HTTPS REST + JWT"| NODE
+  NODE -->|"TCP 5432 / SSL"| PGS
+  NODE -->|"HTTPS + VAPID"| PUSH
+  PUSH -->|"push"| BR
+  UR -->|"GET /api/health"| NODE
+</pre>
+<figcaption>الشكل 17 — النشر. UptimeRobot يُبقي الخادم المجاني مستيقظاً حتى لا تتأخر التذكيرات.</figcaption>
+</figure>
+
+<!-- ======================================================= -->
+<h2 id="screens" class="page">11. مخطط التنقل بين الشاشات</h2>
+<p><b>المصدر:</b> <span class="ltr">client/src/App.jsx</span> (المسارات) و<span class="ltr">Layout.jsx</span> (القائمة).</p>
+<figure>
+<pre class="mermaid">
+flowchart LR
+  W["/welcome&lt;br&gt;Landing"] --> L["/login"]
+  W --> R["/register"]
+  L --> T
+  R --> T
+  subgraph APP["After login (sidebar / phone menu)"]
+    T["/&lt;br&gt;Today"]
+    M["/members&lt;br&gt;Family"]
+    AP["/appointments"]
+    E["/emergency&lt;br&gt;Emergency card"]
+    V["/voice&lt;br&gt;Voice confirm"]
+    AC["/account"]
+  end
+  T --> V
+  M --> MN["/members/new"]
+  M --> MP["/members/:id&lt;br&gt;Profile"]
+  MP --> ME["/members/:id/edit"]
+  MP --> MF["/members/:id/medications/new&lt;br&gt;Medication form"]
+  MP --> E
+  AP --> AF["/appointments/new"]
+  E -->|"QR / link"| DV["/share/:token&lt;br&gt;Doctor view (public)"]
+</pre>
+<figcaption>الشكل 18 — التنقل بين الشاشات.</figcaption>
+</figure>
+
+<!-- ======================================================= -->
+<h2 id="checklist">12. قائمة تحقق قبل التسليم</h2>
+<ul>
+  <li>كل مخطط له <b>رقم وعنوان</b> في التقرير (الشكل 1، الشكل 2، ...) ويُذكر في النص قبله.</li>
+  <li>الـ ERD في التقرير = <b>19 جدولاً</b> بنفس الأسماء الموجودة في القاعدة. لا تترجموا أسماء الجداول والأعمدة.</li>
+  <li>Use Case: الفاعلون <b>خارج</b> إطار النظام، والحالات <b>داخله</b>. لا تربطوا فاعلاً بفاعل.</li>
+  <li>Sequence: الرسائل المتقطعة (-->>) ردود، والمتصلة طلبات. أكواد الرد (200، 201، 400، 409، 410) حقيقية من الكود.</li>
+  <li>DFD: كل مخزن بيانات تدخله بيانات وتخرج منه. لا توجد عملية بلا مدخلات أو بلا مخرجات.</li>
+  <li>إن عدّلتم شكلاً في draw.io، أبقوا العلاقات كما هي هنا. الألوان والترتيب حرّية.</li>
+  <li>كل عضو في الفريق يستطيع شرح <b>مخططين على الأقل</b> وفتح الملف المقابل في الكود.</li>
+</ul>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+  // تحت كل مخطط: كوده للنسخ (يُقرأ قبل أن يستبدله Mermaid بالرسم)
+  document.querySelectorAll("pre.mermaid").forEach((pre) => {
+    const src = pre.textContent.trim();
+    const details = document.createElement("details");
+    details.innerHTML = "<summary>كود المخطط (Mermaid) — للنسخ إلى mermaid.live أو draw.io</summary>";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = "نسخ";
+    button.onclick = () => navigator.clipboard.writeText(src).then(() => {
+      button.textContent = "نُسخ ✓";
+      setTimeout(() => (button.textContent = "نسخ"), 1500);
+    });
+    const code = document.createElement("pre");
+    code.className = "src";
+    code.textContent = src;
+    details.append(button, code);
+    pre.closest("figure").after(details);
+  });
+
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: "base",
+    fontFamily: "Cairo, Tahoma, sans-serif",
+    themeVariables: {
+      primaryColor: "#F0FDFA",
+      primaryBorderColor: "#0D9488",
+      primaryTextColor: "#042F2E",
+      lineColor: "#0F766E",
+      secondaryColor: "#FEF3C7",
+      tertiaryColor: "#FFFFFF",
+      fontSize: "14px",
+    },
+    er: { useMaxWidth: true },
+    sequence: { useMaxWidth: true, mirrorActors: false },
+  });
+  mermaid.run();
+</script>
+</body>
+</html>
