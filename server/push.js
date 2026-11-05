@@ -13,6 +13,10 @@ webpush.setVapidDetails(
 // أقصى انتظار لخدمة الإشعارات (Google/Microsoft/Mozilla) لكل جهاز
 const SEND_TIMEOUT_MS = 20000;
 
+// اسم الدواء اللاتيني داخل نص عربي: نعزله اتجاهياً (FSI…PDI) حتى لا تقفز
+// نقطته أو قوّته إلى الطرف الخطأ في إشعار الهاتف
+const iso = (s) => `⁨${s}⁩`;
+
 // إشعار لمستخدم: يُحفظ في سجل الإشعارات (نافذة الجرس) أولاً، ثم يُرسل
 // لكل أجهزته. السجل يُحفظ حتى لو لم يكن له جهاز مفعّل — يراه داخل التطبيق.
 // kind: dose | appointment | refill | course | test — يحدد أيقونة الإشعار ولونه
@@ -109,7 +113,7 @@ function startScheduler() {
                 console.log(`[push] تذكير: ${d.medication_name} — ${d.member_name} (${d.time_of_day})`);
                 await sendToUser(d.user_id, {
                     title: "حان وقت الجرعة",
-                    body: `${d.medication_name}${d.strength ? " " + d.strength : ""} — ${d.member_name}`,
+                    body: `${iso(d.medication_name + (d.strength ? " " + d.strength : ""))} — ${d.member_name}`,
                     url: "/",
                 }, "dose");
             }
@@ -202,12 +206,12 @@ async function sendRefillReminders() {
             const payload = list.length === 1
                 ? {
                     title: "دواء يقترب من النفاد",
-                    body: `${first.name} لـ${first.member_name} — ${daysText(first.days_left)}. جدّد العلبة قريباً.`,
+                    body: `${iso(first.name)} لـ${first.member_name} — ${daysText(first.days_left)}. جدّد العلبة قريباً.`,
                     url: `/members/${first.member_id}`,
                 }
                 : {
                     title: `${list.length} أدوية تقترب من النفاد`,
-                    body: list.slice(0, 3).map((r) => `${r.name} لـ${r.member_name}`).join("، ")
+                    body: list.slice(0, 3).map((r) => `${iso(r.name)} لـ${r.member_name}`).join("، ")
                         + (list.length > 3 ? "، وغيرها" : ""),
                     url: "/",
                 };
@@ -245,14 +249,14 @@ async function sendCourseReminders() {
             if (list.length > 1) {
                 payload = {
                     title: `${list.length} كورسات تحتاج انتباهك`,
-                    body: list.slice(0, 3).map((x) => `${x.name} لـ${x.member_name}`).join("، ")
+                    body: list.slice(0, 3).map((x) => `${iso(x.name)} لـ${x.member_name}`).join("، ")
                         + (list.length > 3 ? "، وغيرها" : "") + " — أكملها حتى نهايتها.",
                     url: "/",
                 };
             } else if (c.at_risk) {
                 payload = {
                     title: "كورس لم يكتمل",
-                    body: `آخر جرعتين من ${first.name} لـ${first.member_name} لم تُسجَّلا، `
+                    body: `آخر جرعتين من ${iso(first.name)} لـ${first.member_name} لم تُسجَّلا، `
                         + (c.final_day ? "واليوم آخر يوم في الكورس." : `وباقي ${leftText(c.days_left)} من الكورس.`)
                         + " لا يُوقف قبل نهايته إلا بقرار الطبيب.",
                     url: `/members/${first.member_id}`,
@@ -260,7 +264,7 @@ async function sendCourseReminders() {
             } else {
                 payload = {
                     title: "آخر يوم في الكورس",
-                    body: `اليوم آخر يوم من ${first.name} لـ${first.member_name} — أكمل جرعاته كلها.`,
+                    body: `اليوم آخر يوم من ${iso(first.name)} لـ${first.member_name} — أكمل جرعاته كلها.`,
                     url: "/",
                 };
             }

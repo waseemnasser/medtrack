@@ -28,6 +28,13 @@ function dayLabel(key) {
     return formatDate(key);
 }
 
+// «LOSTRILE 50 MG/CTD TAB. — سارة»: كل مقطع لاتيني في <bdi> حتى لا تقفز نقطته
+// إلى أول السطر — يصلح الإشعارات القديمة المحفوظة أيضاً
+const LATIN_RUN = /([A-Za-z][A-Za-z0-9 .,/%+()-]*[A-Za-z0-9.)%])/;
+function isolateLatin(text) {
+    return text.split(LATIN_RUN).map((part, i) => (i % 2 ? <bdi key={i}>{part}</bdi> : part));
+}
+
 /**
  * الجرس في زاوية التطبيق: عدد غير المقروء، ونافذة بسجل الإشعارات.
  * يرنّ (هزّة قصيرة) حين يصل إشعار والتطبيق مفتوح — يخبره sw.js بذلك.
@@ -198,7 +205,7 @@ export default function NotificationBell() {
                                                         </span>
                                                         <span className="flex-1 min-w-0">
                                                             <b className={`block text-sm text-forest-950 ${n.read_at ? "font-medium" : "font-bold"}`}>{n.title}</b>
-                                                            {n.body && <span className="block text-xs text-forest-700/60 mt-0.5">{n.body}</span>}
+                                                            {n.body && <span className="block text-xs text-forest-700/60 mt-0.5">{isolateLatin(n.body)}</span>}
                                                         </span>
                                                         <span className="flex flex-col items-end gap-1.5 flex-shrink-0">
                                                             <time className="text-[11px] text-forest-700/60" dateTime={d.toISOString()}>
