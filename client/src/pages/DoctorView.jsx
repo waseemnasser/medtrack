@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../api";
-import { Clock, Printer, AlertTriangle, Heart, Pill, PauseCircle, Calendar, History, CheckCircle, Info, Phone, FileText } from "lucide-react";
+import { Clock, Printer, AlertTriangle, Heart, Pill, PauseCircle, Calendar, History, CheckCircle, Info, Phone, FileText, Mic } from "lucide-react";
 import Logo from "../components/Logo";
 import { periodOf, formatTime, formatDate, calcAge, initial } from "../utils/format";
 import AdherenceReport from "../components/AdherenceReport";
@@ -310,7 +310,13 @@ export default function DoctorView() {
                                             </td>
                                             <td className="px-4 py-3">
                                                 {l.status === "taken"
-                                                    ? <span className="badge badge-success"><CheckCircle className="w-3 h-3" /> مؤكّدة</span>
+                                                    ? <>
+                                                        <span className="badge badge-success"><CheckCircle className="w-3 h-3" /> مؤكّدة</span>
+                                                        {/* مثل بطاقة الطوارئ: نذكر الصوت فقط، واللمسة هي الأصل */}
+                                                        {l.method === "voice" && (
+                                                            <span className="flex items-center gap-1 text-xs text-forest-600 font-medium mt-1"><Mic className="w-3 h-3" /> تأكيد صوتي</span>
+                                                        )}
+                                                    </>
                                                     : <span className="badge badge-warning">{l.status}</span>}
                                             </td>
                                         </tr>

@@ -99,7 +99,7 @@ router.get("/:token", shareLimiter, async (req, res) => {
         );
 
         const logs = await pool.query(
-            `SELECT dl.id, dl.scheduled_at, dl.confirmed_at, dl.status,
+            `SELECT dl.id, dl.scheduled_at, dl.confirmed_at, dl.status, dl.method,
               m.name AS medication_name
        FROM dose_logs dl
        JOIN medications m ON m.id = dl.medication_id
