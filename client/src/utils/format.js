@@ -43,10 +43,11 @@ export function formatTime(timeOfDay) {
     return `${clock} ${suffix}`;
 }
 
-// «2026-10-18» ← «السبت ١٨ تشرين الأول»
+// «2026-10-18» ← «السبت 18 تشرين الأول»
+// أرقام لاتينية (nu-latn) مثل بقية التطبيق، حتى لا يجتمع «١٨» مع «2026» و«9:00»
 export function formatDate(date, withWeekday = true) {
     if (!date) return "";
-    return new Date(`${String(date).slice(0, 10)}T00:00`).toLocaleDateString("ar-SY", {
+    return new Date(`${String(date).slice(0, 10)}T00:00`).toLocaleDateString("ar-SY-u-nu-latn", {
         ...(withWeekday && { weekday: "long" }),
         day: "numeric",
         month: "long",
