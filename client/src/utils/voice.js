@@ -73,14 +73,19 @@ export function isConfirmation(text) {
 
 /**
  * الجرعة التي يقصدها المتكلم من بين جرعات الفرد المستحقة الآن.
- * إن ذكر اسم الدواء نختاره، وإلا فأقدم جرعة مستحقة (المتأخرة أولاً).
+ * إن ذكر اسم الدواء نختاره، وإلا فالأقرب إلى الساعة الآن: من يقول «أخذت الدواء»
+ * الساعة ٩:٠٥ يقصد جرعة ٩:٠٠ لا جرعة ٧:٣٠ التي فاتته صباحاً.
+ * nowMinutes: الدقائق منذ منتصف الليل
  */
-export function pickDose(text, dueDoses) {
+export function pickDose(text, dueDoses, nowMinutes) {
     if (!dueDoses.length) return null;
     const t = normalize(text);
     const named = dueDoses.find((d) => {
         const names = [d.medication_name, d.medication_name_ar].filter(Boolean).map(normalize);
         return names.some((n) => n && (t.includes(n) || t.includes(n.split(" ")[0])));
     });
-    return named || dueDoses[0];
+    if (named) return named;
+    const minutes = (time) => parseInt(time.slice(0, 2), 10) * 60 + parseInt(time.slice(3, 5), 10);
+    return dueDoses.reduce((best, d) =>
+        Math.abs(minutes(d.time_of_day) - nowMinutes) < Math.abs(minutes(best.time_of_day) - nowMinutes) ? d : best);
 }

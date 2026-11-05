@@ -118,11 +118,15 @@ export default function VoiceLog() {
                 ? `لا جرعة مستحقة الآن لـ${member?.name}. الجرعة القادمة ${pending[0].medication_name} الساعة ${formatTime(pending[0].time_of_day)}.`
                 : `أُخذت كل جرعات اليوم لـ${member?.name}.`);
         }
-        const dose = pickDose(said, due);
+        const clock = new Date();
+        const dose = pickDose(said, due, clock.getHours() * 60 + clock.getMinutes());
+        // جرعة أخرى فائتة ما زالت مفتوحة؟ نذكرها حتى لا يظن المستخدم أنها سُجّلت
+        const other = due.find((d) => d.schedule_id !== dose.schedule_id);
         try {
             await confirmDose(dose, "voice");
             setState("confirmed");
-            setFeedback(`${dose.medication_name}${dose.strength ? ` ${dose.strength}` : ""} — جرعة ${formatTime(dose.time_of_day)} سُجّلت بصوتك.`);
+            setFeedback(`${dose.medication_name}${dose.strength ? ` ${dose.strength}` : ""} — جرعة ${formatTime(dose.time_of_day)} سُجّلت بصوتك.`
+                + (other ? ` وما زالت جرعة ${other.medication_name} ${formatTime(other.time_of_day)} بانتظار التأكيد.` : ""));
             later(() => { setState("idle"); setFeedback(""); setHeard(""); }, 5000);
         } catch {
             fail("تعذّر تسجيل الجرعة. تأكّد من الاتصال وحاول مجدداً.");
