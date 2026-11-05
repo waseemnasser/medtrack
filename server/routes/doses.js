@@ -8,8 +8,12 @@ router.use(auth);
 
 // جرعات اليوم لكل أفراد العائلة
 router.get("/today", async (req, res) => {
-    const date = req.query.date || new Date().toISOString().slice(0, 10);
-    const dayOfWeek = String(new Date(date).getDay() + 1); // 1 = الأحد
+    // اليوم بتوقيت الخادم (TZ) مثل المجدول في push.js — toISOString بتوقيت UTC
+    // كان يُرجع «أمس» بين منتصف الليل والثالثة فجراً بتوقيت دمشق
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    const date = req.query.date || `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    const dayOfWeek = String(new Date(`${date}T00:00`).getDay() + 1); // 1 = الأحد
 
     try {
         const result = await pool.query(

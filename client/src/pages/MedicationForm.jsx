@@ -15,7 +15,7 @@ const DAY_LABELS = [
 ];
 
 // تاريخ اليوم بصيغة حقل التاريخ «2026-10-18»
-const todayISO = () => new Date().toISOString().slice(0, 10);
+const todayISO = () => new Date().toLocaleDateString("en-CA"); // «YYYY-MM-DD» بالتوقيت المحلي
 
 // حساب التواريخ بالأيام، بلا أثر للتوقيت الصيفي
 const dayNum = (iso) => Date.UTC(...iso.split("-").map((n, i) => Number(n) - (i === 1 ? 1 : 0))) / 86400000;
