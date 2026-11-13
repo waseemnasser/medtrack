@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
     Menu, X, Accessibility, ArrowLeft, ShieldCheck, Clock, HeartPulse, Pill, Package, Calendar,
@@ -7,7 +7,7 @@ import {
 import Logo from "../components/Logo";
 import ThemeToggle from "../components/ThemeToggle";
 import Reveal from "../components/Reveal";
-import { useScrollReveal, useCountUp } from "../hooks/useScrollReveal";
+import { gsap, useGSAP, MOTION_OK, START } from "../utils/scrollMotion";
 import { getEasyMode, setEasyMode } from "../utils/easyMode";
 
 /*
@@ -150,7 +150,8 @@ function LandingNavbar({ isIn, start }) {
 function FloatCard({ className, icon: Icon, iconBox, label, value }) {
     return (
         <div className={`absolute z-0 hidden sm:block ${className}`}>
-            <div className="card p-4 shadow-xl shadow-forest-900/10 w-max">
+            {/* الحركة على غلاف بلا كلاس: transition-all في .card يفسد قيم GSAP */}
+            <div data-hero="float"><div className="card p-4 shadow-xl shadow-forest-900/10 w-max">
                 <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 ${iconBox} rounded-lg flex items-center justify-center flex-shrink-0`}>
                         <Icon className="w-5 h-5" />
@@ -160,14 +161,43 @@ function FloatCard({ className, icon: Icon, iconBox, label, value }) {
                         <p className="text-sm font-bold text-forest-950 dark:text-forest-50 whitespace-nowrap">{value}</p>
                     </div>
                 </div>
-            </div>
+            </div></div>
         </div>
     );
 }
 
+// خط النبض تحت العنوان، يُرسم من اليمين إلى اليسار مع اتجاه القراءة
+const PULSE_PATH = "M240 14 H150 L140 14 L132 3 L122 25 L112 6 L104 14 H0";
+
 function Hero({ isIn, start }) {
+    const ref = useRef(null);
+
+    // افتتاحية واحدة متسلسلة: الشارة، سطرا العنوان، خط النبض، النص والأزرار،
+    // ثم الهاتف وبطاقاته، وأخيراً تتأكّد في الهاتف الجرعة الثالثة.
+    useGSAP(() => {
+        gsap.matchMedia().add(MOTION_OK, () => {
+            const q = gsap.utils.selector(ref);
+            const tl = gsap.timeline({ defaults: { ease: "power3.out", duration: 0.7 } });
+            // مساران متوازيان بأزمنة مطلقة: النص يميناً، والهاتف يساراً
+            tl.from(q("[data-hero=badge]"), { autoAlpha: 0, y: -16, duration: 0.5 }, 0)
+                .from(q("[data-hero=line]"), { autoAlpha: 0, y: 40, stagger: 0.15 }, 0.15)
+                .from(q("[data-hero=pulse]"), { drawSVG: "0%", duration: 1, ease: "power2.inOut" }, 0.55)
+                .from(q("[data-hero=pulse-dot]"), { scale: 0, transformOrigin: "center", duration: 0.35, ease: "back.out(3)" }, 1.5)
+                .from(q("[data-hero=fade]"), { autoAlpha: 0, y: 24, stagger: 0.12 }, 0.7)
+                .from(q("[data-hero=phone]"), { autoAlpha: 0, y: 60, scale: 0.9, duration: 0.9 }, 0.3)
+                .from(q("[data-hero=dose]"), { autoAlpha: 0, x: -16, stagger: 0.12, duration: 0.4 }, 0.9)
+                .from(q("[data-hero=float]"), { autoAlpha: 0, scale: 0.6, stagger: 0.15, duration: 0.6, ease: "back.out(1.8)" }, 1.1)
+                // الجرعة الثالثة تتأكّد: النقطة تمتلئ والعدّاد يصير ٣ من ٣
+                .fromTo(q("[data-hero=taken-dot]"), { autoAlpha: 0, scale: 0 }, { autoAlpha: 1, scale: 1, transformOrigin: "center", duration: 0.4, ease: "back.out(3)" }, 2.2)
+                .call(() => { const b = q("[data-hero=count]")[0]; if (b) b.textContent = "3 من 3"; })
+                .from(q("[data-hero=count]"), { scale: 1.25, duration: 0.4, ease: "back.out(3)" }, "<");
+            // نقطة نهاية خط النبض تنبض بهدوء بعد انتهاء الافتتاحية
+            gsap.to(q("[data-hero=pulse-dot]"), { scale: 1.5, transformOrigin: "center", repeat: -1, yoyo: true, duration: 0.8, ease: "sine.inOut", delay: tl.duration() });
+        });
+    }, { scope: ref });
+
     return (
-        <section className="relative overflow-hidden gradient-mint pt-12 pb-20 lg:pt-20 lg:pb-32">
+        <section ref={ref} className="relative overflow-hidden gradient-mint pt-12 pb-20 lg:pt-20 lg:pb-32">
             <div className="absolute inset-0 bg-hero-glow" aria-hidden="true" />
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-forest-50/40 to-forest-100/30 dark:from-transparent dark:via-forest-950/30 dark:to-forest-975/50" aria-hidden="true" />
             <div className="absolute top-20 right-10 w-72 h-72 bg-forest-400/10 rounded-full blur-3xl" aria-hidden="true" />
@@ -176,7 +206,7 @@ function Hero({ isIn, start }) {
             <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
                     <div className="text-center lg:text-start">
-                        <Reveal animation="fade-down" className="inline-flex">
+                        <div data-hero="badge" className="inline-flex">
                             <div className="inline-flex items-center gap-2 bg-white/80 dark:bg-forest-900/80 border border-forest-200 dark:border-forest-700 rounded-full px-4 py-2 mb-6">
                                 <span className="relative flex h-2.5 w-2.5">
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-forest-500 opacity-75" />
@@ -184,23 +214,26 @@ function Hero({ isIn, start }) {
                                 </span>
                                 <span className="text-sm font-semibold text-forest-800 dark:text-forest-100">الأدوية والمواعيد في مكان واحد</span>
                             </div>
-                        </Reveal>
+                        </div>
 
-                        <Reveal animation="fade-up" delay={100}>
-                            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-forest-950 dark:text-forest-50 leading-[1.15] text-balance">
-                                كل جرعة
-                                <span className="block text-forest-600 dark:text-forest-400 mt-2">في وقتها</span>
-                            </h1>
-                        </Reveal>
+                        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-forest-950 dark:text-forest-50 leading-[1.15] text-balance">
+                            <span data-hero="line" className="block">كل جرعة</span>
+                            <span data-hero="line" className="block text-forest-600 dark:text-forest-400 mt-2">في وقتها</span>
+                        </h1>
+                        <svg viewBox="0 0 240 28" className="mt-4 w-48 sm:w-60 h-7 mx-auto lg:mx-0 overflow-visible" aria-hidden="true">
+                            <path data-hero="pulse" d={PULSE_PATH} fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                                className="stroke-forest-500 dark:stroke-forest-400" />
+                            <circle data-hero="pulse-dot" cx="2" cy="14" r="4" className="fill-forest-500 dark:fill-forest-400" />
+                        </svg>
 
-                        <Reveal animation="fade-up" delay={250}>
+                        <div data-hero="fade">
                             <p className="mt-6 text-lg text-forest-800/70 dark:text-forest-200/70 max-w-xl mx-auto lg:mx-0 leading-relaxed">
                                 نبض ينظّم أدويتك وأدوية من تتابع علاجهم، يذكّرك بكل جرعة وكل موعد،
                                 ويشارك الملف مع الطبيب برابط ينتهي وحده.
                             </p>
-                        </Reveal>
+                        </div>
 
-                        <Reveal animation="fade-up" delay={400}>
+                        <div data-hero="fade">
                             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                                 <Link to={start} className="btn-primary flex items-center justify-center gap-2">
                                     {isIn ? "افتح التطبيق" : "ابدأ مجاناً"}
@@ -208,9 +241,9 @@ function Hero({ isIn, start }) {
                                 </Link>
                                 {!isIn && <Link to="/login" className="btn-secondary text-center">تسجيل الدخول</Link>}
                             </div>
-                        </Reveal>
+                        </div>
 
-                        <Reveal animation="fade-up" delay={550}>
+                        <div data-hero="fade">
                             <div className="mt-10 flex flex-wrap gap-6 justify-center lg:justify-start">
                                 {[
                                     { icon: ShieldCheck, label: "بياناتك تبقى عندك" },
@@ -223,11 +256,11 @@ function Hero({ isIn, start }) {
                                     </div>
                                 ))}
                             </div>
-                        </Reveal>
+                        </div>
                     </div>
 
                     {/* هاتف طافٍ يعرض شاشة «اليوم» مصغّرة، وحوله ثلاث بطاقات */}
-                    <Reveal animation="scale-in" delay={300} className="relative flex justify-center items-center">
+                    <div data-hero="phone" className="relative flex justify-center items-center">
                         <div aria-hidden="true" className="contents">
                             <FloatCard className="-left-2 top-8 animate-float-slow" icon={Pill}
                                 iconBox="bg-mint-100 dark:bg-forest-800/60 text-forest-600 dark:text-forest-400"
@@ -257,7 +290,7 @@ function Hero({ isIn, start }) {
                                         <div className="card p-4 shadow-sm mb-3">
                                             <div className="flex items-center justify-between mb-2">
                                                 <span className="text-xs font-semibold text-forest-700 dark:text-forest-300">جرعات اليوم</span>
-                                                <span className="badge badge-success">2 من 3</span>
+                                                <span data-hero="count" className="badge badge-success inline-block">2 من 3</span>
                                             </div>
                                             <div className="space-y-2">
                                                 {[
@@ -265,8 +298,11 @@ function Hero({ isIn, start }) {
                                                     { name: "أملوديبين", time: "1:00 م", taken: true },
                                                     { name: "أتورفاستاتين", time: "8:00 م", taken: false },
                                                 ].map((med) => (
-                                                    <div key={med.name} className="flex items-center gap-2">
-                                                        <div className={`w-2 h-2 rounded-full ${med.taken ? "bg-forest-600" : "bg-sage-300"}`} />
+                                                    <div key={med.name} data-hero="dose" className="flex items-center gap-2">
+                                                        {/* الجرعة الثالثة رمادية؛ الافتتاحية تملؤها وتجعل العدّاد ٣ من ٣. بلا حركة تبقى كما هي */}
+                                                        <div className={`relative w-2 h-2 rounded-full ${med.taken ? "bg-forest-600" : "bg-sage-300"}`}>
+                                                            {!med.taken && <span data-hero="taken-dot" className="absolute inset-0 rounded-full bg-forest-600 opacity-0" />}
+                                                        </div>
                                                         <span className="text-xs font-medium text-forest-900 dark:text-forest-100">{med.name}</span>
                                                         <span className="text-xs text-forest-600 dark:text-forest-400 ms-auto">{med.time}</span>
                                                     </div>
@@ -290,7 +326,7 @@ function Hero({ isIn, start }) {
                                 </div>
                             </div>
                         </div>
-                    </Reveal>
+                    </div>
                 </div>
             </div>
 
@@ -359,15 +395,29 @@ const STATS = [
 ];
 
 function StatCounter({ value, label, suffix, icon: Icon }) {
-    const { ref, visible } = useScrollReveal({ threshold: 0.3 });
-    const count = useCountUp(value, 2200, visible);
+    const ref = useRef(null);
+    const numRef = useRef(null);
+    // يعدّ من صفر إلى الرقم حين يصل إليه التمرير. الرقم الحقيقي مكتوب في الصفحة أصلاً،
+    // فمن لا حركة عنده أو لا JavaScript يراه كما هو.
+    useGSAP(() => {
+        gsap.matchMedia().add(MOTION_OK, () => {
+            const counter = { n: 0 };
+            gsap.to(counter, {
+                n: value, duration: 2, ease: "power2.out",
+                scrollTrigger: { trigger: ref.current, start: START, once: true },
+                onUpdate: () => { numRef.current.textContent = Math.round(counter.n); },
+            });
+            numRef.current.textContent = "0";
+            return () => { numRef.current.textContent = String(value); };
+        });
+    }, { scope: ref });
     return (
         <div ref={ref} className="text-center">
             <div className="w-14 h-14 bg-white/15 backdrop-blur rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <Icon className="w-7 h-7 text-white" strokeWidth={2} />
             </div>
-            <div className="text-4xl lg:text-5xl font-extrabold text-white tracking-tight" dir="ltr">
-                {count}{suffix}
+            <div className="text-4xl lg:text-5xl font-extrabold text-white tracking-tight tabular-nums" dir="ltr">
+                <span ref={numRef}>{value}</span>{suffix}
             </div>
             <p className="mt-2 text-sm lg:text-base text-white/70 font-medium">{label}</p>
         </div>
@@ -478,7 +528,7 @@ function FeatureShowcase({ start, isIn }) {
             <section id="emergency" className="py-20 lg:py-28 bg-sage-50 dark:bg-[#0B1F1E] scroll-mt-20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                        <Reveal animation="scale-in" delay={200} className="order-2 lg:order-1">
+                        <Reveal animation="scale-in" delay={200} stagger="[data-stagger]" className="order-2 lg:order-1">
                             <div className="card p-8 shadow-2xl shadow-red-500/10 !border-red-200 dark:!border-red-900/60" aria-hidden="true">
                                 <div className="flex items-center gap-3 mb-6">
                                     <div className="w-14 h-14 bg-red-500 rounded-2xl flex items-center justify-center relative flex-shrink-0">
@@ -498,13 +548,13 @@ function FeatureShowcase({ start, isIn }) {
                                         { k: "جهة الطوارئ", v: "سارة — الابنة" },
                                         { k: "آخر دواء", v: "ميتفورمين — 8:05 ص" },
                                     ].map((row) => (
-                                        <div key={row.k} className="flex justify-between items-center gap-3 bg-sage-50 dark:bg-forest-800/40 rounded-xl px-4 py-3">
+                                        <div key={row.k} data-stagger className="flex justify-between items-center gap-3 bg-sage-50 dark:bg-forest-800/40 rounded-xl px-4 py-3">
                                             <span className="text-sm font-medium text-forest-700 dark:text-forest-300">{row.k}</span>
                                             <span className={row.tone || "text-sm font-bold text-forest-950 dark:text-forest-50"}>{row.v}</span>
                                         </div>
                                     ))}
                                 </div>
-                                <div className="mt-5 flex justify-center">
+                                <div data-stagger className="mt-5 flex justify-center">
                                     <div className="w-24 h-24 bg-[#fff] border-2 border-forest-300 dark:border-forest-600 rounded-2xl flex items-center justify-center">
                                         <QrCode className="w-16 h-16 text-[#042F2E]" />
                                     </div>
@@ -600,38 +650,66 @@ function FeatureShowcase({ start, isIn }) {
                             ]} />
                         </Reveal>
 
-                        <Reveal animation="scale-in" delay={200}>
-                            <div className="card p-8 gradient-mint border-2 border-forest-200 dark:border-forest-700" aria-hidden="true">
-                                <div className="flex items-center justify-between mb-5">
-                                    <div>
-                                        <p className="text-xl font-bold text-forest-950 dark:text-forest-50">أموكسيسيلين 500 ملغ</p>
-                                        <p className="text-sm text-forest-600 dark:text-forest-400">كورس ٧ أيام · اليوم ٥</p>
-                                    </div>
-                                    <span className="badge badge-info">باقي يومان</span>
-                                </div>
-                                <div className="grid grid-cols-7 gap-2">
-                                    {["full", "full", "full", "part", "today", "future", "future"].map((s, i) => (
-                                        <div key={i} className={`h-12 rounded-xl ${{
-                                            full: "bg-forest-500",
-                                            part: "bg-gradient-to-t from-forest-500 from-50% to-sage-200 to-50%",
-                                            today: "bg-white dark:bg-forest-900/60 ring-2 ring-forest-500 animate-pulse",
-                                            future: "bg-white/70 dark:bg-forest-900/40",
-                                        }[s]}`} />
-                                    ))}
-                                </div>
-                                <div className="mt-5 flex items-center justify-between text-sm">
-                                    <span className="font-semibold text-forest-800 dark:text-forest-200">11 من 21 جرعة</span>
-                                    <span className="text-forest-600 dark:text-forest-400">آخر يوم: الأحد</span>
-                                </div>
-                                <p className="mt-4 text-sm font-semibold text-forest-700 dark:text-forest-300 bg-white/70 dark:bg-forest-900/40 rounded-xl px-4 py-3">
-                                    أكمل الكورس حتى نهايته، حتى لو تحسّنت.
-                                </p>
-                            </div>
-                        </Reveal>
+                        <CourseDemo />
                     </div>
                 </div>
             </section>
         </>
+    );
+}
+
+// بطاقة الكورس: الأيام تمتلئ واحداً تلو الآخر حين يصل إليها التمرير، حتى اليوم الخامس
+const COURSE_DAYS = ["full", "full", "full", "part", "today", "future", "future"];
+const DAY_STYLE = {
+    full: "bg-forest-500",
+    part: "bg-gradient-to-t from-forest-500 from-50% to-sage-200 to-50%",
+    today: "bg-white dark:bg-forest-900/60 ring-2 ring-forest-500",
+    future: "bg-white/70 dark:bg-forest-900/40",
+};
+
+function CourseDemo() {
+    const ref = useRef(null);
+    useGSAP(() => {
+        gsap.matchMedia().add(MOTION_OK, () => {
+            const q = gsap.utils.selector(ref);
+            const tl = gsap.timeline({
+                delay: 0.2,
+                defaults: { ease: "power3.out" },
+                scrollTrigger: { trigger: ref.current, start: START, once: true },
+            });
+            tl.from(ref.current, { autoAlpha: 0, scale: 0.92, y: 16, duration: 0.7 })
+                .from(q("[data-day=done]"), { scaleY: 0, transformOrigin: "bottom", stagger: 0.15, duration: 0.45, ease: "back.out(1.6)" }, "-=0.2")
+                .from(q("[data-day=today]"), { scale: 0.6, autoAlpha: 0, duration: 0.4, ease: "back.out(2.5)" })
+                .to(q("[data-day=today]"), { scale: 1.08, repeat: -1, yoyo: true, duration: 0.9, ease: "sine.inOut" })
+                .from(q("[data-course=note]"), { autoAlpha: 0, y: 12, duration: 0.5 }, "<");
+        });
+    }, { scope: ref });
+
+    return (
+        <div ref={ref} aria-hidden="true">
+            <div className="card p-8 gradient-mint border-2 border-forest-200 dark:border-forest-700">
+                <div className="flex items-center justify-between mb-5">
+                    <div>
+                        <p className="text-xl font-bold text-forest-950 dark:text-forest-50">أموكسيسيلين 500 ملغ</p>
+                        <p className="text-sm text-forest-600 dark:text-forest-400">كورس ٧ أيام · اليوم ٥</p>
+                    </div>
+                    <span className="badge badge-info">باقي يومان</span>
+                </div>
+                <div className="grid grid-cols-7 gap-2">
+                    {COURSE_DAYS.map((s, i) => (
+                        <div key={i} data-day={s === "full" || s === "part" ? "done" : s}
+                            className={`h-12 rounded-xl ${DAY_STYLE[s]}`} />
+                    ))}
+                </div>
+                <div className="mt-5 flex items-center justify-between text-sm">
+                    <span className="font-semibold text-forest-800 dark:text-forest-200">11 من 21 جرعة</span>
+                    <span className="text-forest-600 dark:text-forest-400">آخر يوم: الأحد</span>
+                </div>
+                <p data-course="note" className="mt-4 text-sm font-semibold text-forest-700 dark:text-forest-300 bg-white/70 dark:bg-forest-900/40 rounded-xl px-4 py-3">
+                    أكمل الكورس حتى نهايته، حتى لو تحسّنت.
+                </p>
+            </div>
+        </div>
     );
 }
 

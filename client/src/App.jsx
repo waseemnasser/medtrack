@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
@@ -14,9 +15,12 @@ import Account from "./pages/Account";
 import Emergency from "./pages/Emergency";
 import VoiceLog from "./pages/VoiceLog";
 import NotFound from "./pages/NotFound";
-import Landing from "./pages/Landing";
 import FeedbackProvider from "./feedback/FeedbackProvider";
 import "./styles/app.css";
+
+// الصفحة التعريفية تُحمَّل وحدها عند فتحها: حركاتها (GSAP مع ScrollTrigger)
+// لا تدخل حزمة التطبيق التي يحمّلها المستخدم كل يوم.
+const Landing = lazy(() => import("./pages/Landing"));
 
 const loggedIn = () => Boolean(localStorage.getItem("token"));
 
@@ -64,7 +68,7 @@ export default function App() {
           {/* صفحات بلا هيكل */}
           <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
           <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
-          <Route path="/welcome" element={<Landing />} />
+          <Route path="/welcome" element={<Suspense fallback={null}><Landing /></Suspense>} />
           <Route path="/share/:token" element={<DoctorView />} />
 
           {/* صفحات داخل الهيكل */}
