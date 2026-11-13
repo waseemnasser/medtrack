@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Pill, Calendar, AlertTriangle, Activity, Plus, ChevronLeft, Check, CheckCircle2, BellRing, X, Siren, Mic, TrendingUp } from "lucide-react";
 import api from "../api";
@@ -7,6 +7,7 @@ import { playBeep } from "../beep";
 import PushToggle from "../components/PushToggle";
 import Skeleton from "../components/Skeleton";
 import { useFeedback } from "../feedback/context";
+import { gsap, useGSAP, MOTION_OK } from "../utils/motion";
 import { PERIODS, periodOf, timeParts, formatTime, formatDate, daysText as courseDaysText } from "../utils/format";
 
 export default function Today() {
@@ -173,15 +174,7 @@ export default function Today() {
                             onConfirm={() => confirm(next)}
                         />
                     ) : (
-                        <div className="card p-6 flex items-center gap-4 gradient-mint">
-                            <div className="w-14 h-14 bg-forest-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg shadow-forest-600/30">
-                                <Check className="w-7 h-7 text-white" strokeWidth={3} />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-forest-950">أُخذت كل جرعات اليوم</h3>
-                                <p className="text-forest-700/70">اطمئن، لا شيء متبقٍّ لليوم.</p>
-                            </div>
-                        </div>
+                        <AllDone celebrate={doses.some((d) => d.justTaken)} />
                     ))}
 
                     <div className="card p-6">
@@ -197,10 +190,7 @@ export default function Today() {
 
                         {doses.length > 0 && (
                             <div className="flex gap-1 mb-6" role="img" aria-label={`تم تأكيد ${takenCount} من أصل ${doses.length} جرعات`}>
-                                {sorted.map((d) => (
-                                    <span key={d.schedule_id}
-                                        className={`h-2 flex-1 rounded-full transition-colors duration-500 ${d.status === "taken" ? periodOf(d.time_of_day).bar : "bg-sage-100 dark:bg-forest-800/60"}`} />
-                                ))}
+                                {sorted.map((d) => <ProgressSegment key={d.schedule_id} dose={d} />)}
                             </div>
                         )}
 
@@ -253,6 +243,73 @@ export default function Today() {
     );
 }
 
+/*
+  حركات GSAP في هذه الصفحة قليلة وقصيرة عن قصد: تؤكّد ما حدث ولا تؤخّر شيئاً.
+  تعمل فقط للجرعة التي أُكّدت للتو (justTaken)، لا عند فتح الصفحة،
+  ولا تعمل أبداً لمن فعّل «تقليل الحركة».
+*/
+
+// علامة «تم الأخذ»: الدائرة ثم الصح تُرسمان، مع قفزة صغيرة
+function TakenCheck({ animate }) {
+    const ref = useRef(null);
+    useGSAP(() => {
+        if (!animate) return;
+        gsap.matchMedia().add(MOTION_OK, () => {
+            const svg = ref.current.querySelector("svg");
+            gsap.timeline()
+                .from(svg, { scale: 0.4, duration: 0.45, ease: "back.out(2.5)" })
+                .from(svg.querySelectorAll("circle, path"), { drawSVG: "0%", duration: 0.35, stagger: 0.12, ease: "power2.out" }, 0);
+        });
+    }, { scope: ref, dependencies: [animate] });
+    return (
+        <span ref={ref} className="flex-shrink-0" role="img" aria-label="تم الأخذ">
+            <CheckCircle2 className="w-8 h-8 text-forest-600" aria-hidden="true" />
+        </span>
+    );
+}
+
+// جزء من شريط التقدّم: الجرعة المؤكّدة للتو يمتلئ جزؤها من اليمين
+function ProgressSegment({ dose }) {
+    const ref = useRef(null);
+    const taken = dose.status === "taken";
+    useGSAP(() => {
+        if (!dose.justTaken) return;
+        gsap.matchMedia().add(MOTION_OK, () => {
+            gsap.from(ref.current, { scaleX: 0, transformOrigin: "right center", duration: 0.6, ease: "power3.out" });
+        });
+    }, { dependencies: [dose.justTaken] });
+    return (
+        <span ref={ref} className={`h-2 flex-1 rounded-full ${taken ? periodOf(dose.time_of_day).bar : "bg-sage-100 dark:bg-forest-800/60"}`} />
+    );
+}
+
+// «أُخذت كل جرعات اليوم»: تقفز البطاقة وتُرسم العلامة إن اكتملت الآن، لا عند الفتح
+function AllDone({ celebrate }) {
+    const ref = useRef(null);
+    useGSAP(() => {
+        if (!celebrate) return;
+        gsap.matchMedia().add(MOTION_OK, () => {
+            const q = gsap.utils.selector(ref);
+            gsap.timeline({ defaults: { ease: "back.out(2)" } })
+                .from(ref.current, { autoAlpha: 0, y: 16, scale: 0.96, duration: 0.5 })
+                .from(q("[data-done=badge]"), { scale: 0, rotate: -90, duration: 0.5 }, "-=0.25")
+                .from(q("[data-done=badge] path, [data-done=badge] polyline"), { drawSVG: "0%", duration: 0.35, ease: "power2.out" }, "-=0.15");
+        });
+    }, { scope: ref });
+    return (
+        // الحركة على غلاف بلا كلاس: transition-all في .card يفسد قيم GSAP
+        <div ref={ref}><div className="card p-6 flex items-center gap-4 gradient-mint">
+            <div data-done="badge" className="w-14 h-14 bg-forest-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg shadow-forest-600/30">
+                <Check className="w-7 h-7 text-white" strokeWidth={3} />
+            </div>
+            <div>
+                <h3 className="text-lg font-bold text-forest-950">أُخذت كل جرعات اليوم</h3>
+                <p className="text-forest-700/70">اطمئن، لا شيء متبقٍّ لليوم.</p>
+            </div>
+        </div></div>
+    );
+}
+
 // سطر جرعة: الوقت أولاً وبخط كبير — أول ما تبحث عنه العين
 function DoseRow({ dose: d, period, late, saving, onConfirm }) {
     const taken = d.status === "taken";
@@ -282,7 +339,7 @@ function DoseRow({ dose: d, period, late, saving, onConfirm }) {
                 </div>
             </div>
             {taken ? (
-                <CheckCircle2 className="w-8 h-8 text-forest-600 flex-shrink-0 animate-scale-in" role="img" aria-label="تم الأخذ" />
+                <TakenCheck animate={d.justTaken} />
             ) : (
                 <button onClick={onConfirm} disabled={saving}
                     className={`${late ? "btn-primary" : "btn-secondary"} !px-4 !py-2 text-sm flex-shrink-0`}>
