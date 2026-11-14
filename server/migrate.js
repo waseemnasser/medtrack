@@ -1,5 +1,6 @@
 const pool = require("./db");
 const { ensureArabicNames } = require("./catalogData");
+const { applyCatalogClean } = require("./catalogClean");
 const { applyCatalogExtras } = require("./catalogExtras");
 const { syncIngredients } = require("./ingredients");
 const { syncDrugClasses } = require("./drugClasses");
@@ -51,7 +52,8 @@ const MIGRATIONS = [
 async function migrate() {
     for (const sql of MIGRATIONS) await pool.query(sql);
     await ensureArabicNames(pool);
-    // أدوية ناقصة وتصحيحات (catalogExtras.js) — قبل ربط المواد الفعّالة
+    // تنظيف أسماء المصدر (catalogClean.js)، ثم أدوية ناقصة وتصحيحات (catalogExtras.js) — قبل ربط المواد
+    await applyCatalogClean(pool);
     await applyCatalogExtras(pool);
     // المواد الفعّالة كجداول — أساس فحص الحساسية (ingredients.js)
     await syncIngredients(pool);
