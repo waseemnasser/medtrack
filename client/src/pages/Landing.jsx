@@ -752,7 +752,7 @@ function Faq() {
 
 function LandingCTA({ isIn, start }) {
     return (
-        <section className="pb-20 lg:pb-28 bg-sage-50">
+        <section className="py-20 lg:py-28 bg-sage-50">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <Reveal animation="scale-in">
                     <div className="gradient-forest rounded-3xl p-10 lg:p-16 text-center relative overflow-hidden">
