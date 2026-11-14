@@ -140,4 +140,15 @@ describe("catalog search on the real catalog", () => {
         )).rows[0].c;
         assert.equal(dupes, 0);
     });
+
+    test("strengths that lost their leading digits keep only their unit", async () => {
+        await setup();
+        const broken = (await pool.query("SELECT count(*)::int c FROM medicines_catalog WHERE strength ~ '^\\s*000'")).rows[0].c;
+        assert.equal(broken, 0);
+        const nystatin = await searchCatalog(pool, "nystatin");
+        assert.ok(nystatin.length > 0, "nystatin products must still be searchable");
+        // الوحدة باقية، فالأقراص الفموية والمهبلية صفّان منفصلان
+        const kana = (await pool.query("SELECT strength FROM medicines_catalog WHERE brand_name = 'KANASTATIN' ORDER BY strength")).rows.map((r) => r.strength);
+        assert.deepEqual(kana, ["IU/100G.", "IU/100G.", "IU/TAB.", "IU/VAG."]);
+    });
 });

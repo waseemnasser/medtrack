@@ -150,6 +150,17 @@ async function applyCatalogClean(pool) {
             );
             renamed++;
         }
+        // عيار ضاعت أرقامه الأولى في المصدر («000 IU/TAB.» بدل 500,000): نحذف الرقم الخاطئ
+        // ونُبقي الوحدة («IU/TAB.»)، فيكتب المستخدم الرقم من العلبة. الوحدة تبقي الأشكال
+        // مختلفة (أقراص فموية ومهبلية)، فلا تُدمج كمكررة. وكذلك ما نُسخ إلى أدوية محفوظة
+        const BROKEN = "'^[[:space:]]*000[[:space:]]*'";
+        const blanked = await client.query(
+            `UPDATE medicines_catalog SET strength = NULLIF(regexp_replace(strength, ${BROKEN}, ''), '') WHERE strength ~ ${BROKEN}`
+        );
+        await client.query(
+            `UPDATE medications SET strength = NULLIF(regexp_replace(strength, ${BROKEN}, ''), '') WHERE strength ~ ${BROKEN}`
+        );
+        renamed += blanked.rowCount;
         // بعد التنظيف تتطابق بعض الصفوف تماماً (العلبة والشريط للدواء نفسه):
         // نُبقي الأقدم ونحوّل إليه أدوية المستخدمين قبل حذف الباقي
         const dupes = (await client.query(
