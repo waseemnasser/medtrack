@@ -10,7 +10,7 @@
 // و«DICLOFENAC POTASSIUM» كلاهما DICLOFENAC.
 
 // غيّري هذا الرقم عند تعديل أي قاعدة أدناه — الخادم يعيد البناء عند التشغيل
-const INGREDIENTS_VERSION = 1;
+const INGREDIENTS_VERSION = 2;
 
 // كلمات الشكل الصيدلاني التي التصقت بأول اسم المادة في المصدر
 const FORM_PREFIX = /^(G\.CAP\.?|GEL\.CAP\.|R\.TAB\.?|R\.CTD|V\.C\.BAG|P\.VIAL|I\.M\.INJ\.|DROP|OF[\d.]+ML\.)\s*/;
