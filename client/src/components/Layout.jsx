@@ -170,13 +170,15 @@ export default function Layout() {
             </div>
 
             <main className="flex-1 min-w-0 pt-14 lg:pt-0 lg:mr-64">
-                <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-                    {/* الحاسوب: الجرس في زاوية المحتوى */}
-                    {desktop && (
-                        <div className="flex justify-end -mb-2">
+                {/* الحاسوب: شريط علوي ثابت للجرس، منفصل عن أزرار الصفحة حتى لا يتكدّس فوقها */}
+                {desktop && (
+                    <header className="sticky top-0 z-30 h-16 glass border-b border-sage-200/50 dark:border-forest-800/50">
+                        <div className="h-full max-w-7xl mx-auto px-8 flex items-center justify-end">
                             <NotificationBell />
                         </div>
-                    )}
+                    </header>
+                )}
+                <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
                     <InstallPrompt />
                     <Outlet />
                 </div>
