@@ -67,6 +67,8 @@ function applySecurity(app) {
             if (!origin || origins.has(origin)) return done(null, true);
             return done(null, false);
         },
+        // الواجهة على عنوان آخر لا تقرأ إلا الترويسات المعلَنة هنا: التوكن المجدَّد (middleware/auth.js)
+        exposedHeaders: ["X-Session-Token"],
     }));
 
     app.use("/api", apiLimiter);
