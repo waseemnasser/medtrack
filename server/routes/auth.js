@@ -6,6 +6,7 @@ const auth = require("../middleware/auth");
 const { signSession } = require("../middleware/auth");
 const { sendMail } = require("../mailer");
 const { checkEmail, normalizeEmail } = require("../emailCheck");
+const { issueCode, verifyCode } = require("../emailVerify");
 
 const router = express.Router();
 
@@ -30,20 +31,70 @@ router.post("/register", async (req, res) => {
     if (bad) return res.status(400).json(bad);
 
     try {
-        const exists = await pool.query("SELECT id FROM users WHERE LOWER(email) = $1", [email]);
-        if (exists.rows.length)
-            return res.status(400).json({ error: "هذا البريد مسجل مسبقاً" });
-
-        const hash = await bcrypt.hash(password, 10);
-        const result = await pool.query(
-            "INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email, password_version",
-            [name, email, hash]
+        const exists = await pool.query(
+            "SELECT id, email_verified_at FROM users WHERE LOWER(email) = $1 ORDER BY id LIMIT 1",
+            [email]
         );
+        const hash = await bcrypt.hash(password, 10);
+        let user;
+        if (exists.rows.length && exists.rows[0].email_verified_at) {
+            return res.status(400).json({ error: "هذا البريد مسجل مسبقاً" });
+        } else if (exists.rows.length) {
+            // حساب بهذا البريد لم يُؤكَّد قط: ربما كتبه غيرك خطأً. التسجيل من جديد
+            // يحلّ محله، والرمز يذهب إلى صاحب البريد وحده — فلا يُحجز بريد أحد.
+            user = (await pool.query(
+                `UPDATE users SET name = $2, password_hash = $3, password_version = password_version + 1
+                  WHERE id = $1 RETURNING id, name, email`,
+                [exists.rows[0].id, name, hash]
+            )).rows[0];
+        } else {
+            user = (await pool.query(
+                "INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id, name, email",
+                [name, email, hash]
+            )).rows[0];
+        }
 
-        const user = result.rows[0];
-        res.status(201).json({ token: signSession(user), user: { id: user.id, name: user.name, email: user.email } });
+        // لا توكن بعد: الدخول بعد كتابة الرمز (POST /verify-email)
+        let mailFailed = false;
+        try {
+            await issueCode(user, { force: true });
+        } catch (err) {
+            console.error("[auth] verification mail:", err.message);
+            mailFailed = true;
+        }
+        res.status(201).json({ pending: true, email: user.email, mail_failed: mailFailed });
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+// الرمز من البريد ← الحساب مؤكَّد، ويدخل صاحبه
+router.post("/verify-email", async (req, res) => {
+    const { email, code } = req.body;
+    if (!email || !code) return res.status(400).json({ error: "اكتب الرمز الذي وصلك" });
+    try {
+        const r = await verifyCode(email, code);
+        if (r.error) return res.status(400).json({ error: r.error, expired: Boolean(r.expired) });
+        const user = r.user;
+        res.json({ token: signSession(user), user: { id: user.id, name: user.name, email: user.email } });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// «أرسل الرمز مجدداً»: الرد نفسه دائماً — لا نكشف أي البُرُد لها حسابات.
+// لا يُرسل رمز ثانٍ قبل مرور دقيقة على الأول.
+router.post("/resend-code", async (req, res) => {
+    res.json({ ok: true });
+    try {
+        const u = await pool.query(
+            `SELECT id, name, email FROM users
+              WHERE LOWER(email) = LOWER($1) AND email_verified_at IS NULL ORDER BY id LIMIT 1`,
+            [String(req.body.email || "").trim()]
+        );
+        if (u.rows.length) await issueCode(u.rows[0]);
+    } catch (err) {
+        console.error("[auth] resend-code:", err.message);
     }
 });
 
@@ -62,6 +113,16 @@ router.post("/login", async (req, res) => {
         const match = await bcrypt.compare(password, user.password_hash);
         if (!match)
             return res.status(400).json({ error: "البريد أو كلمة المرور غير صحيحة" });
+
+        // كلمة المرور صحيحة لكن البريد لم يُؤكَّد: رمز جديد (إن مضت دقيقة) وصفحة التأكيد
+        if (!user.email_verified_at) {
+            await issueCode(user).catch((err) => console.error("[auth] verification mail:", err.message));
+            return res.status(403).json({
+                error: "أكّد بريدك أولاً: أرسلنا رمزاً من 6 أرقام إلى بريدك.",
+                code: "EMAIL_UNVERIFIED",
+                email: user.email,
+            });
+        }
 
         res.json({ token: signSession(user), user: { id: user.id, name: user.name, email: user.email } });
     } catch (err) {
@@ -183,6 +244,11 @@ router.post("/reset-password", async (req, res) => {
             return res.status(400).json({ error: "الرابط منتهٍ أو استُعمل من قبل. اطلب رابطاً جديداً." });
         }
         await setPassword(client, r.rows[0].user_id, new_password);
+        // فتح رابط البريد يثبت ملكية البريد أيضاً: حساب لم يُؤكَّد يصير مؤكَّداً
+        await client.query(
+            "UPDATE users SET email_verified_at = now() WHERE id = $1 AND email_verified_at IS NULL",
+            [r.rows[0].user_id]
+        );
         await client.query("COMMIT");
         res.json({ ok: true });
     } catch (err) {

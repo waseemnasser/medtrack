@@ -137,7 +137,8 @@ async function main() {
 
     const hash = await bcrypt.hash(DEMO.password, 10);
     const userId = (await pool.query(
-        "INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3) RETURNING id",
+        // حساب العرض مؤكَّد البريد سلفاً: لا رمز تحقق لبريد .test وهمي
+        "INSERT INTO users (name, email, password_hash, email_verified_at) VALUES ($1, $2, $3, now()) RETURNING id",
         [DEMO.name, DEMO.email, hash]
     )).rows[0].id;
 

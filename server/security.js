@@ -74,6 +74,7 @@ function applySecurity(app) {
     app.use([
         "/api/auth/login", "/api/auth/register",
         "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/change-password",
+        "/api/auth/verify-email", "/api/auth/resend-code",
     ], authLimiter);
 }
 

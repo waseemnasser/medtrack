@@ -57,6 +57,19 @@ const MIGRATIONS = [
         expires_at TIMESTAMPTZ NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )`,
+    // تأكيد البريد برمز عند التسجيل. الحسابات الموجودة قبل الميزة تُعدّ مؤكَّدة:
+    // DEFAULT now() يملأ الصفوف القديمة مرة واحدة عند إضافة العمود، ثم يُزال
+    // فيبدأ كل حساب جديد غير مؤكَّد (NULL). التكرار عند كل تشغيل لا يغيّر شيئاً.
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMPTZ DEFAULT now()",
+    "ALTER TABLE users ALTER COLUMN email_verified_at DROP DEFAULT",
+    // رمز التأكيد الحالي لكل حساب: بصمته فقط، ١٥ دقيقة، ٥ محاولات
+    `CREATE TABLE IF NOT EXISTS email_codes (
+        user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        code_hash TEXT NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL,
+        attempts INTEGER NOT NULL DEFAULT 0,
+        sent_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`,
 ];
 
 async function migrate() {
