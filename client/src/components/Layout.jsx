@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Outlet, NavLink, Link, useNavigate } from "react-router-dom";
+import { Outlet, NavLink, Link } from "react-router-dom";
 import { LayoutDashboard, Users, Calendar, Settings, LogOut, Menu, Accessibility, Moon, Sun, Siren } from "lucide-react";
 import api from "../api";
 import InstallPrompt from "./InstallPrompt";
@@ -7,7 +7,7 @@ import NotificationBell from "./NotificationBell";
 import Logo from "./Logo";
 import { setTheme } from "../utils/theme";
 import { getEasyMode, setEasyMode } from "../utils/easyMode";
-import { logout } from "../utils/session";
+import { useLogout } from "../utils/session";
 import { initial } from "../utils/format";
 
 // أقسام التطبيق — كل صفحة أخرى تتفرّع من أحدها.
@@ -44,7 +44,7 @@ function Switch({ on, onClick, label }) {
 }
 
 export default function Layout() {
-    const navigate = useNavigate();
+    const logout = useLogout();
     const [me, setMe] = useState(null);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [easy, setEasy] = useState(getEasyMode);
@@ -125,7 +125,7 @@ export default function Layout() {
                         </div>
                         <span className="text-sm text-forest-200 truncate">{me?.name || ""}</span>
                     </Link>
-                    <button onClick={() => logout(navigate)} title="تسجيل الخروج" aria-label="تسجيل الخروج"
+                    <button onClick={logout} title="تسجيل الخروج" aria-label="تسجيل الخروج"
                         className="p-2 text-forest-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
                         <LogOut className="w-5 h-5 rtl-flip" />
                     </button>

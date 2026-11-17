@@ -1,4 +1,7 @@
+import { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { disablePushForThisDevice } from "../push";
+import { useFeedback } from "../feedback/context";
 
 // تسجيل الخروج — من صفحة الحساب ومن الشريط الجانبي.
 // هذا الجهاز لا يستقبل تذكيرات هذا الحساب بعد الخروج —
@@ -11,4 +14,19 @@ export async function logout(navigate) {
     }
     localStorage.removeItem("token");
     navigate("/login", { replace: true });
+}
+
+// زر الخروج يسأل أولاً: الخروج بالخطأ يوقف التذكيرات على هذا الجهاز
+export function useLogout() {
+    const navigate = useNavigate();
+    const { confirm } = useFeedback();
+    return useCallback(async () => {
+        const ok = await confirm({
+            title: "تسجيل الخروج؟",
+            message: "لن تصل تذكيرات الجرعات إلى هذا الجهاز حتى تسجّل الدخول مجدداً.",
+            confirmLabel: "تسجيل الخروج",
+            danger: true,
+        });
+        if (ok) await logout(navigate);
+    }, [confirm, navigate]);
 }

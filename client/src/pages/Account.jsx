@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { flushSync } from "react-dom";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Monitor, Sun, Moon, Accessibility, Bell, ShieldCheck, Info, LogOut, Palette, ChevronLeft, KeyRound } from "lucide-react";
 import PushToggle from "../components/PushToggle";
 import ChangePassword from "../components/ChangePassword";
 import Logo from "../components/Logo";
 import { getTheme, setTheme } from "../utils/theme";
 import { getEasyMode, setEasyMode } from "../utils/easyMode";
-import { logout } from "../utils/session";
+import { useLogout } from "../utils/session";
 
 const THEMES = [
     { value: "auto", label: "تلقائي", icon: Monitor },
@@ -28,7 +28,7 @@ function Section({ icon: Icon, color, title, children }) {
 }
 
 export default function Account() {
-    const navigate = useNavigate();
+    const logout = useLogout();
     const [theme, setThemeState] = useState(getTheme);
     const [easy, setEasy] = useState(getEasyMode);
 
@@ -132,7 +132,7 @@ export default function Account() {
                 </div>
             </Section>
 
-            <button onClick={() => logout(navigate)}
+            <button onClick={logout}
                 className="w-full sm:w-auto btn-secondary !text-red-600 !border-red-200 hover:!bg-red-50 flex items-center justify-center gap-2">
                 <LogOut className="w-5 h-5 rtl-flip" /> تسجيل الخروج
             </button>
