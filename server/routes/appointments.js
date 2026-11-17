@@ -1,6 +1,7 @@
 const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
+const { appointmentTimeError } = require("../validate");
 
 const router = express.Router();
 router.use(auth);
@@ -31,6 +32,8 @@ router.post("/", async (req, res) => {
     const { member_id, title, doctor_name, location, scheduled_at, notes } = req.body;
     if (!member_id || !title || !scheduled_at)
         return res.status(400).json({ error: "العنوان والتاريخ والفرد مطلوبين" });
+    const badTime = appointmentTimeError(scheduled_at);
+    if (badTime) return res.status(400).json({ error: badTime });
 
     const owns = await pool.query(
         "SELECT id FROM members WHERE id = $1 AND user_id = $2",
@@ -48,6 +51,21 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
     const { title, doctor_name, location, scheduled_at, notes } = req.body;
+    if (!title || !scheduled_at)
+        return res.status(400).json({ error: "العنوان والتاريخ مطلوبان" });
+
+    // موعد مضى يبقى قابلاً للتعديل (ملاحظة، مكان) ما دام وقته لم يتغيّر؛
+    // أما الوقت الجديد فلا يكون في الماضي
+    const old = await pool.query(
+        `SELECT to_char(a.scheduled_at, 'YYYY-MM-DD HH24:MI') AS t FROM appointments a
+          JOIN members m ON m.id = a.member_id WHERE a.id = $1 AND m.user_id = $2`,
+        [req.params.id, req.userId]
+    );
+    if (!old.rows.length) return res.status(404).json({ error: "الموعد غير موجود" });
+    const same = String(scheduled_at).replace("T", " ").slice(0, 16) === old.rows[0].t;
+    const badTime = appointmentTimeError(scheduled_at, { allowPast: same });
+    if (badTime) return res.status(400).json({ error: badTime });
+
     const result = await pool.query(
         // إن تغيّر وقت الموعد نعيد تذكيراته؛ في UPDATE تشير الأعمدة إلى القيم القديمة
         `UPDATE appointments SET title=$1, doctor_name=$2, location=$3, scheduled_at=$4, notes=$5,

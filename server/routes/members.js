@@ -3,6 +3,7 @@ const pool = require("../db");
 const auth = require("../middleware/auth");
 const { listAllergies, replaceAllergies, memberConflicts } = require("../allergy");
 const { adherence } = require("../adherence");
+const { birthDateError } = require("../validate");
 
 const router = express.Router();
 router.use(auth);
@@ -33,6 +34,8 @@ function memberFields(body) {
 
 router.post("/", async (req, res) => {
     if (!req.body.name) return res.status(400).json({ error: "الاسم مطلوب" });
+    const badBirth = birthDateError(req.body.birth_date);
+    if (badBirth) return res.status(400).json({ error: badBirth });
 
     // الحساسية تُحفظ بعدها عبر PUT /:id/allergies — صفوف منظّمة لا نص
     const result = await pool.query(
@@ -45,6 +48,8 @@ router.post("/", async (req, res) => {
 
 router.put("/:id", async (req, res) => {
     if (!req.body.name) return res.status(400).json({ error: "الاسم مطلوب" });
+    const badBirth = birthDateError(req.body.birth_date);
+    if (badBirth) return res.status(400).json({ error: badBirth });
     const result = await pool.query(
         `UPDATE members SET name = $1, birth_date = $2, chronic_conditions = $3,
             blood_type = $4, gender = $5, emergency_notes = $6

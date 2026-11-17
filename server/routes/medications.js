@@ -8,11 +8,29 @@ const {
 } = require("../allergy");
 const { ingredientsByExactName } = require("../ingredients");
 const { courses, STOP_REASONS } = require("../course");
+const {
+    latinDigits, startDateError, endDateError, unitsPerDoseError, unitsTotalError, strengthError, timesError,
+} = require("../validate");
 
 const router = express.Router();
 router.use(auth);
 
 // التأكد إن الفرد يتبع للمستخدم الحالي
+// تواريخ الدواء وأرقامه وأوقاته (validate.js). البدء لا يسبق ميلاد الشخص.
+async function medicationError(body, memberId) {
+    const m = await pool.query("SELECT birth_date FROM members WHERE id = $1", [memberId]);
+    return startDateError(body.start_date, { birthDate: m.rows[0]?.birth_date })
+        || endDateError(body.end_date, body.start_date)
+        || unitsPerDoseError(body.units_per_dose)
+        || unitsTotalError(body.units_total)
+        || strengthError(body.strength, { fromCatalog: Boolean(body.catalog_id) })
+        || timesError(body.times);
+}
+
+// الأرقام كما تُحفظ: أرقام لاتينية، والعيار بلا مسافات زائدة
+const cleanStrength = (s) => (s ? latinDigits(s).trim().replace(/s+/g, " ") : null);
+const cleanNumber = (n) => (n === undefined || n === null || n === "" ? null : Number(latinDigits(n)));
+
 async function ownsMember(memberId, userId) {
     const r = await pool.query(
         "SELECT id FROM members WHERE id = $1 AND user_id = $2",
@@ -164,6 +182,8 @@ router.post("/", async (req, res) => {
 
     if (!(await ownsMember(member_id, req.userId)))
         return res.status(403).json({ error: "غير مصرح" });
+    const invalid = await medicationError(req.body, member_id);
+    if (invalid) return res.status(400).json({ error: invalid });
 
     // حساسية معروفة أو مواد مجهولة: لا يُحفظ إلا بتأكيد صريح، ويُسجَّل التأكيد
     const gate = await allergyGate(member_id, { name, catalog_id, ingredient_ids });
@@ -180,9 +200,9 @@ router.post("/", async (req, res) => {
        (member_id, catalog_id, name, active_ingredient, strength, form, instructions,
         start_date, end_date, units_total, units_per_dose, is_private)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
-            [member_id, catalog_id || null, name, ingredientLabel, strength || null,
+            [member_id, catalog_id || null, name, ingredientLabel, cleanStrength(strength),
                 form || null, instructions || null, start_date, end_date || null,
-                units_total || null, units_per_dose || 1, is_private || false]
+                cleanNumber(units_total), cleanNumber(units_per_dose) || 1, is_private || false]
         );
 
         const medication = med.rows[0];
@@ -229,6 +249,8 @@ router.put("/:id", async (req, res) => {
         [req.params.id, req.userId]
     );
     if (!owner.rows.length) return res.status(404).json({ error: "الدواء غير موجود" });
+    const invalid = await medicationError(req.body, owner.rows[0].member_id);
+    if (invalid) return res.status(400).json({ error: invalid });
 
     const gate = await allergyGate(owner.rows[0].member_id, { name, catalog_id, ingredient_ids });
     const blocked = gateResponse(gate, req.body);
@@ -246,9 +268,9 @@ router.put("/:id", async (req, res) => {
          units_per_dose = $10, is_private = $11
        WHERE id = $12 AND member_id IN (SELECT id FROM members WHERE user_id = $13)
        RETURNING *`,
-            [catalog_id || null, name, ingredientLabel, strength || null,
+            [catalog_id || null, name, ingredientLabel, cleanStrength(strength),
                 form || null, instructions || null, start_date, end_date || null,
-                units_total || null, units_per_dose || 1, is_private || false,
+                cleanNumber(units_total), cleanNumber(units_per_dose) || 1, is_private || false,
                 req.params.id, req.userId]
         );
 
