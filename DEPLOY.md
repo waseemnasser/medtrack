@@ -84,8 +84,8 @@ Check: in Supabase → **Table Editor** you should see `users`, `members`, `medi
    | `PUBLIC_URL` | `https://waseemnasser.github.io/medtrack` (doctor-share and QR links point here) |
    | `TRUST_PROXY` | `1` |
    | `NODE_VERSION` | `22` |
-   | `BREVO_API_KEY` | from step 2b below (sign-up code and password-reset email). **Required: without it nobody can finish signing up** |
-   | `MAIL_FROM` | the sender address you verified in Brevo |
+   | `MAIL_RELAY_URL` | from step 2b below (sign-up code and password-reset email). **Required: without it nobody can finish signing up** |
+   | `MAIL_RELAY_SECRET` | the secret from step 2b |
 5. **Deploy Web Service**. The first build takes 2–4 minutes. The log should end with
    `Server running on port 10000` (Render chooses the port).
 6. Open `https://nabd-api.onrender.com/api/health` (use your own name). You should see `{"ok":true,...}`.
@@ -93,20 +93,33 @@ Check: in Supabase → **Table Editor** you should see `users`, `members`, `medi
 
 Every `git push` to that branch redeploys the server by itself.
 
-### 2b. Email: sign-up code and password reset (Brevo, free)
+### 2b. Email: sign-up code and password reset (your Gmail, free)
 
-Sign-up emails a 6-digit code that must be entered before the first login, and «نسيت كلمة المرور» emails a one-time link. Render's free plan blocks the normal email ports (SMTP),
-so the server sends through Brevo's web API instead. The free plan allows 300 emails a day.
+Sign-up emails a 6-digit code that must be entered before the first login, and «نسيت كلمة المرور» emails a one-time link.
+Render's free plan blocks the normal email ports (SMTP), and Brevo won't accept a gmail.com sender without a domain of your own.
+So a small Google Apps Script in your Google account sends the mail from your Gmail. The server calls it over HTTPS.
+Google allows about 100 emails a day on a free account.
 
-1. Create a free account at **brevo.com**.
-2. **Senders, Domains & Dedicated IPs → Senders → Add a sender**: use an address you own (your Gmail is fine) and click the link Brevo emails you.
-3. **SMTP & API → API Keys → Generate a new API key**. Copy it.
-4. On Render, set `BREVO_API_KEY` to that key and `MAIL_FROM` to the verified sender, then redeploy.
+1. **Make a secret** (a long random password the server and the script share):
+   `node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"`
+2. Open **script.google.com**, signed in with the Gmail that should send the mail → **New project**. Name it «Nabd mail».
+3. Delete the code in the editor, paste the whole of `server/scripts/mail-relay.gs`, and replace
+   `ضع-هنا-نفس-قيمة-MAIL_RELAY_SECRET` with your secret (keep the quotes). Press **Save** (Ctrl+S).
+4. In the function list at the top choose **testSend** → **Run** → **Review permissions** → choose your account →
+   «Google hasn't verified this app» → **Advanced** → **Go to Nabd mail (unsafe)** → **Allow**.
+   It's your own script, so this warning is expected. A test email «نبض — تجربة» arrives in your inbox.
+5. **Deploy → New deployment** → the gear icon → **Web app**. *Execute as*: **Me**. *Who has access*: **Anyone**.
+   **Deploy**, then copy the **Web app URL** (it ends in `/exec`).
+6. On Render → **Environment**: `MAIL_RELAY_URL` = that URL, `MAIL_RELAY_SECRET` = your secret. Save, then redeploy.
 
-Without these two variables, nothing is sent, and the server log says `BREVO_API_KEY غير مضبوط`.
+If you change the script later: **Deploy → Manage deployments → ✏️ → Version: New version → Deploy**. The URL stays the same.
+
+Without `MAIL_RELAY_URL`, nothing is sent, and the server log says `لا MAIL_RELAY_URL ولا BREVO_API_KEY`.
 **New accounts then stay unconfirmed and can't log in.** Accounts that existed before this feature, and the demo account, are already confirmed.
-On a laptop (no key), the reset link is printed in the server terminal instead, so it can be tested without email.
-A Gmail sender with no domain of its own may land in spam. The «تفقّد بريدك» page tells users to check their spam folder.
+On a laptop (nothing set), the code and the reset link are printed in the server terminal instead, so they can be tested without email.
+
+**Later, with a domain of your own:** Brevo also works (`BREVO_API_KEY` + `MAIL_FROM` on an authenticated domain, 300 emails a day).
+The server uses the Apps Script when `MAIL_RELAY_URL` is set, and Brevo otherwise.
 
 ---
 
