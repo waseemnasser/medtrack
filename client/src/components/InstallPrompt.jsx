@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Download } from "lucide-react";
+import { isSetupDone, onSetupChange } from "../utils/setup";
 
 function isIOS() {
     return /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -16,6 +17,9 @@ export default function InstallPrompt() {
     const [hidden, setHidden] = useState(
         localStorage.getItem("installDismissed") === "1"
     );
+    // لا نطلب التثبيت قبل أن يضيف المستخدم أول دواء — قبلها لا يعرف لماذا يثبّته
+    const [ready, setReady] = useState(isSetupDone);
+    useEffect(() => onSetupChange(() => setReady(isSetupDone())), []);
 
     useEffect(() => {
         if (isStandalone()) return;
@@ -42,7 +46,7 @@ export default function InstallPrompt() {
         setDeferred(null);
     };
 
-    if (hidden || isStandalone()) return null;
+    if (hidden || !ready || isStandalone()) return null;
     if (!deferred && !showIOS) return null;
 
     return (
