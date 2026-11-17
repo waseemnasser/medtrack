@@ -140,7 +140,6 @@ Do these in order. Tick each one.
 - [ ] Account → turn notifications on → «إرسال إشعار تجريبي». It should arrive within seconds.
 - [ ] Real reminder: add a medicine with a dose **3 minutes from now**, close the app, wait. The «حان وقت الجرعة» notification should arrive on time (Damascus time).
 - [ ] Emergency card → create a share link → open it on a **second** phone. It must work without logging in.
-- [ ] Voice confirmation: works in Chrome on Android. Safari support is limited, so use the tap button there.
 
 **Team**
 - [ ] Each partner registers their own account on the site and adds a family member and a medicine.

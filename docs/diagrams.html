@@ -108,7 +108,6 @@ flowchart LR
     U4b(["Check allergy conflicts&lt;br&gt;فحص الحساسية"])
     U4c(["Save despite conflict&lt;br&gt;الحفظ رغم التعارض"])
     U5(["Confirm dose&lt;br&gt;تأكيد جرعة"])
-    U5a(["Confirm by voice&lt;br&gt;التأكيد الصوتي"])
     U6(["Track / stop course&lt;br&gt;متابعة / إيقاف الكورس"])
     U7(["Renew supply&lt;br&gt;تجديد العلبة"])
     U8(["Manage appointments&lt;br&gt;إدارة المواعيد"])
@@ -137,12 +136,11 @@ flowchart LR
   U4 -.->|«include»| U4b
   U4 -.->|«include»| U4a
   U4c -.->|«extend»| U4
-  U5a -.->|«extend»| U5
   U12 -.->|«include»| U9
 </pre>
 <figcaption>الشكل 1 — حالات الاستخدام. «include» = خطوة تحدث دائماً ضمن الحالة الأم. «extend» = خطوة اختيارية تحدث بشرط.</figcaption>
 </figure>
-<div class="box"><b>شرح العلاقات:</b> فحص الحساسية <b>include</b> لأن كل حفظ دواء يمرّ به دائماً. «الحفظ رغم التعارض» <b>extend</b> لأنه لا يحدث إلا إن وُجد تعارض وأكّد المستخدم أن الطبيب يعلم. التأكيد الصوتي <b>extend</b> لتأكيد الجرعة: طريقة بديلة اختيارية تصل إلى النتيجة نفسها.</div>
+<div class="box"><b>شرح العلاقات:</b> فحص الحساسية <b>include</b> لأن كل حفظ دواء يمرّ به دائماً. «الحفظ رغم التعارض» <b>extend</b> لأنه لا يحدث إلا إن وُجد تعارض وأكّد المستخدم أن الطبيب يعلم.</div>
 
 <!-- ======================================================= -->
 <h2 id="context" class="page">2. مخطط السياق — DFD المستوى 0</h2>
@@ -312,7 +310,6 @@ erDiagram
     timestamp scheduled_at
     timestamp confirmed_at
     varchar status "taken"
-    text method "tap or voice"
   }
   appointments {
     int id PK
@@ -485,7 +482,6 @@ erDiagram
     timestamp scheduled_at
     timestamp confirmed_at
     varchar status "taken"
-    text method "tap or voice"
   }
   appointments {
     int id PK
@@ -712,8 +708,7 @@ classDiagram
     +DateTime scheduledAt
     +DateTime confirmedAt
     +string status
-    +string method
-    +confirm(method)
+    +confirm()
   }
   class Course {
     &lt;&lt;computed&gt;&gt;
@@ -876,34 +871,36 @@ sequenceDiagram
 <figcaption>الشكل 7 — إضافة دواء. إن لم تُعرف المادة الفعّالة لدواء مكتوب يدوياً، يُرجع الخادم 409 برمز INGREDIENTS_UNKNOWN بنفس الآلية.</figcaption>
 </figure>
 
-<h3>6.3 تأكيد الجرعة بالصوت</h3>
-<p><b>المصدر:</b> <span class="ltr">client/src/pages/VoiceLog.jsx</span>، <span class="ltr">client/src/utils/voice.js</span>، <span class="ltr">server/routes/doses.js</span></p>
+<h3>6.3 تأكيد الجرعة</h3>
+<p><b>المصدر:</b> <span class="ltr">client/src/pages/Today.jsx</span> (confirm)، <span class="ltr">server/routes/doses.js</span> (POST /confirm)</p>
 <figure>
 <pre class="mermaid">
 sequenceDiagram
   actor U as Caregiver
-  participant V as Voice page
-  participant S as Web Speech API (browser)
+  participant C as Today page
   participant A as Express API
   participant D as PostgreSQL
-  U->>V: press the microphone
-  V->>S: start listening (ar-SA)
-  U->>S: says the sentence
-  S-->>V: text (up to 3 alternatives)
-  V->>V: isConfirmation (rejects negations)
-  V->>V: due doses = not taken, at most 60 min ahead
-  alt no due dose
-    V-->>U: next dose is at ...
-  else at least one due dose
-    V->>V: pickDose - named drug, else nearest to now
-    V->>A: POST /api/doses/confirm (method voice)
-    A->>D: insert or update dose_logs (taken, voice)
-    A-->>V: 200
-    V-->>U: dose recorded by voice
+  U->>C: press "taken" on a dose
+  C->>A: POST /api/doses/confirm (medication_id, scheduled_at)
+  A->>D: does this medication belong to the user?
+  alt not the user's medication
+    A-->>C: 403
+  else owned
+    A->>D: find dose_logs row for this medication and time
+    alt row exists
+      A->>D: UPDATE status taken, confirmed_at now
+    else no row
+      A->>D: INSERT dose_logs (taken, confirmed_at now)
+    end
+    A-->>C: 200 dose_log
+    C-->>U: check drawn, progress updated
+    opt course medicine
+      C->>A: GET /api/medications/courses
+      A-->>C: updated day and status
+    end
   end
-  Note over V,S: no audio is stored - the browser turns speech into text
 </pre>
-<figcaption>الشكل 8 — التأكيد الصوتي. التأكيد باللمس في صفحة «اليوم» يرسل الطلب نفسه مع method tap.</figcaption>
+<figcaption>الشكل 8 — تأكيد الجرعة. تأكيد الجرعة نفسها مرتين لا يُنشئ صفاً ثانياً، بل يحدّث الصف الموجود.</figcaption>
 </figure>
 
 <h3>6.4 تذكير الجرعة (يعمل وحده كل دقيقة)</h3>
@@ -1006,11 +1003,8 @@ flowchart TD
   S((Start)) --> B1[Dose time arrives]
   B1 --> B2[Scheduler sends reminder&lt;br&gt;+ saves it in the bell]
   B2 --> Q1{Taken?}
-  Q1 -->|yes| Q2{How?}
-  Q2 -->|tap| B3[Confirm on Today page]
-  Q2 -->|voice| B4[Say: I took the medicine]
+  Q1 -->|yes| B3[Confirm on Today page]
   B3 --> B5[Save dose_log: taken]
-  B4 --> B5
   B5 --> B6[Update course progress&lt;br&gt;and box supply]
   B6 --> E1((End))
   Q1 -->|no| B7[Dose stays open]
@@ -1059,7 +1053,7 @@ stateDiagram-v2
   direction LR
   [*] --> Scheduled
   Scheduled --> Due : dose time, reminder sent
-  Due --> TakenOnTime : confirmed within 1 hour (tap or voice)
+  Due --> TakenOnTime : confirmed within 1 hour
   Due --> Missed : 1 hour passed without confirmation
   Missed --> TakenLate : confirmed later the same day
   TakenOnTime --> [*]
@@ -1089,9 +1083,9 @@ stateDiagram-v2
 <pre class="mermaid">
 flowchart LR
   subgraph CL["Client - React 19 + Vite + Tailwind (SPA)"]
-    PG["Pages&lt;br&gt;Today, Members, Profile, Forms,&lt;br&gt;Appointments, Emergency, Voice,&lt;br&gt;Account, DoctorView, Landing"]
+    PG["Pages&lt;br&gt;Today, Members, Profile, Forms,&lt;br&gt;Appointments, Emergency,&lt;br&gt;Account, DoctorView, Landing"]
     CM["Components&lt;br&gt;Layout, NotificationBell,&lt;br&gt;CourseProgress, AdherenceReport,&lt;br&gt;AllergenSearch, ConflictList"]
-    UT["utils&lt;br&gt;api.js (axios + JWT), voice.js,&lt;br&gt;format.js, theme.js"]
+    UT["utils&lt;br&gt;api.js (axios + JWT),&lt;br&gt;format.js, theme.js"]
     SWK["Service Worker sw.js&lt;br&gt;push + install (PWA)"]
   end
 
@@ -1105,7 +1099,6 @@ flowchart LR
   end
 
   DB[("PostgreSQL&lt;br&gt;19 tables")]
-  WS["Web Speech API&lt;br&gt;(browser)"]
   PUSH["Push services&lt;br&gt;FCM / Mozilla / WNS"]
 
   PG --> CM
@@ -1120,7 +1113,6 @@ flowchart LR
   MG --> DB
   SCH -->|"VAPID signed"| PUSH
   PUSH --> SWK
-  PG -.-> WS
 </pre>
 <figcaption>الشكل 16 — المكوّنات. 40 مساراً في الـ API موزعة على 9 ملفات routes.</figcaption>
 </figure>
@@ -1132,7 +1124,7 @@ flowchart LR
 <tr><td class="ltr">/api/members</td><td class="ltr">GET / · POST / · PUT /:id · DELETE /:id · GET|PUT /:id/allergies · GET|PUT /:id/contacts · GET /:id/emergency · GET /:id/adherence</td></tr>
 <tr><td class="ltr">/api/medications</td><td class="ltr">GET /allergy-check · GET /member/:memberId · GET /courses · POST / · PUT /:id · PATCH /:id/stop · GET /refills · GET /:id/supply · POST /:id/refill</td></tr>
 <tr><td class="ltr">/api/catalog</td><td class="ltr">GET /search · GET /allergens</td></tr>
-<tr><td class="ltr">/api/doses</td><td class="ltr">GET /today · POST /confirm · GET /recent</td></tr>
+<tr><td class="ltr">/api/doses</td><td class="ltr">GET /today · POST /confirm</td></tr>
 <tr><td class="ltr">/api/appointments</td><td class="ltr">GET / · POST / · PUT /:id · DELETE /:id</td></tr>
 <tr><td class="ltr">/api/share</td><td class="ltr">POST /:memberId · GET /:token (public)</td></tr>
 <tr><td class="ltr">/api/push</td><td class="ltr">GET /key (public) · POST /subscribe · POST /unsubscribe · POST /test</td></tr>
@@ -1185,10 +1177,8 @@ flowchart LR
     M["/members&lt;br&gt;Family"]
     AP["/appointments"]
     E["/emergency&lt;br&gt;Emergency card"]
-    V["/voice&lt;br&gt;Voice confirm"]
     AC["/account"]
   end
-  T --> V
   M --> MN["/members/new"]
   M --> MP["/members/:id&lt;br&gt;Profile"]
   MP --> ME["/members/:id/edit"]
