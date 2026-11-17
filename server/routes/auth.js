@@ -5,6 +5,7 @@ const pool = require("../db");
 const auth = require("../middleware/auth");
 const { signSession } = require("../middleware/auth");
 const { sendMail } = require("../mailer");
+const { checkEmail, normalizeEmail } = require("../emailCheck");
 
 const router = express.Router();
 
@@ -16,15 +17,20 @@ const SHORT_MSG = "كلمة المرور لازم تكون 8 أحرف على ا�
 const sha256 = (s) => crypto.createHash("sha256").update(String(s)).digest("hex");
 
 router.post("/register", async (req, res) => {
-    const { name, email, password } = req.body;
+    const { name, password } = req.body;
+    const email = normalizeEmail(req.body.email);
 
     if (!name || !email || !password)
         return res.status(400).json({ error: "كل الحقول مطلوبة" });
     if (tooShort(password))
         return res.status(400).json({ error: SHORT_MSG });
 
+    // صيغة، خطأ كتابة في نطاق مشهور، بريد مؤقت، نطاق لا يستقبل بريداً (emailCheck.js)
+    const bad = await checkEmail(email, { allowTypo: req.body.keep_email === true });
+    if (bad) return res.status(400).json(bad);
+
     try {
-        const exists = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
+        const exists = await pool.query("SELECT id FROM users WHERE LOWER(email) = $1", [email]);
         if (exists.rows.length)
             return res.status(400).json({ error: "هذا البريد مسجل مسبقاً" });
 
@@ -44,7 +50,11 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
     const { email, password } = req.body;
     try {
-        const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+        // بلا حساسية لحالة الأحرف: Name@Gmail.com هو name@gmail.com
+        const result = await pool.query(
+            "SELECT * FROM users WHERE LOWER(email) = LOWER($1) ORDER BY id LIMIT 1",
+            [String(email || "").trim()]
+        );
         if (!result.rows.length)
             return res.status(400).json({ error: "البريد أو كلمة المرور غير صحيحة" });
 
