@@ -3,6 +3,7 @@ const cron = require("node-cron");
 const pool = require("./db");
 const { findRefills } = require("./supply");
 const { courses } = require("./course");
+const { signDoseAction } = require("./doseConfirm");
 
 webpush.setVapidDetails(
     process.env.VAPID_SUBJECT || "mailto:admin@example.com",
@@ -115,6 +116,13 @@ function startScheduler() {
                     title: "حان وقت الجرعة",
                     body: `${iso(d.medication_name + (d.strength ? " " + d.strength : ""))} — ${d.member_name}`,
                     url: "/",
+                    // زر «تم الأخذ» في الإشعار نفسه (sw.js ← POST /doses/confirm-action)
+                    actions: [{ action: "taken", title: "تم الأخذ" }],
+                    action_token: signDoseAction({
+                        userId: d.user_id,
+                        medicationId: d.medication_id,
+                        scheduledAt: `${todayStr} ${d.time_of_day}`,
+                    }),
                 }, "dose");
             }
         } catch (err) {

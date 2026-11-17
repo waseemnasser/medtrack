@@ -2,8 +2,37 @@ const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
 const { courses } = require("../course");
+const { confirmDose, verifyDoseAction } = require("../doseConfirm");
 
 const router = express.Router();
+
+// زر «تم الأخذ» في الإشعار نفسه (sw.js). بلا توكن دخول: توكن الإجراء الموقّع
+// في التذكير يكفي، ولا يؤكّد إلا تلك الجرعة. قبل router.use(auth) عمداً.
+router.post("/confirm-action", async (req, res) => {
+    let action;
+    try {
+        action = verifyDoseAction(req.body.token);
+    } catch {
+        return res.status(401).json({ error: "انتهت صلاحية التذكير، افتح التطبيق لتأكيد الجرعة" });
+    }
+    try {
+        const { userId, medicationId, scheduledAt } = action;
+        const log = await confirmDose(userId, medicationId, scheduledAt, { keepConfirmed: true });
+        if (!log) return res.status(404).json({ error: "الدواء لم يعد موجوداً" });
+        // إشعار الجرعة نفسه يُعلَّم مقروءاً في الجرس — أُنجز ما فيه
+        const nid = Number(req.body.notification_id);
+        if (Number.isInteger(nid)) {
+            await pool.query(
+                "UPDATE notifications SET read_at = now() WHERE id = $1 AND user_id = $2 AND read_at IS NULL",
+                [nid, userId]
+            );
+        }
+        res.json(log);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.use(auth);
 
 // جرعات اليوم لكل أفراد العائلة
@@ -68,34 +97,9 @@ router.post("/confirm", async (req, res) => {
         return res.status(400).json({ error: "البيانات ناقصة" });
 
     try {
-        const owns = await pool.query(
-            `SELECT m.id FROM medications m
-       JOIN members mem ON mem.id = m.member_id
-       WHERE m.id = $1 AND mem.user_id = $2`,
-            [medication_id, req.userId]
-        );
-        if (!owns.rows.length) return res.status(403).json({ error: "غير مصرح" });
-
-        const existing = await pool.query(
-            "SELECT id FROM dose_logs WHERE medication_id = $1 AND scheduled_at = $2",
-            [medication_id, scheduled_at]
-        );
-
-        let result;
-        if (existing.rows.length) {
-            result = await pool.query(
-                "UPDATE dose_logs SET confirmed_at = NOW(), status = 'taken' WHERE id = $1 RETURNING *",
-                [existing.rows[0].id]
-            );
-        } else {
-            result = await pool.query(
-                `INSERT INTO dose_logs (medication_id, scheduled_at, confirmed_at, status)
-         VALUES ($1, $2, NOW(), 'taken') RETURNING *`,
-                [medication_id, scheduled_at]
-            );
-        }
-
-        res.json(result.rows[0]);
+        const log = await confirmDose(req.userId, medication_id, scheduled_at);
+        if (!log) return res.status(403).json({ error: "غير مصرح" });
+        res.json(log);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
