@@ -45,8 +45,8 @@ const MIGRATIONS = [
         position INTEGER NOT NULL DEFAULT 0
     )`,
     "CREATE INDEX IF NOT EXISTS emergency_contacts_member ON emergency_contacts (member_id, position)",
-    // كيف أُكّدت الجرعة: لمسة زر أو أمر صوتي (صفحة التأكيد الصوتي)
-    "ALTER TABLE dose_logs ADD COLUMN IF NOT EXISTS method TEXT NOT NULL DEFAULT 'tap'",
+    // أُزيل التأكيد الصوتي، فلم يعد لطريقة التأكيد (لمسة أو صوت) معنى
+    "ALTER TABLE dose_logs DROP COLUMN IF EXISTS method",
 ];
 
 async function migrate() {

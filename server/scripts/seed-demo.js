@@ -185,13 +185,6 @@ async function main() {
     // أُوقف في اليوم الرابع من عشرة لأنه «شعر بتحسّن» — يراه الطبيب في صفحة المشاركة
     await addMedication(khaled, { ingredient: "METRONIDAZOLE", strength: "250", times: ["08:00", "14:00", "22:00"], startedDaysAgo: 18, courseDays: 10, stoppedAfter: 4, stopReason: "felt_better", adherence: 0.95 });
 
-    // خالد يؤكّد جرعاته بصوته غالباً — يظهر في صفحة التأكيد الصوتي وبطاقة الطوارئ
-    await pool.query(
-        `UPDATE dose_logs SET method = 'voice'
-          WHERE medication_id IN (SELECT id FROM medications WHERE member_id = $1) AND id % 3 <> 0`,
-        [khaled]
-    );
-
     // ---------- المواعيد ----------
     const appts = [
         [khaled, "طبيب القلب", 1, "10:00", "عيادة القلب", "مراجعة الضغط والتحاليل"],

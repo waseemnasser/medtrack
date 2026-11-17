@@ -173,7 +173,7 @@ router.get("/:id/emergency", async (req, res) => {
                 [member.id]
             ),
             pool.query(
-                `SELECT m.name, m.strength, dl.confirmed_at, dl.method
+                `SELECT m.name, m.strength, dl.confirmed_at
                    FROM dose_logs dl JOIN medications m ON m.id = dl.medication_id
                   WHERE m.member_id = $1 AND dl.status = 'taken' AND dl.confirmed_at IS NOT NULL
                   ORDER BY dl.confirmed_at DESC LIMIT 1`,
