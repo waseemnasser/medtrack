@@ -7,6 +7,7 @@ import Field, { FormError } from "../components/Field";
 import { useFeedback } from "../feedback/context";
 import { formatDate, periodOf } from "../utils/format";
 import { dateLimits, startDateError, strengthError, unitsPerDoseError, unitsTotalError } from "../utils/validate";
+import { useUnsavedChanges } from "../utils/unsaved";
 import { Pill, Activity, Clock, Package, Lock, Save, Plus, Trash2, X, Search, AlertTriangle } from "lucide-react";
 
 const DAY_LABELS = [
@@ -77,6 +78,9 @@ export default function MedicationForm() {
     const [saving, setSaving] = useState(false);
     const debounce = useRef(null);
     const allergyTimer = useRef(null);
+    // التعديل: النسخة الأصلية بعد ملء النموذج ببيانات الدواء
+    const [loaded, setLoaded] = useState(!isEdit);
+    const { allowLeave } = useUnsavedChanges(JSON.stringify({ form, isCourse, times, ingredients }), loaded);
 
     useEffect(() => {
         api.get("/members")
@@ -144,7 +148,8 @@ export default function MedicationForm() {
                     })));
                 }
             })
-            .catch(() => setError("تعذّر تحميل بيانات الدواء"));
+            .catch(() => setError("تعذّر تحميل بيانات الدواء"))
+            .finally(() => setLoaded(true));
     }, [isEdit, memberId, medId]);
 
     // بحث في كتالوغ الأدوية مع تأخير بسيط حتى لا نرهق السيرفر
@@ -300,6 +305,7 @@ export default function MedicationForm() {
             }
             toast(isEdit ? "حُفظت تعديلات الدواء" : `أُضيف ${form.name.trim()}`);
             // replace: زر الرجوع بعد الحفظ لا يعيد فتح النموذج
+            allowLeave();
             navigate(parent, { replace: true });
         } catch (err) {
             setError(err.response?.data?.error || "تعذّر الحفظ، حاول مجدداً");

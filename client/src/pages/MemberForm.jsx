@@ -10,6 +10,7 @@ import { contactsError } from "../utils/contacts";
 import { useFeedback } from "../feedback/context";
 import { Save, Trash2, Siren } from "lucide-react";
 import { birthDateError, dateLimits } from "../utils/validate";
+import { useUnsavedChanges } from "../utils/unsaved";
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -35,11 +36,14 @@ export default function MemberForm() {
     const [error, setError] = useState("");
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    // التعديل: النسخة الأصلية بعد وصول بيانات الفرد وأرقامه وحساسيته
+    const [loaded, setLoaded] = useState(!isEdit);
+    const { allowLeave } = useUnsavedChanges(JSON.stringify({ form, contacts, allergies }), loaded);
 
     // عند التعديل: يجلب بيانات الفرد الحالية
     useEffect(() => {
         if (!isEdit) return;
-        api.get("/members").then((res) => {
+        const member = api.get("/members").then((res) => {
             const m = res.data.find((x) => String(x.id) === String(id));
             if (m) {
                 setForm({
@@ -52,12 +56,13 @@ export default function MemberForm() {
                 });
             }
         });
-        api.get(`/members/${id}/contacts`)
+        const contactsReq = api.get(`/members/${id}/contacts`)
             .then((res) => setContacts(res.data.map((c) => ({ name: c.name, phone: c.phone, relation: c.relation || "" }))))
             .catch(() => setError("تعذّر تحميل أرقام الطوارئ"));
-        api.get(`/members/${id}/allergies`)
+        const allergiesReq = api.get(`/members/${id}/allergies`)
             .then((res) => setAllergies(res.data.allergies.map(fromServer)))
             .catch(() => setError("تعذّر تحميل الحساسية"));
+        Promise.allSettled([member, contactsReq, allergiesReq]).then(() => setLoaded(true));
     }, [id, isEdit]);
 
     const change = (e) =>
@@ -90,6 +95,7 @@ export default function MemberForm() {
                 toast("حُفظت التعديلات");
             }
             // بعد الإضافة نفتح ملف الفرد مباشرة: الخطوة التالية غالباً إضافة دواء
+            allowLeave();
             navigate(`/members/${memberId}`, { replace: true });
         } catch (err) {
             setError(err.response?.data?.error || "تعذّر الحفظ، حاول مجدداً");
@@ -110,6 +116,7 @@ export default function MemberForm() {
         try {
             await api.delete(`/members/${id}`);
             toast(`حُذف ${form.name}`);
+            allowLeave();
             navigate("/members", { replace: true });
         } catch {
             setError("تعذّر الحذف، حاول مجدداً");

@@ -6,6 +6,7 @@ import Field, { FormError } from "../components/Field";
 import { useFeedback } from "../feedback/context";
 import { Save } from "lucide-react";
 import { appointmentTimeError, dateLimits } from "../utils/validate";
+import { useUnsavedChanges } from "../utils/unsaved";
 
 export default function AppointmentForm() {
     const { id } = useParams();
@@ -31,6 +32,9 @@ export default function AppointmentForm() {
     // وقت الموعد عند فتحه للتعديل: موعد مضى يُعدَّل (ملاحظة، مكان) ما دام وقته لم يتغيّر
     const [originalAt, setOriginalAt] = useState("");
     const limits = dateLimits();
+    // بعد التحميل: الفرد المختار مسبقاً وبيانات الموعد ليست «تعديلاً»
+    const [loaded, setLoaded] = useState(false);
+    const { allowLeave } = useUnsavedChanges(JSON.stringify(form), loaded);
 
     useEffect(() => {
         const init = async () => {
@@ -61,6 +65,7 @@ export default function AppointmentForm() {
             } catch {
                 setError("تعذّر تحميل البيانات");
             }
+            setLoaded(true);
         };
 
         init();
@@ -94,6 +99,7 @@ export default function AppointmentForm() {
             if (isEdit) await api.put(`/appointments/${id}`, payload);
             else await api.post("/appointments", payload);
             toast(isEdit ? "حُفظ الموعد" : "أُضيف الموعد");
+            allowLeave();
             navigate(parent, { replace: true });
         } catch (err) {
             setError(err.response?.data?.error || "تعذّر الحفظ، حاول مجدداً");
