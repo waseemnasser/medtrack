@@ -84,7 +84,7 @@ Check: in Supabase → **Table Editor** you should see `users`, `members`, `medi
    | `PUBLIC_URL` | `https://waseemnasser.github.io/medtrack` (doctor-share and QR links point here) |
    | `TRUST_PROXY` | `1` |
    | `NODE_VERSION` | `22` |
-   | `BREVO_API_KEY` | from step 2b below (password-reset email) |
+   | `BREVO_API_KEY` | from step 2b below (sign-up code and password-reset email). **Required: without it nobody can finish signing up** |
    | `MAIL_FROM` | the sender address you verified in Brevo |
 5. **Deploy Web Service**. The first build takes 2–4 minutes. The log should end with
    `Server running on port 10000` (Render chooses the port).
@@ -93,9 +93,9 @@ Check: in Supabase → **Table Editor** you should see `users`, `members`, `medi
 
 Every `git push` to that branch redeploys the server by itself.
 
-### 2b. Password-reset email (Brevo, free)
+### 2b. Email: sign-up code and password reset (Brevo, free)
 
-«نسيت كلمة المرور» emails a one-time link. Render's free plan blocks the normal email ports (SMTP),
+Sign-up emails a 6-digit code that must be entered before the first login, and «نسيت كلمة المرور» emails a one-time link. Render's free plan blocks the normal email ports (SMTP),
 so the server sends through Brevo's web API instead. The free plan allows 300 emails a day.
 
 1. Create a free account at **brevo.com**.
@@ -104,6 +104,7 @@ so the server sends through Brevo's web API instead. The free plan allows 300 em
 4. On Render, set `BREVO_API_KEY` to that key and `MAIL_FROM` to the verified sender, then redeploy.
 
 Without these two variables, nothing is sent, and the server log says `BREVO_API_KEY غير مضبوط`.
+**New accounts then stay unconfirmed and can't log in.** Accounts that existed before this feature, and the demo account, are already confirmed.
 On a laptop (no key), the reset link is printed in the server terminal instead, so it can be tested without email.
 A Gmail sender with no domain of its own may land in spam. The «تفقّد بريدك» page tells users to check their spam folder.
 
@@ -157,6 +158,7 @@ Do these in order. Tick each one.
 - [ ] Real reminder: add a medicine with a dose **3 minutes from now**, close the app, wait. The «حان وقت الجرعة» notification should arrive on time (Damascus time).
 - [ ] Emergency card → create a share link → open it on a **second** phone. It must work without logging in.
 - [ ] On a dose reminder, press «تم الأخذ» in the notification itself. The dose shows as taken in Today.
+- [ ] Register with your own email. A 6-digit code arrives (check spam), and entering it logs you in. Logging in before entering it shows the code page again.
 - [ ] Login → «نسيت كلمة المرور؟» with your own email. The email arrives (check spam), the link sets a new password, and the old one stops working.
 - [ ] Account → «تغيير كلمة المرور». Another device that was logged in goes back to the login page.
 

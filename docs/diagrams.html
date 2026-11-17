@@ -102,6 +102,7 @@ flowchart LR
     direction TB
     U1(["Register / Log in&lt;br&gt;حساب جديد / دخول"])
     U1a(["Reset / change password&lt;br&gt;استعادة / تغيير كلمة المرور"])
+    U1b(["Verify email with a code&lt;br&gt;تأكيد البريد برمز"])
     U2(["Manage family members&lt;br&gt;إدارة أفراد العائلة"])
     U3(["Record allergies&lt;br&gt;تسجيل الحساسية"])
     U4(["Add / edit medication&lt;br&gt;إضافة / تعديل دواء"])
@@ -121,6 +122,7 @@ flowchart LR
 
   CG --- U1
   CG --- U1a
+  U1 -.->|«include»| U1b
   CG --- U2
   CG --- U3
   CG --- U4
@@ -241,6 +243,7 @@ erDiagram
   users ||--o{ push_subscriptions : "has devices"
   users ||--o{ notifications : receives
   users ||--o{ password_resets : "reset links"
+  users ||--o| email_codes : "sign-up code"
   users ||--o{ share_links : creates
   members ||--o{ medications : takes
   members ||--o{ appointments : has
@@ -268,7 +271,15 @@ erDiagram
     varchar email UK
     text password_hash "bcrypt"
     int password_version "in every login token"
+    timestamptz email_verified_at "null until the code is entered"
     timestamp created_at
+  }
+  email_codes {
+    int user_id PK, FK
+    text code_hash "sha256, 6-digit code"
+    timestamptz expires_at "15 minutes"
+    int attempts "max 5"
+    timestamptz sent_at "resend after 60 s"
   }
   password_resets {
     int id PK
@@ -424,7 +435,7 @@ erDiagram
     timestamp read_at
   }
 </pre>
-<figcaption>الشكل 4 — الـ ERD كاملاً: 20 جدولاً (مرّر أفقياً، أو استعمل الجزأين 4.1 و4.2 في التقرير). الرمز ||--o{ يعني «واحد إلى كثير (صفر أو أكثر)». الرمز |o--o{ يعني أن الطرف الواحد اختياري.</figcaption>
+<figcaption>الشكل 4 — الـ ERD كاملاً: 21 جدولاً (مرّر أفقياً، أو استعمل الجزأين 4.1 و4.2 في التقرير). الرمز ||--o{ يعني «واحد إلى كثير (صفر أو أكثر)». الرمز |o--o{ يعني أن الطرف الواحد اختياري.</figcaption>
 </figure>
 
 <h3>4.1 الجزء الأول: البيانات الأساسية (الحساب، الأفراد، الأدوية، الجرعات، المواعيد، المشاركة)</h3>
@@ -435,6 +446,7 @@ erDiagram
   users ||--o{ push_subscriptions : "has devices"
   users ||--o{ notifications : receives
   users ||--o{ password_resets : "reset links"
+  users ||--o| email_codes : "sign-up code"
   users ||--o{ share_links : creates
   members ||--o{ medications : takes
   members ||--o{ appointments : has
@@ -449,7 +461,15 @@ erDiagram
     varchar email UK
     text password_hash "bcrypt"
     int password_version "in every login token"
+    timestamptz email_verified_at "null until the code is entered"
     timestamp created_at
+  }
+  email_codes {
+    int user_id PK, FK
+    text code_hash "sha256, 6-digit code"
+    timestamptz expires_at "15 minutes"
+    int attempts "max 5"
+    timestamptz sent_at "resend after 60 s"
   }
   password_resets {
     int id PK
@@ -549,7 +569,7 @@ erDiagram
     timestamp created_at
   }
 </pre>
-<figcaption>الشكل 4.1 — نصف الـ ERD الأول: 11 جدولاً.</figcaption>
+<figcaption>الشكل 4.1 — نصف الـ ERD الأول: 12 جدولاً.</figcaption>
 </figure>
 
 <h3>4.2 الجزء الثاني: الحساسية والكتالوغ (المواد الفعّالة والعائلات الدوائية)</h3>
@@ -690,6 +710,7 @@ classDiagram
     -int passwordVersion
     +register()
     +login() JWT
+    +verifyEmail(code)
     +changePassword(old, new)
     +resetPassword(token, new)
   }
@@ -1129,7 +1150,7 @@ flowchart LR
     MG["migrate.js&lt;br&gt;schema updates at startup"]
   end
 
-  DB[("PostgreSQL&lt;br&gt;20 tables")]
+  DB[("PostgreSQL&lt;br&gt;21 tables")]
   PUSH["Push services&lt;br&gt;FCM / Mozilla / WNS"]
 
   PG --> CM
@@ -1145,13 +1166,13 @@ flowchart LR
   SCH -->|"VAPID signed"| PUSH
   PUSH --> SWK
 </pre>
-<figcaption>الشكل 16 — المكوّنات. 44 مساراً في الـ API موزعة على 9 ملفات routes.</figcaption>
+<figcaption>الشكل 16 — المكوّنات. 46 مساراً في الـ API موزعة على 9 ملفات routes.</figcaption>
 </figure>
 
 <h3>مسارات الـ API (للمرجع)</h3>
 <table>
 <tr><th>الملف</th><th>المسارات</th></tr>
-<tr><td class="ltr">/api/auth</td><td class="ltr">POST /register · POST /login · GET /me · POST /change-password · POST /forgot-password · POST /reset-password</td></tr>
+<tr><td class="ltr">/api/auth</td><td class="ltr">POST /register · POST /login · GET /me · POST /verify-email · POST /resend-code · POST /change-password · POST /forgot-password · POST /reset-password</td></tr>
 <tr><td class="ltr">/api/members</td><td class="ltr">GET / · POST / · PUT /:id · DELETE /:id · GET|PUT /:id/allergies · GET|PUT /:id/contacts · GET /:id/emergency · GET /:id/adherence</td></tr>
 <tr><td class="ltr">/api/medications</td><td class="ltr">GET /allergy-check · GET /member/:memberId · GET /courses · POST / · PUT /:id · PATCH /:id/stop · GET /refills · GET /:id/supply · POST /:id/refill</td></tr>
 <tr><td class="ltr">/api/catalog</td><td class="ltr">GET /search · GET /allergens</td></tr>
@@ -1225,7 +1246,7 @@ flowchart LR
 <h2 id="checklist">12. قائمة تحقق قبل التسليم</h2>
 <ul>
   <li>كل مخطط له <b>رقم وعنوان</b> في التقرير (الشكل 1، الشكل 2، ...) ويُذكر في النص قبله.</li>
-  <li>الـ ERD في التقرير = <b>20 جدولاً</b> بنفس الأسماء الموجودة في القاعدة. لا تترجموا أسماء الجداول والأعمدة.</li>
+  <li>الـ ERD في التقرير = <b>21 جدولاً</b> بنفس الأسماء الموجودة في القاعدة. لا تترجموا أسماء الجداول والأعمدة.</li>
   <li>Use Case: الفاعلون <b>خارج</b> إطار النظام، والحالات <b>داخله</b>. لا تربطوا فاعلاً بفاعل.</li>
   <li>Sequence: الرسائل المتقطعة (-->>) ردود، والمتصلة طلبات. أكواد الرد (200، 201، 400، 409، 410) حقيقية من الكود.</li>
   <li>DFD: كل مخزن بيانات تدخله بيانات وتخرج منه. لا توجد عملية بلا مدخلات أو بلا مخرجات.</li>
