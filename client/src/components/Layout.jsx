@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Outlet, NavLink, Link, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, Settings, LogOut, Menu, Accessibility, Moon, Sun, Siren, Mic } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, Settings, LogOut, Menu, Accessibility, Moon, Sun, Siren } from "lucide-react";
 import api from "../api";
 import InstallPrompt from "./InstallPrompt";
 import NotificationBell from "./NotificationBell";
@@ -17,7 +17,6 @@ const NAV = [
     { to: "/members", label: "العائلة", icon: Users, color: "text-blue-500" },
     { to: "/appointments", label: "المواعيد", icon: Calendar, color: "text-purple-500" },
     { to: "/emergency", label: "بطاقة الطوارئ", icon: Siren, color: "text-red-500" },
-    { to: "/voice", label: "التأكيد الصوتي", icon: Mic, color: "text-rose-500" },
     { to: "/account", label: "الحساب", icon: Settings, color: "text-sage-400" },
 ];
 

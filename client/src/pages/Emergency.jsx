@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
     Siren, AlertTriangle, Droplet, Heart, Phone, Pill, Clock, QrCode, ShieldAlert, HeartPulse,
-    Mic, Edit2, Plus, FileText, Copy, CheckCircle, Send, Link as LinkIcon, Lock,
+    Edit2, Plus, FileText, Copy, CheckCircle, Send, Link as LinkIcon, Lock,
 } from "lucide-react";
 import api from "../api";
 import Skeleton from "../components/Skeleton";
@@ -243,9 +243,6 @@ export default function Emergency() {
                                                 <p className="font-semibold text-forest-950"><bdi>{card.last_dose.name} {card.last_dose.strength}</bdi></p>
                                                 <p className="text-sm text-forest-700/60">
                                                     {when(card.last_dose.confirmed_at)}
-                                                    {card.last_dose.method === "voice" && (
-                                                        <span className="text-forest-600 font-medium inline-flex items-center gap-1"> · <Mic className="w-3.5 h-3.5" /> تأكيد صوتي</span>
-                                                    )}
                                                 </p>
                                             </div>
                                         </div>

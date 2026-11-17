@@ -13,7 +13,6 @@ import AppointmentForm from "./pages/AppointmentForm";
 import DoctorView from "./pages/DoctorView";
 import Account from "./pages/Account";
 import Emergency from "./pages/Emergency";
-import VoiceLog from "./pages/VoiceLog";
 import NotFound from "./pages/NotFound";
 import FeedbackProvider from "./feedback/FeedbackProvider";
 import "./styles/app.css";
@@ -55,7 +54,6 @@ function GuestOnly({ children }) {
         └ (/members/:id/share القديمة ← بطاقة الطوارئ: المشاركة صارت فيها)
   المواعيد      /appointments
   الطوارئ       /emergency?member=  (بطاقة الطوارئ)
-  الصوت         /voice?member=      (التأكيد الصوتي)
   الحساب        /account
   الصفحة التعريفية /welcome     (عامة)
   صفحة الطبيب  /share/:token   (عامة، بلا تسجيل دخول)
@@ -88,7 +86,6 @@ export default function App() {
             <Route path="/appointments/:id/edit" element={<AppointmentForm />} />
 
             <Route path="/emergency" element={<Emergency />} />
-            <Route path="/voice" element={<VoiceLog />} />
 
             <Route path="/account" element={<Account />} />
             <Route path="*" element={<NotFound />} />

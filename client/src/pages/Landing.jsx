@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
     Menu, X, Accessibility, ArrowLeft, ShieldCheck, Clock, HeartPulse, Pill, Package, Calendar,
-    QrCode, Users, Bell, AlertTriangle, Activity, ChevronDown, Mic, Siren,
+    QrCode, Users, Bell, AlertTriangle, Activity, ChevronDown, Siren,
 } from "lucide-react";
 import Logo from "../components/Logo";
 import ThemeToggle from "../components/ThemeToggle";
@@ -349,7 +349,6 @@ const SERVICES = [
     { icon: Activity, title: "الكورس حتى آخر يوم", desc: "متابعة المضاد الحيوي يوماً بيوم، وتنبيه إن فاتت جرعتان قبل نهاية الكورس.", color: "bg-blue-100 text-blue-600" },
     { icon: Calendar, title: "مواعيد الطبيب", desc: "تذكير مساء اليوم السابق، وآخر قبل الموعد بساعتين.", color: "bg-purple-100 text-purple-600" },
     { icon: Package, title: "قبل أن ينفد الدواء", desc: "تقدير لتاريخ نفاد كل علبة، وتذكير صباحي لتجدّدها في وقتها.", color: "bg-teal-100 text-teal-600" },
-    { icon: Mic, title: "تأكيد صوتي", desc: "قل «أخذت الدواء» فتُسجَّل الجرعة المستحقة، بلا قوائم ولا أزرار صغيرة.", color: "bg-rose-100 text-rose-600" },
 ];
 
 function Services() {
@@ -587,50 +586,8 @@ function FeatureShowcase({ start, isIn }) {
                 </div>
             </section>
 
-            {/* التأكيد الصوتي — قسم «Voice Logging» في النموذج */}
-            <section className="py-20 lg:py-28 bg-white dark:bg-[#0B1F1E]">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                        <Reveal animation="fade-up">
-                            <span className="badge badge-info mb-4">التأكيد الصوتي</span>
-                            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-forest-950 text-balance">
-                                فقط قُلها
-                            </h2>
-                            <p className="mt-4 text-lg text-forest-700/70 leading-relaxed">
-                                لا قوائم ولا أزرار صغيرة. يقول «أخذت الدواء» فيسجّل نبض الجرعة المستحقة الآن،
-                                ويفهم «ما أخذته» على أنه ليس تأكيداً.
-                            </p>
-                            <Bullets icon={Mic} box="bg-blue-100" color="text-blue-500" items={[
-                                "تعرّف على الكلام بالعربية من المتصفح نفسه",
-                                "اذكر اسم الدواء إن كانت أكثر من جرعة مستحقة",
-                                "يُسجَّل في السجل أن التأكيد كان بالصوت",
-                                "والضغط متاح دائماً لمن يفضّله",
-                            ]} />
-                        </Reveal>
-
-                        <Reveal animation="scale-in" delay={200}>
-                            <div className="card p-8 gradient-mint !border-2 !border-forest-200 dark:!border-forest-700 text-center" aria-hidden="true">
-                                <div className="w-24 h-24 bg-forest-600 rounded-full flex items-center justify-center mx-auto mb-6 relative">
-                                    <Mic className="w-12 h-12 text-white" />
-                                    <span className="absolute inset-0 rounded-full bg-forest-600 animate-pulse-ring" />
-                                </div>
-                                <p className="text-2xl font-bold text-forest-950 dark:text-forest-50">«أخذت الدواء»</p>
-                                <p className="text-sm text-forest-600 dark:text-forest-400 mt-2">جارٍ الاستماع...</p>
-                                <div className="mt-6 flex items-center justify-center gap-1">
-                                    {[...Array(7)].map((_, i) => (
-                                        <div key={i} className="w-1.5 bg-forest-600 rounded-full animate-pulse"
-                                            style={{ height: `${20 + Math.sin(i) * 15 + 15}px`, animationDelay: `${i * 100}ms` }} />
-                                    ))}
-                                </div>
-                                <p className="mt-6 text-sm font-semibold text-forest-700 dark:text-forest-300">سُجّلت جرعة الساعة 2:03 م</p>
-                            </div>
-                        </Reveal>
-                    </div>
-                </div>
-            </section>
-
             {/* الكورس */}
-            <section className="py-20 lg:py-28 bg-sage-50 dark:bg-[#0B1F1E]">
+            <section className="py-20 lg:py-28 bg-white dark:bg-[#0B1F1E]">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         <Reveal animation="fade-up">
@@ -724,7 +681,7 @@ const FAQ = [
 
 function Faq() {
     return (
-        <section id="faq" className="py-20 lg:py-28 bg-white dark:bg-[#0B1F1E] scroll-mt-20">
+        <section id="faq" className="py-20 lg:py-28 bg-sage-50 dark:bg-[#0B1F1E] scroll-mt-20">
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                 <Reveal className="text-center mb-12">
                     <span className="badge badge-success mb-4">أسئلة</span>
@@ -752,7 +709,7 @@ function Faq() {
 
 function LandingCTA({ isIn, start }) {
     return (
-        <section className="py-20 lg:py-28 bg-sage-50">
+        <section className="py-20 lg:py-28 bg-white dark:bg-[#0B1F1E]">
             <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <Reveal animation="scale-in">
                     <div className="gradient-forest rounded-3xl p-10 lg:p-16 text-center relative overflow-hidden">
