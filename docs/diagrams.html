@@ -911,6 +911,7 @@ sequenceDiagram
   participant T as Scheduler (node-cron, every minute)
   participant P as push.js
   participant D as PostgreSQL
+  participant A as Express API
   participant W as Push service (FCM / Mozilla / WNS)
   participant SW as Service worker (phone)
   actor U as Caregiver
@@ -919,17 +920,24 @@ sequenceDiagram
     P->>D: INSERT notifications (bell history)
     P->>D: SELECT push_subscriptions of the user
     par every device at once
-      P->>W: send notification (20 s timeout)
+      P->>W: send notification + signed action token (20 s timeout)
       W->>SW: push event
-      SW-->>U: system notification
+      SW-->>U: system notification with a "taken" button
     end
     opt device answered 404 or 410
       P->>D: DELETE expired subscription
     end
   end
+  opt user presses "taken" on the notification
+    U->>SW: action taken
+    SW->>A: POST /api/doses/confirm-action (token)
+    A->>D: verify token, insert dose_logs (taken), mark notification read
+    A-->>SW: 200
+    SW-->>U: open app pages refresh (or a "not recorded" notice on failure)
+  end
   Note over T,P: the same path sends appointment (day before at 18:00, 2 hours before), refill and course alerts (10:00)
 </pre>
-<figcaption>الشكل 9 — إرسال التذكير.</figcaption>
+<figcaption>الشكل 9 — إرسال التذكير وزر «تم الأخذ» في الإشعار.</figcaption>
 </figure>
 
 <h3>6.5 رابط المشاركة للطبيب (رمز QR)</h3>
@@ -1114,7 +1122,7 @@ flowchart LR
   SCH -->|"VAPID signed"| PUSH
   PUSH --> SWK
 </pre>
-<figcaption>الشكل 16 — المكوّنات. 40 مساراً في الـ API موزعة على 9 ملفات routes.</figcaption>
+<figcaption>الشكل 16 — المكوّنات. 41 مساراً في الـ API موزعة على 9 ملفات routes.</figcaption>
 </figure>
 
 <h3>مسارات الـ API (للمرجع)</h3>
@@ -1124,7 +1132,7 @@ flowchart LR
 <tr><td class="ltr">/api/members</td><td class="ltr">GET / · POST / · PUT /:id · DELETE /:id · GET|PUT /:id/allergies · GET|PUT /:id/contacts · GET /:id/emergency · GET /:id/adherence</td></tr>
 <tr><td class="ltr">/api/medications</td><td class="ltr">GET /allergy-check · GET /member/:memberId · GET /courses · POST / · PUT /:id · PATCH /:id/stop · GET /refills · GET /:id/supply · POST /:id/refill</td></tr>
 <tr><td class="ltr">/api/catalog</td><td class="ltr">GET /search · GET /allergens</td></tr>
-<tr><td class="ltr">/api/doses</td><td class="ltr">GET /today · POST /confirm</td></tr>
+<tr><td class="ltr">/api/doses</td><td class="ltr">GET /today · POST /confirm · POST /confirm-action (token, no login)</td></tr>
 <tr><td class="ltr">/api/appointments</td><td class="ltr">GET / · POST / · PUT /:id · DELETE /:id</td></tr>
 <tr><td class="ltr">/api/share</td><td class="ltr">POST /:memberId · GET /:token (public)</td></tr>
 <tr><td class="ltr">/api/push</td><td class="ltr">GET /key (public) · POST /subscribe · POST /unsubscribe · POST /test</td></tr>
