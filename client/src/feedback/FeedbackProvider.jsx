@@ -8,6 +8,7 @@ export default function FeedbackProvider({ children }) {
     const [dialog, setDialog] = useState(null); // { title, message, confirmLabel, cancelLabel, danger }
     const [toasts, setToasts] = useState([]);
     const dialogRef = useRef(null);
+    const cancelRef = useRef(null);
     const resolver = useRef(null);
     const nextId = useRef(0);
 
@@ -28,7 +29,12 @@ export default function FeedbackProvider({ children }) {
     // <dialog> الأصلي: يحبس التركيز داخله ويُغلق بزر Esc ويقرأه قارئ الشاشة
     useEffect(() => {
         const el = dialogRef.current;
-        if (dialog && el && !el.open) el.showModal();
+        if (dialog && el && !el.open) {
+            el.showModal();
+            // showModal() يضع التركيز على أول زر (التأكيد) ويتجاوز autoFocus —
+            // نعيده إلى «إلغاء» صراحةً، فلا يحذف Enter بالخطأ شيئاً
+            cancelRef.current?.focus();
+        }
     }, [dialog]);
 
     const close = (answer) => {
@@ -74,7 +80,7 @@ export default function FeedbackProvider({ children }) {
                                 {dialog.confirmLabel}
                             </button>
                             {/* زر الإلغاء يأخذ التركيز أولاً: الضغط على Enter بالخطأ لا يحذف شيئاً */}
-                            <button type="button" className="btn-secondary" onClick={() => close(false)} autoFocus>
+                            <button type="button" ref={cancelRef} className="btn-secondary" onClick={() => close(false)}>
                                 {dialog.cancelLabel}
                             </button>
                         </div>
