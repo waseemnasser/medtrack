@@ -6,6 +6,7 @@ import AllergenSearch from "../components/AllergenSearch";
 import Field, { FormError } from "../components/Field";
 import { useFeedback } from "../feedback/context";
 import { formatDate, periodOf } from "../utils/format";
+import { dateLimits, startDateError, strengthError, unitsPerDoseError, unitsTotalError } from "../utils/validate";
 import { Pill, Activity, Clock, Package, Lock, Save, Plus, Trash2, X, Search, AlertTriangle } from "lucide-react";
 
 const DAY_LABELS = [
@@ -85,6 +86,7 @@ export default function MedicationForm() {
 
     // دواء من الكتالوغ: موادّه معروفة. مكتوب يدوياً: يختار المستخدم موادّه
     const fromCatalog = Boolean(Number(form.catalog_id));
+    const limits = dateLimits();
     const ingredientIds = fromCatalog ? [] : ingredients.map((i) => i.id);
 
     // فحص الحساسية أثناء الكتابة — تحذير مبكر قبل الضغط على «حفظ»
@@ -227,6 +229,12 @@ export default function MedicationForm() {
         if (times.length === 0) return setError("أضف موعد جرعة واحداً على الأقل");
         if (times.some((t) => !t.days_of_week))
             return setError("اختر يوماً واحداً على الأقل لكل موعد");
+        // العيار اليدوي رقم ووحدة، والتواريخ والكميات منطقية (utils/validate.js = قواعد الخادم)
+        const invalid = strengthError(form.strength, { fromCatalog })
+            || startDateError(form.start_date, { birthDate: member?.birth_date })
+            || unitsPerDoseError(form.units_per_dose)
+            || unitsTotalError(form.units_total);
+        if (invalid) return setError(invalid);
 
         setSaving(true);
         try {
@@ -316,7 +324,8 @@ export default function MedicationForm() {
                 </div>
             )}
 
-            <form className="space-y-6" onSubmit={submit}>
+            {/* noValidate: رسائلنا العربية (utils/validate.js) بدل فقاعة المتصفح بلغته؛ min/max تبقى لتقويم الاختيار */}
+            <form className="space-y-6" onSubmit={submit} noValidate>
                 {/* ── بيانات الدواء ── */}
                 <section className="card p-6 space-y-4">
                     <h2 className={sectionTitle}><Pill className="w-5 h-5 text-forest-600" /> بيانات الدواء</h2>
@@ -412,8 +421,10 @@ export default function MedicationForm() {
                     )}
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <Field label="العيار" htmlFor="strength">
-                            <input id="strength" name="strength" value={form.strength} onChange={change} placeholder="مثال: 5 ملغ" className="input-field" />
+                        <Field label="العيار" htmlFor="strength" required={!fromCatalog}
+                            hint={fromCatalog ? undefined : <>رقم ثم وحدة: <bdi dir="ltr">500 mg</bdi> أو 5 ملغ أو <bdi dir="ltr">250 mg/5 ml</bdi></>}>
+                            {/* dir=auto: «100 mg» يُعرض كما كُتب، و«5 ملغ» من اليمين */}
+                            <input id="strength" name="strength" dir="auto" value={form.strength} onChange={change} placeholder="500 mg" className="input-field" />
                         </Field>
                         <Field label="الشكل" htmlFor="form">
                             <select id="form" name="form" value={form.form} onChange={change} className="input-field">
@@ -424,7 +435,9 @@ export default function MedicationForm() {
                             <input id="instructions" name="instructions" value={form.instructions} onChange={change} placeholder="مثال: بعد الفطور" className="input-field" />
                         </Field>
                         <Field label="تاريخ البدء" htmlFor="start_date">
-                            <input id="start_date" type="date" name="start_date" value={form.start_date} onChange={change} className="input-field" />
+                            <input id="start_date" type="date" name="start_date" value={form.start_date} onChange={change}
+                                min={member?.birth_date && String(member.birth_date).slice(0, 10) > limits.startMin ? String(member.birth_date).slice(0, 10) : limits.startMin}
+                                max={limits.startMax} className="input-field" />
                         </Field>
                     </div>
                 </section>
@@ -523,10 +536,10 @@ export default function MedicationForm() {
                     <h2 className={sectionTitle}><Package className="w-5 h-5 text-amber-500" /> الكمية المتوفرة</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <Field label="عدد الوحدات في العلبة" htmlFor="units_total">
-                            <input id="units_total" type="number" name="units_total" value={form.units_total} onChange={change} min="0" className="input-field" />
+                            <input id="units_total" type="number" name="units_total" value={form.units_total} onChange={change} min="1" max="10000" step="1" className="input-field" />
                         </Field>
-                        <Field label="عدد الوحدات في الجرعة الواحدة" htmlFor="units_per_dose" hint="نستخدمها لتنبيهك قبل نفاد الدواء">
-                            <input id="units_per_dose" type="number" name="units_per_dose" value={form.units_per_dose} onChange={change} min="0" step="0.5" className="input-field" />
+                        <Field label="عدد الوحدات في الجرعة الواحدة" htmlFor="units_per_dose" hint="1 = حبة واحدة، 0.5 = نصف حبة. نستخدمها لتنبيهك قبل نفاد الدواء">
+                            <input id="units_per_dose" type="number" name="units_per_dose" value={form.units_per_dose} onChange={change} min="0.5" max="50" step="0.5" className="input-field" />
                         </Field>
                     </div>
 

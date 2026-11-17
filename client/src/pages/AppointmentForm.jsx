@@ -5,6 +5,7 @@ import PageHeader from "../components/PageHeader";
 import Field, { FormError } from "../components/Field";
 import { useFeedback } from "../feedback/context";
 import { Save } from "lucide-react";
+import { appointmentTimeError, dateLimits } from "../utils/validate";
 
 export default function AppointmentForm() {
     const { id } = useParams();
@@ -27,6 +28,9 @@ export default function AppointmentForm() {
     });
     const [error, setError] = useState("");
     const [saving, setSaving] = useState(false);
+    // وقت الموعد عند فتحه للتعديل: موعد مضى يُعدَّل (ملاحظة، مكان) ما دام وقته لم يتغيّر
+    const [originalAt, setOriginalAt] = useState("");
+    const limits = dateLimits();
 
     useEffect(() => {
         const init = async () => {
@@ -38,6 +42,7 @@ export default function AppointmentForm() {
                     const aRes = await api.get("/appointments");
                     const a = aRes.data.find((x) => String(x.id) === String(id));
                     if (a) {
+                        setOriginalAt(String(a.scheduled_at).replace(" ", "T").slice(0, 16));
                         setForm({
                             member_id: a.member_id || "",
                             title: a.title || "",
@@ -71,6 +76,8 @@ export default function AppointmentForm() {
         if (!form.member_id) return setError("اختر الفرد");
         if (!form.title.trim()) return setError("الرجاء إدخال عنوان الموعد");
         if (!form.scheduled_at) return setError("الرجاء تحديد التاريخ والساعة");
+        const badTime = appointmentTimeError(form.scheduled_at, { allowPast: isEdit && form.scheduled_at === originalAt });
+        if (badTime) return setError(badTime);
 
         const payload = {
             member_id: Number(form.member_id),
@@ -99,7 +106,8 @@ export default function AppointmentForm() {
         <div className="max-w-2xl">
             <PageHeader title={isEdit ? "تعديل موعد" : "موعد جديد"} back={parent} />
 
-            <form className="card p-6 space-y-4" onSubmit={submit}>
+            {/* noValidate: رسائلنا العربية (utils/validate.js) بدل فقاعة المتصفح بلغته؛ min/max تبقى لتقويم الاختيار */}
+            <form className="card p-6 space-y-4" onSubmit={submit} noValidate>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field label="الفرد" htmlFor="member_id" required>
                         <select id="member_id" name="member_id" value={form.member_id} onChange={change} className="input-field">
@@ -119,7 +127,9 @@ export default function AppointmentForm() {
                 <Field label="التاريخ والساعة" htmlFor="scheduled_at" required
                     hint="يصلك تذكير مساء اليوم السابق، وتذكير آخر قبل الموعد بساعتين.">
                     <input id="scheduled_at" type="datetime-local" name="scheduled_at" value={form.scheduled_at}
-                        onChange={change} className="input-field" />
+                        onChange={change} max={limits.apptMax}
+                        min={isEdit && originalAt && originalAt < limits.apptMin ? originalAt : limits.apptMin}
+                        className="input-field" />
                 </Field>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

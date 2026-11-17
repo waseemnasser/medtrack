@@ -9,6 +9,7 @@ import ContactsEditor from "../components/ContactsEditor";
 import { contactsError } from "../utils/contacts";
 import { useFeedback } from "../feedback/context";
 import { Save, Trash2, Siren } from "lucide-react";
+import { birthDateError, dateLimits } from "../utils/validate";
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -70,6 +71,8 @@ export default function MemberForm() {
             return;
         }
         // قبل أي حفظ: لا نحفظ الفرد ثم نفشل في أرقامه
+        const badBirth = birthDateError(form.birth_date);
+        if (badBirth) return setError(badBirth);
         const contactsProblem = contactsError(contacts);
         if (contactsProblem) return setError(contactsProblem);
         setSaving(true);
@@ -119,7 +122,8 @@ export default function MemberForm() {
         <div className="max-w-2xl">
             <PageHeader title={isEdit ? "تعديل بيانات الفرد" : "إضافة فرد جديد"} back={parent} />
 
-            <form className="card p-6 space-y-5" onSubmit={submit}>
+            {/* noValidate: رسائلنا العربية (utils/validate.js) بدل فقاعة المتصفح بلغته؛ min/max تبقى لتقويم الاختيار */}
+            <form className="card p-6 space-y-5" onSubmit={submit} noValidate>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field label="الاسم" htmlFor="name" required>
                         <input id="name" name="name" value={form.name} onChange={change}
@@ -128,7 +132,7 @@ export default function MemberForm() {
 
                     <Field label="تاريخ الميلاد" htmlFor="birth_date" hint="اختياري — يمكنك إضافته لاحقاً">
                         <input id="birth_date" type="date" name="birth_date" value={form.birth_date}
-                            onChange={change} className="input-field" />
+                            onChange={change} min={dateLimits().birthMin} max={dateLimits().today} className="input-field" />
                     </Field>
                 </div>
 
