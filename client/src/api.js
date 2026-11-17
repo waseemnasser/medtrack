@@ -20,7 +20,12 @@ api.interceptors.request.use((config) => {
 // الجلسة لم تعد صالحة (انتهت، أو تغيّرت كلمة المرور من جهاز آخر): بدل أخطاء في
 // كل صفحة، نعود إلى الدخول برسالة واضحة. فقط لطلبات أُرسل معها توكن.
 api.interceptors.response.use(
-    (res) => res,
+    (res) => {
+        // الخادم جدّد الجلسة (مضى نصف عمر التوكن): نحفظ الجديد بصمت — middleware/auth.js
+        const renewed = res.headers["x-session-token"];
+        if (renewed && localStorage.getItem("token")) localStorage.setItem("token", renewed);
+        return res;
+    },
     (err) => {
         if (err.response?.status === 401 && err.config?.headers?.Authorization && localStorage.getItem("token")) {
             localStorage.removeItem("token");
