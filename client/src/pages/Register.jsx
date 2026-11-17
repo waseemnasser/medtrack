@@ -3,7 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { Mail, User, ArrowLeft } from "lucide-react";
 import api from "../api";
 import AuthLayout from "../components/AuthLayout";
-import PasswordInput from "../components/PasswordInput";
+import PasswordPair from "../components/PasswordPair";
+import { passwordPairError } from "../utils/password";
 import Field, { FormError } from "../components/Field";
 import { getEasyMode, setEasyMode } from "../utils/easyMode";
 
@@ -11,6 +12,7 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [easy, setEasy] = useState(getEasyMode);
@@ -18,6 +20,8 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const invalid = passwordPairError(password, confirm);
+    if (invalid) return setError(invalid);
     setError("");
     setLoading(true);
     try {
@@ -68,17 +72,7 @@ export default function Register() {
           </div>
         </Field>
 
-        <Field label="كلمة المرور" htmlFor="password">
-          <PasswordInput
-            id="password"
-            autoComplete="new-password"
-            placeholder="8 أحرف على الأقل"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            minLength={8}
-            required
-          />
-        </Field>
+        <PasswordPair password={password} confirm={confirm} onPassword={setPassword} onConfirm={setConfirm} />
 
         {/* يُطبَّق فوراً حتى يرى المستخدم الفرق قبل أن يقرّر */}
         <label className="flex items-start gap-3 bg-white dark:bg-forest-900/50 border border-sage-200 dark:border-forest-700/50 rounded-xl p-4 cursor-pointer">

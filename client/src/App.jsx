@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Today from "./pages/Today";
 import Members from "./pages/Members";
 import MemberForm from "./pages/MemberForm";
@@ -57,6 +59,7 @@ function GuestOnly({ children }) {
   الحساب        /account
   الصفحة التعريفية /welcome     (عامة)
   صفحة الطبيب  /share/:token   (عامة، بلا تسجيل دخول)
+  نسيت كلمة المرور /forgot-password ← رابط البريد /reset-password?token=
 */
 export default function App() {
   return (
@@ -66,6 +69,9 @@ export default function App() {
           {/* صفحات بلا هيكل */}
           <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
           <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
+          <Route path="/forgot-password" element={<GuestOnly><ForgotPassword /></GuestOnly>} />
+          {/* بلا GuestOnly: رابط البريد يعمل حتى لو كان المتصفح داخلاً بجلسة قديمة */}
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/welcome" element={<Suspense fallback={null}><Landing /></Suspense>} />
           <Route path="/share/:token" element={<DoctorView />} />
 

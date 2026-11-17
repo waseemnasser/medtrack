@@ -1,13 +1,18 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Mail, ArrowLeft } from "lucide-react";
+import { useNavigate, useLocation, useSearchParams, Link } from "react-router-dom";
+import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
 import api from "../api";
 import AuthLayout from "../components/AuthLayout";
 import PasswordInput from "../components/PasswordInput";
 import Field, { FormError } from "../components/Field";
 
 export default function Login() {
-  const [email, setEmail] = useState("");
+  const location = useLocation();
+  // رسالة من صفحة أخرى: «تغيّرت كلمة المرور» بعد الاستعادة، أو «سجّل دخولك من جديد»
+  const [params] = useSearchParams();
+  const notice = location.state?.notice
+    || (params.has("expired") ? "انتهت جلستك أو تغيّرت كلمة المرور. سجّل دخولك من جديد." : null);
+  const [email, setEmail] = useState(location.state?.email || "");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,6 +38,12 @@ export default function Login() {
   return (
     <AuthLayout headline="أهلاً بعودتك" lead="سجّل دخولك لمتابعة جرعات اليوم.">
       <form className="space-y-4" onSubmit={handleSubmit}>
+        {notice && (
+          <div role="status" className="rounded-xl border border-forest-200 dark:border-forest-700/60 bg-mint-50 dark:bg-forest-900/40 text-forest-800 dark:text-forest-200 px-4 py-3 text-sm flex items-start gap-2">
+            <CheckCircle className="w-5 h-5 flex-shrink-0 text-forest-600" /> {notice}
+          </div>
+        )}
+
         <Field label="البريد الإلكتروني" htmlFor="email">
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-sage-400 pointer-events-none" />
@@ -59,6 +70,10 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          <Link to="/forgot-password" state={{ email }}
+            className="inline-block mt-2 text-sm text-forest-600 font-medium hover:underline">
+            نسيت كلمة المرور؟
+          </Link>
         </Field>
 
         <FormError>{error}</FormError>

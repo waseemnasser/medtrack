@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { flushSync } from "react-dom";
 import { useNavigate, Link } from "react-router-dom";
-import { Monitor, Sun, Moon, Accessibility, Bell, ShieldCheck, Info, LogOut, Palette, ChevronLeft } from "lucide-react";
+import { Monitor, Sun, Moon, Accessibility, Bell, ShieldCheck, Info, LogOut, Palette, ChevronLeft, KeyRound } from "lucide-react";
 import PushToggle from "../components/PushToggle";
+import ChangePassword from "../components/ChangePassword";
 import Logo from "../components/Logo";
 import { getTheme, setTheme } from "../utils/theme";
 import { getEasyMode, setEasyMode } from "../utils/easyMode";
@@ -55,7 +56,7 @@ export default function Account() {
         <div className="max-w-3xl space-y-6">
             <div>
                 <h1 className="text-2xl lg:text-3xl font-extrabold text-forest-950">الحساب</h1>
-                <p className="text-forest-700/60 mt-1">العرض والإشعارات والخصوصية</p>
+                <p className="text-forest-700/60 mt-1">العرض والإشعارات وكلمة المرور والخصوصية</p>
             </div>
 
             <Section icon={Palette} color="text-forest-600" title="العرض">
@@ -99,6 +100,10 @@ export default function Account() {
                 </h2>
                 <PushToggle />
             </div>
+
+            <Section icon={KeyRound} color="text-purple-500" title="كلمة المرور">
+                <ChangePassword />
+            </Section>
 
             <Section icon={ShieldCheck} color="text-teal-500" title="الخصوصية">
                 <div className="space-y-2 text-forest-800">
