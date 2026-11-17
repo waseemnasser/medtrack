@@ -3,6 +3,7 @@ import { Outlet, NavLink, Link } from "react-router-dom";
 import { LayoutDashboard, Users, Calendar, Settings, LogOut, Menu, Accessibility, Moon, Sun, Siren } from "lucide-react";
 import api from "../api";
 import InstallPrompt from "./InstallPrompt";
+import HelpButton from "./HelpButton";
 import NotificationBell from "./NotificationBell";
 import Logo from "./Logo";
 import { setTheme } from "../utils/theme";
@@ -165,14 +166,20 @@ export default function Layout() {
                     <Logo size={32} />
                     <span className="font-extrabold text-forest-950">نبض</span>
                 </Link>
-                {!desktop && <NotificationBell />}
+                {!desktop && (
+                    <div className="flex items-center">
+                        <HelpButton />
+                        <NotificationBell />
+                    </div>
+                )}
             </div>
 
             <main className="flex-1 min-w-0 pt-14 lg:pt-0 lg:mr-64">
                 {/* الحاسوب: شريط علوي ثابت للجرس، منفصل عن أزرار الصفحة حتى لا يتكدّس فوقها */}
                 {desktop && (
                     <header className="sticky top-0 z-30 h-16 glass border-b border-sage-200/50 dark:border-forest-800/50">
-                        <div className="h-full max-w-7xl mx-auto px-8 flex items-center justify-end">
+                        <div className="h-full max-w-7xl mx-auto px-8 flex items-center justify-end gap-1">
+                            <HelpButton />
                             <NotificationBell />
                         </div>
                     </header>

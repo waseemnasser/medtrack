@@ -33,7 +33,7 @@ export default function Members() {
             <div className="flex items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl lg:text-3xl font-extrabold text-forest-950">العائلة</h1>
-                    <p className="text-forest-700/60 mt-1">الأشخاص الذين تتابع أدويتهم ومواعيدهم</p>
+                    <p className="text-forest-700/60 mt-1">الأشخاص الذين تتابع أدويتهم ومواعيدهم — وأنت منهم إن كنت تتابع أدويتك</p>
                 </div>
                 <Link to="/members/new" className="btn-primary flex items-center gap-2 flex-shrink-0">
                     <Plus className="w-5 h-5" /> إضافة فرد
