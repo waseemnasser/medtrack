@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
 import Today from "./pages/Today";
 import Members from "./pages/Members";
 import MemberForm from "./pages/MemberForm";
@@ -60,6 +61,7 @@ function GuestOnly({ children }) {
   الصفحة التعريفية /welcome     (عامة)
   صفحة الطبيب  /share/:token   (عامة، بلا تسجيل دخول)
   نسيت كلمة المرور /forgot-password ← رابط البريد /reset-password?token=
+  تأكيد البريد  /verify-email?email=  (بعد التسجيل: رمز من ٦ أرقام)
 */
 export default function App() {
   return (
@@ -70,6 +72,7 @@ export default function App() {
           <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
           <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
           <Route path="/forgot-password" element={<GuestOnly><ForgotPassword /></GuestOnly>} />
+          <Route path="/verify-email" element={<GuestOnly><VerifyEmail /></GuestOnly>} />
           {/* بلا GuestOnly: رابط البريد يعمل حتى لو كان المتصفح داخلاً بجلسة قديمة */}
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/welcome" element={<Suspense fallback={null}><Landing /></Suspense>} />

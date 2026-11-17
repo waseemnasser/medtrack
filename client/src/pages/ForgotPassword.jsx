@@ -40,7 +40,7 @@ export default function ForgotPassword() {
             ستصله رسالة فيها رابط لتعيين كلمة مرور جديدة.
           </p>
           <p className="text-sm text-forest-700/70">
-            الرابط صالح ٣٠ دقيقة ولمرة واحدة. لم تصل الرسالة؟ تفقّد مجلد الرسائل غير المرغوب فيها،
+            الرابط صالح 30 دقيقة ولمرة واحدة. لم تصل الرسالة؟ تفقّد مجلد الرسائل غير المرغوب فيها،
             أو اطلب رابطاً جديداً بعد دقيقة.
           </p>
           <button type="button" onClick={() => setSent(false)} className="text-sm text-forest-600 font-semibold hover:underline">

@@ -27,6 +27,11 @@ export default function Login() {
       localStorage.setItem("token", res.data.token);
       navigate("/", { replace: true });
     } catch (err) {
+      // كلمة المرور صحيحة والبريد لم يُؤكَّد: رمز جديد في الطريق، وصفحة التأكيد
+      if (err.response?.data?.code === "EMAIL_UNVERIFIED") {
+        navigate(`/verify-email?email=${encodeURIComponent(err.response.data.email)}`);
+        return;
+      }
       setError(!err.response
         ? "تعذّر الوصول إلى الخادم. نسخة العرض على الإنترنت تعرض الصفحة التعريفية فقط."
         : err.response.data?.error || "تعذّر تسجيل الدخول. تحقّق من البريد وكلمة المرور.");

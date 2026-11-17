@@ -29,9 +29,11 @@ export default function Register() {
     setLoading(true);
     try {
       const res = await api.post("/auth/register", { name, email: address, password, keep_email: keepEmail });
-      localStorage.setItem("token", res.data.token);
-      // حساب جديد بلا أفراد بعد: الخطوة الأولى إضافة فرد
-      navigate("/members/new", { replace: true });
+      // الحساب أُنشئ غير مؤكَّد: رمز من ٦ أرقام وصل البريد، والدخول بعد كتابته
+      navigate(`/verify-email?email=${encodeURIComponent(res.data.email)}`, {
+        replace: true,
+        state: { fresh: true, mailFailed: res.data.mail_failed },
+      });
     } catch (err) {
       setSuggestion(err.response?.data?.suggestion || "");
       setError(!err.response
