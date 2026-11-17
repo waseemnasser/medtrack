@@ -75,6 +75,8 @@ export default function NotificationBell() {
         if (!("serviceWorker" in navigator)) return;
         let stop;
         const onMessage = (e) => {
+            // جرعة أُكّدت من زر الإشعار: صار إشعارها مقروءاً، نحدّث العدد بلا رنين
+            if (e.data?.type === "dose-confirmed") return loadList();
             if (e.data?.type !== "notification") return;
             setRinging(true);
             clearTimeout(stop);

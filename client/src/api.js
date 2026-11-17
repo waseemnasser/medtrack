@@ -1,8 +1,11 @@
 import axios from "axios";
 
+// عنوان الخادم: محلياً localhost، ويمكن تغييره عند النشر بمتغيّر VITE_API_URL
+// (يُمرَّر أيضاً إلى sw.js في main.jsx لزر «تم الأخذ» في الإشعار)
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
 const api = axios.create({
-    // عنوان الخادم: محلياً localhost، ويمكن تغييره عند النشر بمتغيّر VITE_API_URL
-    baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+    baseURL: API_URL,
 });
 
 // يرفق التوكن تلقائياً مع كل طلب

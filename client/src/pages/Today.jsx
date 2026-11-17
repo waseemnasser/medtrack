@@ -50,6 +50,19 @@ export default function Today() {
             .catch(() => {});
     }, []);
 
+    // تأكيد من زر «تم الأخذ» في الإشعار والصفحة مفتوحة: تتحدّث الجرعات بلا إعادة تحميل
+    useEffect(() => {
+        if (!("serviceWorker" in navigator)) return;
+        const onMessage = (e) => {
+            if (e.data?.type !== "dose-confirmed") return;
+            api.get("/doses/today")
+                .then((res) => { setDate(res.data.date); setDoses(res.data.doses); })
+                .catch(() => {});
+            loadCourses();
+        };
+        navigator.serviceWorker.addEventListener("message", onMessage);
+        return () => navigator.serviceWorker.removeEventListener("message", onMessage);
+    }, []);
 
     // الكورسات — تُعاد بعد كل تأكيد، فيختفي تنبيه «فاتت جرعتان» فور الأخذ
     function loadCourses() {
