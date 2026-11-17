@@ -3,6 +3,7 @@ import { FeedbackContext } from "./context";
 import { AlertTriangle, HelpCircle, CheckCircle2 } from "lucide-react";
 
 const TOAST_MS = 3200;
+const ACTION_TOAST_MS = 7000;
 
 export default function FeedbackProvider({ children }) {
     const [dialog, setDialog] = useState(null); // { title, message, confirmLabel, cancelLabel, danger }
@@ -20,11 +21,13 @@ export default function FeedbackProvider({ children }) {
         });
     }, []);
 
-    const toast = useCallback((message, type = "success") => {
+    // action: زر داخل الرسالة مثل «تراجع» — تبقى الرسالة أطول ليتسع الوقت للضغط
+    const dismiss = useCallback((id) => setToasts((t) => t.filter((x) => x.id !== id)), []);
+    const toast = useCallback((message, type = "success", { action } = {}) => {
         const id = ++nextId.current;
-        setToasts((t) => [...t, { id, message, type }]);
-        setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), TOAST_MS);
-    }, []);
+        setToasts((t) => [...t, { id, message, type, action }]);
+        setTimeout(() => dismiss(id), action ? ACTION_TOAST_MS : TOAST_MS);
+    }, [dismiss]);
 
     // <dialog> الأصلي: يحبس التركيز داخله ويُغلق بزر Esc ويقرأه قارئ الشاشة
     useEffect(() => {
@@ -97,7 +100,14 @@ export default function FeedbackProvider({ children }) {
                         {t.type === "error"
                             ? <AlertTriangle className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
                             : <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-forest-300" aria-hidden="true" />}
-                        {t.message}
+                        <span className="flex-1">{t.message}</span>
+                        {t.action && (
+                            <button type="button"
+                                onClick={() => { dismiss(t.id); t.action.onClick(); }}
+                                className="font-bold text-forest-300 hover:text-white underline-offset-4 hover:underline px-1">
+                                {t.action.label}
+                            </button>
+                        )}
                     </div>
                 ))}
             </div>

@@ -57,4 +57,21 @@ async function confirmDose(userId, medicationId, scheduledAt, { keepConfirmed = 
     return result.rows[0];
 }
 
-module.exports = { signDoseAction, verifyDoseAction, confirmDose };
+// زر «تراجع» بعد «تم الأخذ» بالخطأ: يحذف التأكيد فتعود الجرعة «لم تؤخذ».
+// خلال ربع ساعة من التأكيد فقط — سجل الالتزام القديم لا يُعدَّل من هنا.
+// يُرجع true إن أُلغي التأكيد.
+const UNDO_MINUTES = 15;
+async function undoDose(userId, medicationId, scheduledAt) {
+    const result = await pool.query(
+        `DELETE FROM dose_logs dl
+          USING medications m, members mem
+          WHERE dl.medication_id = m.id AND m.member_id = mem.id
+            AND mem.user_id = $1 AND dl.medication_id = $2 AND dl.scheduled_at = $3
+            AND dl.status = 'taken'
+            AND dl.confirmed_at > now() - make_interval(mins => $4)`,
+        [userId, medicationId, scheduledAt, UNDO_MINUTES]
+    );
+    return result.rowCount > 0;
+}
+
+module.exports = { signDoseAction, verifyDoseAction, confirmDose, undoDose, UNDO_MINUTES };

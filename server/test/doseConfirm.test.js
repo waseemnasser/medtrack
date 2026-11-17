@@ -6,7 +6,7 @@ const assert = require("node:assert/strict");
 const jwt = require("jsonwebtoken");
 const pool = require("../db");
 const migrate = require("../migrate");
-const { signDoseAction, verifyDoseAction, confirmDose } = require("../doseConfirm");
+const { signDoseAction, verifyDoseAction, confirmDose, undoDose } = require("../doseConfirm");
 
 describe("dose action token", () => {
     const action = { userId: 7, medicationId: 42, scheduledAt: "2026-11-17 08:00:00" };
@@ -80,5 +80,26 @@ describe("confirming a dose", () => {
         assert.equal(String(again.confirmed_at), String(first.confirmed_at));
         const n = await pool.query("SELECT COUNT(*)::int AS n FROM dose_logs WHERE medication_id = $1", [medId]);
         assert.equal(n.rows[0].n, 1);
+    });
+
+    const count = async () => (await pool.query(
+        "SELECT COUNT(*)::int AS n FROM dose_logs WHERE medication_id = $1", [medId])).rows[0].n;
+
+    test("undo: another user cannot undo the dose", async () => {
+        assert.equal(await undoDose(stranger, medId, at), false);
+        assert.equal(await count(), 1);
+    });
+
+    test("undo right after confirming removes the log", async () => {
+        assert.equal(await undoDose(owner, medId, at), true);
+        assert.equal(await count(), 0);
+        assert.equal(await undoDose(owner, medId, at), false);
+    });
+
+    test("undo is refused once the window has passed", async () => {
+        await confirmDose(owner, medId, at);
+        await pool.query("UPDATE dose_logs SET confirmed_at = now() - interval '20 minutes' WHERE medication_id = $1", [medId]);
+        assert.equal(await undoDose(owner, medId, at), false);
+        assert.equal(await count(), 1);
     });
 });

@@ -2,7 +2,7 @@ const express = require("express");
 const pool = require("../db");
 const auth = require("../middleware/auth");
 const { courses } = require("../course");
-const { confirmDose, verifyDoseAction } = require("../doseConfirm");
+const { confirmDose, verifyDoseAction, undoDose } = require("../doseConfirm");
 
 const router = express.Router();
 
@@ -100,6 +100,21 @@ router.post("/confirm", async (req, res) => {
         const log = await confirmDose(req.userId, medication_id, scheduled_at);
         if (!log) return res.status(403).json({ error: "غير مصرح" });
         res.json(log);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// «تراجع» بعد الضغط على «تم الأخذ» بالخطأ
+router.post("/undo", async (req, res) => {
+    const { medication_id, scheduled_at } = req.body;
+    if (!medication_id || !scheduled_at)
+        return res.status(400).json({ error: "البيانات ناقصة" });
+
+    try {
+        const undone = await undoDose(req.userId, medication_id, scheduled_at);
+        if (!undone) return res.status(409).json({ error: "لم يعد التراجع ممكناً عن هذه الجرعة" });
+        res.json({ ok: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

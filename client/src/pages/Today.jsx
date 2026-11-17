@@ -87,12 +87,36 @@ export default function Today() {
                 )
             );
             if (dose.course) loadCourses();
+            // ضغطة بالخطأ؟ «تراجع» بدل نافذة تأكيد قبل كل جرعة
+            toast(`سُجّلت جرعة ${dose.medication_name}`, "success", {
+                action: { label: "تراجع", onClick: () => undo(dose) },
+            });
         } catch {
             toast("تعذّر تسجيل الجرعة، حاول مجدداً", "error");
         } finally {
             setSaving(null);
         }
     };
+    const undo = async (dose) => {
+        try {
+            await api.post("/doses/undo", {
+                medication_id: dose.medication_id,
+                scheduled_at: `${date} ${dose.time_of_day}`,
+            });
+            setDoses((prev) =>
+                prev.map((d) =>
+                    d.schedule_id === dose.schedule_id
+                        ? { ...d, status: null, confirmed_at: null, justTaken: false }
+                        : d
+                )
+            );
+            if (dose.course) loadCourses();
+            toast("أُلغي تسجيل الجرعة");
+        } catch (err) {
+            toast(err.response?.data?.error || "تعذّر التراجع، حاول مجدداً", "error");
+        }
+    };
+
     // يُستدعى عند حلول موعد جرعة غير مؤكّدة
     const handleAlarm = (dose) => {
         playBeep();

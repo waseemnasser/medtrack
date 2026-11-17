@@ -9,6 +9,7 @@ export const FeedbackContext = createContext(null);
  *   if (!(await confirm({ title, message, confirmLabel, danger: true }))) return;
  *   toast("حُذف الموعد");
  *   toast("تعذّر الحذف، حاول مجدداً", "error");
+ *   toast("سُجّلت الجرعة", "success", { action: { label: "تراجع", onClick: undo } });
  */
 export function useFeedback() {
     const ctx = useContext(FeedbackContext);
