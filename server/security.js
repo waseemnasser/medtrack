@@ -70,7 +70,11 @@ function applySecurity(app) {
     }));
 
     app.use("/api", apiLimiter);
-    app.use(["/api/auth/login", "/api/auth/register"], authLimiter);
+    // ومعها مسارات كلمة المرور: لا تخمين للقديمة، ولا إغراق بُرُد الناس برسائل استعادة
+    app.use([
+        "/api/auth/login", "/api/auth/register",
+        "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/change-password",
+    ], authLimiter);
 }
 
 module.exports = { applySecurity, shareLimiter };

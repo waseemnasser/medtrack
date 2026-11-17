@@ -47,6 +47,16 @@ const MIGRATIONS = [
     "CREATE INDEX IF NOT EXISTS emergency_contacts_member ON emergency_contacts (member_id, position)",
     // أُزيل التأكيد الصوتي، فلم يعد لطريقة التأكيد (لمسة أو صوت) معنى
     "ALTER TABLE dose_logs DROP COLUMN IF EXISTS method",
+    // إصدار كلمة المرور داخل توكن الدخول: يرتفع عند تغييرها فتخرج الجلسات الأخرى
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS password_version INTEGER NOT NULL DEFAULT 0",
+    // روابط «نسيت كلمة المرور»: بصمة الرمز فقط (sha256)، صالحة 30 دقيقة، مرة واحدة
+    `CREATE TABLE IF NOT EXISTS password_resets (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        token_hash TEXT NOT NULL UNIQUE,
+        expires_at TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`,
 ];
 
 async function migrate() {
