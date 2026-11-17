@@ -1,5 +1,8 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from "react-router-dom";
+import {
+  createBrowserRouter, createRoutesFromElements, RouterProvider,
+  Route, Navigate, Outlet, useLocation, useParams,
+} from "react-router-dom";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -63,44 +66,47 @@ function GuestOnly({ children }) {
   نسيت كلمة المرور /forgot-password ← رابط البريد /reset-password?token=
   تأكيد البريد  /verify-email?email=  (بعد التسجيل: رمز من ٦ أرقام)
 */
+// موجِّه «بيانات» (data router) بدل BrowserRouter: يتيح useBlocker، فتسأل
+// النماذج قبل مغادرتها بتعديلات لم تُحفظ (utils/unsaved.js)
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route element={<FeedbackProvider><Outlet /></FeedbackProvider>}>
+      {/* صفحات بلا هيكل */}
+      <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
+      <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
+      <Route path="/forgot-password" element={<GuestOnly><ForgotPassword /></GuestOnly>} />
+      <Route path="/verify-email" element={<GuestOnly><VerifyEmail /></GuestOnly>} />
+      {/* بلا GuestOnly: رابط البريد يعمل حتى لو كان المتصفح داخلاً بجلسة قديمة */}
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/welcome" element={<Suspense fallback={null}><Landing /></Suspense>} />
+      <Route path="/share/:token" element={<DoctorView />} />
+
+      {/* صفحات داخل الهيكل */}
+      <Route element={<Protected><Layout /></Protected>}>
+        <Route path="/" element={<Today />} />
+
+        <Route path="/members" element={<Members />} />
+        <Route path="/members/new" element={<MemberForm />} />
+        <Route path="/members/:id" element={<MemberProfile />} />
+        <Route path="/members/:id/edit" element={<MemberForm />} />
+        <Route path="/members/:id/medications/new" element={<MedicationForm />} />
+        <Route path="/members/:id/medications/:medId/edit" element={<MedicationForm />} />
+        <Route path="/members/:id/share" element={<ShareMoved />} />
+
+        <Route path="/appointments" element={<Appointments />} />
+        <Route path="/appointments/new" element={<AppointmentForm />} />
+        <Route path="/appointments/:id/edit" element={<AppointmentForm />} />
+
+        <Route path="/emergency" element={<Emergency />} />
+
+        <Route path="/account" element={<Account />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Route>
+  ),
+  { basename: import.meta.env.BASE_URL.replace(/\/$/, "") || "/" }
+);
+
 export default function App() {
-  return (
-    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, "") || "/"}>
-      <FeedbackProvider>
-        <Routes>
-          {/* صفحات بلا هيكل */}
-          <Route path="/login" element={<GuestOnly><Login /></GuestOnly>} />
-          <Route path="/register" element={<GuestOnly><Register /></GuestOnly>} />
-          <Route path="/forgot-password" element={<GuestOnly><ForgotPassword /></GuestOnly>} />
-          <Route path="/verify-email" element={<GuestOnly><VerifyEmail /></GuestOnly>} />
-          {/* بلا GuestOnly: رابط البريد يعمل حتى لو كان المتصفح داخلاً بجلسة قديمة */}
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/welcome" element={<Suspense fallback={null}><Landing /></Suspense>} />
-          <Route path="/share/:token" element={<DoctorView />} />
-
-          {/* صفحات داخل الهيكل */}
-          <Route element={<Protected><Layout /></Protected>}>
-            <Route path="/" element={<Today />} />
-
-            <Route path="/members" element={<Members />} />
-            <Route path="/members/new" element={<MemberForm />} />
-            <Route path="/members/:id" element={<MemberProfile />} />
-            <Route path="/members/:id/edit" element={<MemberForm />} />
-            <Route path="/members/:id/medications/new" element={<MedicationForm />} />
-            <Route path="/members/:id/medications/:medId/edit" element={<MedicationForm />} />
-            <Route path="/members/:id/share" element={<ShareMoved />} />
-
-            <Route path="/appointments" element={<Appointments />} />
-            <Route path="/appointments/new" element={<AppointmentForm />} />
-            <Route path="/appointments/:id/edit" element={<AppointmentForm />} />
-
-            <Route path="/emergency" element={<Emergency />} />
-
-            <Route path="/account" element={<Account />} />
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-      </FeedbackProvider>
-    </BrowserRouter>
-  );
+  return <RouterProvider router={router} />;
 }
