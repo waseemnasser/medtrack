@@ -5,6 +5,9 @@ import api from "../api";
 import useDoseAlarm from "../useDoseAlarm";
 import { playBeep } from "../beep";
 import PushToggle from "../components/PushToggle";
+import SetupGuide from "../components/SetupGuide";
+import { pushSupported, pushPermission, syncPush } from "../push";
+import { markSetupDone, isPushStepSkipped } from "../utils/setup";
 import Skeleton from "../components/Skeleton";
 import { useFeedback } from "../feedback/context";
 import { gsap, useGSAP, MOTION_OK } from "../utils/motion";
@@ -21,6 +24,12 @@ export default function Today() {
     const [appts, setAppts] = useState([]);     // مواعيد اليوم والغد
     const [courses, setCourses] = useState([]); // كورسات جارية ومكتملة حديثاً
     const { toast } = useFeedback();
+    // حساب جديد؟ { hasMember, hasMed, medMemberId, medMemberName } — null أثناء الفحص
+    const [setup, setSetup] = useState(null);
+    // التذكير على هذا الجهاز: checking | on | idle | blocked | unsupported
+    const [pushState, setPushState] = useState(() =>
+        !pushSupported() ? "unsupported" : pushPermission() === "denied" ? "blocked" : "checking");
+    const [pushSkipped, setPushSkipped] = useState(isPushStepSkipped);
 
     useEffect(() => {
         const load = async () => {
@@ -28,6 +37,10 @@ export default function Today() {
                 const res = await api.get("/doses/today");
                 setDate(res.data.date);
                 setDoses(res.data.doses);
+                // جرعات اليوم موجودة = الحساب جاهز، بلا طلبات إضافية.
+                // وإلا نسأل: هل أضاف أحداً؟ ودواءً؟ (دواء لا جرعة له اليوم يكفي)
+                if (res.data.doses.length) setSetup({ hasMember: true, hasMed: true });
+                else setSetup(await checkSetup());
             } catch {
                 setError("تعذّر تحميل جرعات اليوم. تأكّد من الاتصال وحاول مجدداً.");
             } finally {
@@ -49,6 +62,20 @@ export default function Today() {
             .then((res) => setAppts(res.data.filter((a) => dayOffset(a.scheduled_at) <= 1)))
             .catch(() => {});
     }, []);
+
+    // الجهاز مشترك من قبل؟ نعيد ربطه بالحساب كما يفعل PushToggle
+    useEffect(() => {
+        if (pushState !== "checking") return;
+        let alive = true;
+        syncPush()
+            .then((on) => alive && setPushState(on ? "on" : "idle"))
+            .catch(() => alive && setPushState("idle"));
+        return () => { alive = false; };
+    }, [pushState]);
+
+    useEffect(() => {
+        if (setup?.hasMed) markSetupDone();
+    }, [setup]);
 
     // تأكيد من زر «تم الأخذ» في الإشعار والصفحة مفتوحة: تتحدّث الجرعات بلا إعادة تحميل
     useEffect(() => {
@@ -133,7 +160,32 @@ export default function Today() {
         return now > doseTime;
     };
 
-    if (loading) return <Skeleton variant="today" rows={3} />;
+    // لا نعرض أصفاراً لحظةً قبل بطاقة الخطوات
+    if (loading || (!setup && !error)) return <Skeleton variant="today" rows={3} />;
+
+    const basicsMissing = setup && (!setup.hasMember || !setup.hasMed);
+    const pushStepOpen = setup?.hasMed && !pushSkipped && ["idle", "blocked", "unsupported"].includes(pushState);
+    const guide = (basicsMissing || pushStepOpen) && (
+        <SetupGuide
+            {...setup}
+            pushState={pushState}
+            onPushOn={() => { setPushState("on"); toast("فُعّل التذكير على هذا الجهاز"); }}
+            onSkipPush={() => setPushSkipped(true)}
+        />
+    );
+
+    // حساب بلا شخص أو بلا دواء: لا شيء يُعرض غير الطريق إلى أول جرعة
+    if (basicsMissing) {
+        return (
+            <div className="max-w-2xl mx-auto space-y-6">
+                <div>
+                    <h1 className="text-2xl lg:text-3xl font-extrabold text-forest-950">أهلاً بك في نبض</h1>
+                    <p className="text-forest-700/60 mt-1">تنظيم أدويتك وأدوية من تتابع علاجهم، وتذكير بكل جرعة وموعد.</p>
+                </div>
+                {guide}
+            </div>
+        );
+    }
 
     const sorted = [...doses].sort((a, b) => a.time_of_day.localeCompare(b.time_of_day));
     const takenCount = doses.filter((d) => d.status === "taken").length;
@@ -184,6 +236,8 @@ export default function Today() {
                     </Link>
                 </div>
             </div>
+
+            {guide}
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {stats.map((stat) => (
@@ -236,8 +290,8 @@ export default function Today() {
                                 <div className="w-16 h-16 bg-sage-100 dark:bg-forest-800/60 rounded-full flex items-center justify-center mx-auto mb-4">
                                     <Pill className="w-8 h-8 text-sage-400 dark:text-forest-600" />
                                 </div>
-                                <p className="text-forest-700/60">لا توجد جرعات اليوم.</p>
-                                <Link to="/members" className="btn-secondary inline-block mt-4">أضف دواءً من ملف أحد أفراد العائلة</Link>
+                                <p className="text-forest-700/60">لا جرعات مجدولة اليوم.</p>
+                                <Link to="/members" className="btn-secondary inline-block mt-4">أدوية العائلة</Link>
                             </div>
                         ) : rest.length === 0 && doses.length > 0 ? (
                             <p className="text-sm text-forest-700/60 text-center py-4">لا جرعات أخرى اليوم.</p>
@@ -273,7 +327,8 @@ export default function Today() {
                     <QuickActions />
                     {courses.length > 0 && <CourseList items={courses} />}
                     {refills.length > 0 && <RefillList items={refills} />}
-                    <PushToggle hideWhenOn />
+                    {/* بطاقة الخطوات تعرض التذكير بنفسها؛ هذا لمن اختار «لاحقاً» */}
+                    {pushSkipped && pushState !== "on" && <PushToggle hideWhenOn />}
                 </div>
             </div>
         </div>
@@ -593,4 +648,24 @@ function SoonAppointments({ items }) {
             )}
         </SideCard>
     );
+}
+
+// حساب جديد: هل أضاف شخصاً؟ وهل لأحدهم دواء؟ (يُستدعى فقط إن لم تكن جرعات اليوم)
+// الخطوة الثانية تقترح أول شخص — غالباً المستخدم نفسه
+async function checkSetup() {
+    try {
+        const { data: members } = await api.get("/members");
+        if (!members.length) return { hasMember: false, hasMed: false };
+        const lists = await Promise.all(members.map((m) =>
+            api.get(`/medications/member/${m.id}`).then((r) => r.data).catch(() => [])));
+        return {
+            hasMember: true,
+            hasMed: lists.some((l) => l.length > 0),
+            medMemberId: members[0].id,
+            medMemberName: members[0].name,
+        };
+    } catch {
+        // تعذّر الفحص: لوحة اليوم العادية أفضل من بطاقة خاطئة
+        return { hasMember: true, hasMed: true };
+    }
 }

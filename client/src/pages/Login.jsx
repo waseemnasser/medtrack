@@ -5,6 +5,7 @@ import api from "../api";
 import AuthLayout from "../components/AuthLayout";
 import PasswordInput from "../components/PasswordInput";
 import Field, { FormError } from "../components/Field";
+import { clearSetup } from "../utils/setup";
 
 export default function Login() {
   const location = useLocation();
@@ -25,6 +26,7 @@ export default function Login() {
     try {
       const res = await api.post("/auth/login", { email, password });
       localStorage.setItem("token", res.data.token);
+      clearSetup();
       navigate("/", { replace: true });
     } catch (err) {
       // كلمة المرور صحيحة والبريد لم يُؤكَّد: رمز جديد في الطريق، وصفحة التأكيد

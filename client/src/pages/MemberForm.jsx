@@ -11,6 +11,7 @@ import { useFeedback } from "../feedback/context";
 import { Save, Trash2, Siren } from "lucide-react";
 import { birthDateError, dateLimits } from "../utils/validate";
 import { useUnsavedChanges } from "../utils/unsaved";
+import { isSetupDone } from "../utils/setup";
 
 const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
@@ -94,8 +95,14 @@ export default function MemberForm() {
             } else if (isEdit) {
                 toast("حُفظت التعديلات");
             }
-            // بعد الإضافة نفتح ملف الفرد مباشرة: الخطوة التالية غالباً إضافة دواء
             allowLeave();
+            // حساب لم يُجهَّز بعد: نعود إلى بطاقة الخطوات في «اليوم» — الخطوة التالية دواؤه الأول
+            if (!isEdit && !isSetupDone()) {
+                toast(`أُضيف ${form.name.trim()} — الخطوة التالية: دواؤه الأول`);
+                navigate("/", { replace: true });
+                return;
+            }
+            // بعد الإضافة نفتح ملف الفرد مباشرة: الخطوة التالية غالباً إضافة دواء
             navigate(`/members/${memberId}`, { replace: true });
         } catch (err) {
             setError(err.response?.data?.error || "تعذّر الحفظ، حاول مجدداً");
@@ -127,7 +134,8 @@ export default function MemberForm() {
 
     return (
         <div className="max-w-2xl">
-            <PageHeader title={isEdit ? "تعديل بيانات الفرد" : "إضافة فرد جديد"} back={parent} />
+            <PageHeader title={isEdit ? "تعديل بيانات الفرد" : "إضافة فرد جديد"} back={parent}
+                subtitle={isEdit ? undefined : "شخص تتابع أدويته — أو أنت نفسك"} />
 
             {/* noValidate: رسائلنا العربية (utils/validate.js) بدل فقاعة المتصفح بلغته؛ min/max تبقى لتقويم الاختيار */}
             <form className="card p-6 space-y-5" onSubmit={submit} noValidate>

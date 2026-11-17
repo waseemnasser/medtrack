@@ -4,6 +4,7 @@ import { ArrowLeft, MailCheck } from "lucide-react";
 import api from "../api";
 import AuthLayout from "../components/AuthLayout";
 import Field, { FormError } from "../components/Field";
+import { clearSetup } from "../utils/setup";
 
 const RESEND_SECONDS = 60; // مثل الخادم (emailVerify.js)
 
@@ -39,6 +40,7 @@ export default function VerifyEmail() {
     try {
       const res = await api.post("/auth/verify-email", { email, code });
       localStorage.setItem("token", res.data.token);
+      clearSetup();
       navigate(fresh ? "/members/new" : "/", { replace: true });
     } catch (err) {
       setExpired(Boolean(err.response?.data?.expired));

@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { disablePushForThisDevice } from "../push";
 import { useFeedback } from "../feedback/context";
+import { clearSetup } from "./setup";
 
 // تسجيل الخروج — من صفحة الحساب ومن الشريط الجانبي.
 // هذا الجهاز لا يستقبل تذكيرات هذا الحساب بعد الخروج —
@@ -13,6 +14,7 @@ export async function logout(navigate) {
         // الخادم لا يستجيب؟ نكمل الخروج على أي حال
     }
     localStorage.removeItem("token");
+    clearSetup();
     navigate("/login", { replace: true });
 }
 

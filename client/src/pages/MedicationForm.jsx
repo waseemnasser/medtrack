@@ -8,6 +8,7 @@ import { useFeedback } from "../feedback/context";
 import { formatDate, periodOf } from "../utils/format";
 import { dateLimits, startDateError, strengthError, unitsPerDoseError, unitsTotalError } from "../utils/validate";
 import { useUnsavedChanges } from "../utils/unsaved";
+import { isSetupDone } from "../utils/setup";
 import { Pill, Activity, Clock, Package, Lock, Save, Plus, Trash2, X, Search, AlertTriangle } from "lucide-react";
 
 const DAY_LABELS = [
@@ -303,9 +304,15 @@ export default function MedicationForm() {
                     }
                 }
             }
+            allowLeave();
+            // أول دواء في الحساب: إلى «اليوم» لتظهر جرعاته وتكتمل خطوة التذكير
+            if (!isEdit && !isSetupDone()) {
+                toast(`أُضيف ${form.name.trim()} — ستظهر جرعاته في «اليوم»`);
+                navigate("/", { replace: true });
+                return;
+            }
             toast(isEdit ? "حُفظت تعديلات الدواء" : `أُضيف ${form.name.trim()}`);
             // replace: زر الرجوع بعد الحفظ لا يعيد فتح النموذج
-            allowLeave();
             navigate(parent, { replace: true });
         } catch (err) {
             setError(err.response?.data?.error || "تعذّر الحفظ، حاول مجدداً");
